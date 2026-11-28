@@ -1,3 +1,4 @@
+import {ScorePassage} from '../src/score-passage';
 import {recommendHymnGuitarCapos} from "../src/hymn-guitar-capos";
 import {hasSwing,swingAudio} from '../src/hymn-swing';
 import type {AudioTracks} from 'abcjs';
@@ -58,4 +59,24 @@ export function renderNarrowKeyboard(){
  const frame=host.getBoundingClientRect();
  const outside=[...host.querySelectorAll<SVGGraphicsElement>('.abcjs-note,.abcjs-lyric,.hymn-fingering,.abcjs-staff-extra')].filter(visibleScoreInk).flatMap(n=>{const b=n.getBoundingClientRect();return b.width&&(b.left<frame.left-1||b.right>frame.right+1)?[n.textContent]:[];});
  const marks=host.querySelectorAll('.hymn-fingering').length;frameHost.remove();return {outside,marks};
+}
+
+/** Passage overlays share the renderer's scroll frame and content coordinates. */
+export function renderScrollablePassage(keep=false){
+ const frame=document.createElement('div');frame.className='sequence-score';frame.style.width='220px';document.body.append(frame);
+ const paper=document.createElement('div');frame.append(paper);
+ const abc='X:1\nM:4/4\nL:1/8\nK:Eb\nG F G A B A G F |]\nw: one two three four five six now end';
+ const events=drawPracticeScore(paper,abc,220,{fitHymnSystems:true,playback:()=>{}});
+ const passage=new ScorePassage(paper,()=>{},()=>{},()=>{},()=>{},()=>{});passage.bind(events);
+ const overflow=getComputedStyle(paper).overflowX,touchAction=getComputedStyle(paper).touchAction;
+ paper.scrollLeft=paper.scrollWidth;const max=paper.scrollWidth-paper.clientWidth,left=paper.scrollLeft;
+ // Select with the keyboard after horizontal scrolling, then compare the actual
+ // handle centre to its independently drawn musical boundary.
+ frame.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',shiftKey:true,bubbles:true}));
+ const handle=paper.querySelector<HTMLElement>('[data-passage-handle="start"]')!;
+ handle.style.position='absolute';handle.style.width='44px';
+ const shade=paper.querySelector<SVGGraphicsElement>('.passage-shade')!;
+ const handleOffset=handle.getBoundingClientRect().left+22-shade.getBoundingClientRect().left;
+ if(keep){passage.clear();paper.scrollLeft=0;}else{passage.dispose();frame.remove();}
+ return {overflow,touchAction,max,left,handleOffset};
 }

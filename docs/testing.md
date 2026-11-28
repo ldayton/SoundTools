@@ -597,7 +597,9 @@ fingerings, full accompaniment TAB, hidden-Voice source identity, score framing,
 and exact source pitches/timing (including the existing swing transformation).
 A separate synthetic Voice/keyboard opening checks actual phone page bounds,
 including named-staff space, key signatures, chord labels and fingerings; it
-rejects overflow that would still fit inside an oversized SVG.
+rejects overflow that would still fit inside an oversized SVG. The same owner
+checks passage binding preserves local scroll, aligned handles after scrolling,
+and native Chromium touch panning without accidental passage selection.
 `score-view.browser.ts` owns desktop/phone controls, independent visibility,
 reload persistence and chord interaction. `fingerings.browser.ts` owns piano
 key changes. Existing musical edition goldens remain the music regression owner.

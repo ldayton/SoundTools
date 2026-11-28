@@ -48,6 +48,7 @@ export class ScorePassage {
   private nodes = new Map<Element, number>();
   private lines: ScoreLine[] = [];
   private scrollFrame = 0;
+  private horizontallyScrollable = false;
   private get viewport() {
     return this.paper.closest<HTMLElement>(".sequence-score")!;
   }
@@ -124,6 +125,9 @@ export class ScorePassage {
       if (!p || p.id !== e.pointerId) return;
       p.lastX = e.clientX;
       p.lastY = e.clientY;
+      // Wide indivisible bars need native touch panning. Double-tap a bar
+      // and drag its handles to select there; fitted scores keep drag selection.
+      if(e.pointerType === "touch" && this.horizontallyScrollable && !p.side)return;
       // Vertical touch gestures remain native scrolling; horizontal drags select.
       if (
         !p.moved &&
@@ -317,8 +321,12 @@ export class ScorePassage {
   bind(events: PracticeEvent[]) {
     if (this.pointer) this.cancelGesture();
     this.events = events;
-    // abcjs clips its responsive host; handles extend into the score page's existing margins.
-    this.paper.style.overflow = "visible";
+    // Reflow owns its scroll frame. Passage handles must not disable access
+    // to an indivisible bar wider than that frame. Legacy wrapped views keep
+    // their existing margin policy.
+    if(this.paper.dataset.scoreLayout !== "reflow")this.paper.style.overflow = "visible";
+    this.horizontallyScrollable=this.paper.scrollWidth>this.paper.clientWidth+1;
+    this.paper.style.touchAction=this.horizontallyScrollable?"pan-x pan-y":"";
     this.paintedCursor = -1;
     this.selection.bind(events.length);
     this.nodes.clear();
@@ -651,8 +659,8 @@ export class ScorePassage {
         const b = new DOMPoint(0, block.bottom).matrixTransform(matrix);
         const handle = this.handles.get(side)!;
         handle.hidden = false;
-        handle.style.left = `${a.x - paper.left - 22}px`;
-        handle.style.top = `${a.y - paper.top - 12}px`;
+        handle.style.left = `${a.x - paper.left + this.paper.scrollLeft - 22}px`;
+        handle.style.top = `${a.y - paper.top + this.paper.scrollTop - 12}px`;
         handle.style.height = `${Math.max(44, b.y - a.y + 24)}px`;
         const point = this.events[this.range?.[side] ?? 0]?.scorePosition;
         handle.setAttribute("aria-valuemin", "1");

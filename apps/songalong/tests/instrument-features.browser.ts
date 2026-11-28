@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {expect} from '@playwright/test';
 import {build} from 'esbuild';
 import {launchBrowser,newPage,closeBrowser,captureFailure} from '../../../scripts/ci/browser-harness.cjs';
 import type * as Fixture from '../../../packages/music-practice/test-fixtures/instrument-features';
@@ -10,10 +11,34 @@ try {
  const discover=await newPage(browser);await discover.goto('about:blank');await discover.addScriptTag({content:bundle.outputFiles[0].text});
  const narrowKeyboard=await discover.evaluate(()=>window.InstrumentFeatures.renderNarrowKeyboard());
  assert(narrowKeyboard.marks>0);assert.deepEqual(narrowKeyboard.outside,[],'Named Voice/keyboard opening, signatures and hints fit the phone page');
+ const scrollable=await discover.evaluate(()=>window.InstrumentFeatures.renderScrollablePassage());
+ assert.equal(scrollable.overflow,'auto');assert.equal(scrollable.touchAction,'pan-x pan-y');
+ assert(scrollable.max>0);assert.equal(scrollable.left,scrollable.max);assert(Math.abs(scrollable.handleOffset)<1,'Passage handles align after horizontal scrolling');
  const wrapped=await discover.evaluate(()=>window.InstrumentFeatures.renderWrappedAccompaniment());
  assert(wrapped.systems>1);assert.equal(wrapped.notes,20,'TAB continuation headers must not introduce extra instrument notes');
  assert.deepEqual(wrapped.misplacedLyrics,[],'Voice lyrics belong only to Voice across system boundaries');
  const ids=await discover.evaluate(()=>[...window.InstrumentFeatures.editions]);await discover.close();
+ if(browser.browserType().name()==='chromium'){
+  const touch=await newPage(browser,{viewport:{width:260,height:500},hasTouch:true});
+  await touch.goto('about:blank');await touch.addScriptTag({content:bundle.outputFiles[0].text});
+  const touchLayout=await touch.evaluate(()=>window.InstrumentFeatures.renderScrollablePassage(true));
+  const cdp=await touch.context().newCDPSession(touch);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:190,y:75}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:140,y:75}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:40,y:75}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await expect.poll(()=>touch.locator('[data-score-layout]').evaluate(n=>n.scrollLeft)).toBeGreaterThan(0);
+  await expect(touch.locator('[data-passage-handle]:not([hidden])')).toHaveCount(0);
+  await expect.poll(()=>touch.locator('[data-score-layout]').evaluate(n=>n.scrollLeft)).toBe(touchLayout.max);
+  const point=await touch.locator('[data-score-layout]').evaluate(paper=>{
+   const frame=paper.getBoundingClientRect();
+   const note=[...paper.querySelectorAll<SVGGraphicsElement>('[data-passage-note]')].find(n=>{const b=n.getBoundingClientRect();return b.width&&b.left>=frame.left&&b.right<=frame.right;})!;
+   const b=note.getBoundingClientRect();return {x:b.x+b.width/2,y:b.y+b.height/2};
+  });
+  await touch.touchscreen.tap(point.x,point.y);await touch.touchscreen.tap(point.x,point.y);
+  await expect(touch.locator('[data-passage-handle]:not([hidden])')).toHaveCount(2);
+  await touch.close();
+ }
  let next=0;
  const results=await Promise.allSettled(Array.from({length:4},async()=>{
   const page=await newPage(browser,{viewport:{width:900,height:900}}),errors:string[]=[];

@@ -26,3 +26,19 @@ test('DoReGo variants retain a shared type check and two distinct bundles', () =
   assert.match(scripts['build:pages'], /^tsc --noEmit && npm run build:pages:bundle$/);
   assert.equal(scripts['build:pages:bundle'], 'vite build --mode pages --outDir dist-pages');
 });
+
+test('DoReGo variants start together, have disjoint outputs and settle all children before reporting failure',async()=>{
+  const {buildBundles,variants}=require('../../scripts/ci/dorego-bundles.cjs');
+  const scripts=require('../../apps/dorego/package.json').scripts;
+  assert.equal(scripts['build:ci'],'tsc --noEmit && node ../../scripts/ci/dorego-bundles.cjs');
+  assert.deepEqual(variants.map(v=>v.args.at(-1)),['dist','dist-pages']);
+  const controls=new Map();let finished=false;
+  const pending=buildBundles(variant=>new Promise((resolve,reject)=>controls.set(variant.name,{resolve,reject}))).finally(()=>{finished=true;});
+  assert.deepEqual([...controls.keys()],['regular','pages']);
+  controls.get('pages').reject(Error('pages failed'));
+  await new Promise(setImmediate);
+  assert.equal(finished,false,'A failed variant must not abandon its running sibling');
+  controls.get('regular').resolve();
+  await assert.rejects(pending,error=>error instanceof AggregateError && error.errors[0].message==='pages failed');
+  await buildBundles(async()=>{});
+});

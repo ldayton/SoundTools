@@ -699,3 +699,10 @@ caps outer capacity at 20 and the host's available core count; inner unit pools,
 ports, audio locks, Nightly and hosted-runner capacity are unchanged. Headroom
 remains narrow: this is one controlled observation, not a p95 guarantee or a
 reason to weaken the hard 60-second limit. Exact-commit validation is still required.
+
+DoReGo's CI build checks its TypeScript project once, then generates the regular
+and Pages bundles concurrently within the build task's existing two slots.
+Both variants read prepared shared inputs and write separate output trees; both
+must finish before the task returns, even on failure. The same final resource
+hash/preflight and exact-revision provenance checks validate both fresh outputs.
+Standalone developer build aliases retain their independent type checks.

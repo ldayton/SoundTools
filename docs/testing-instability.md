@@ -1388,3 +1388,13 @@ host. A documented coordinator comparison on that same committed graph with
 The local default now adopts that measured capacity, capped to available cores;
 unit pool sizes, resource locks and hosted/Nightly defaults remain unchanged.
 Narrow headroom remains explicit; the default's new commit must pass full CI.
+
+The new default's exact merged revision `42186d54`
+(`1795878242533-2155ef1e`) still exhausted the budget at 62.17 seconds, cancelling
+DoReGo desktop after 35.1s. The earlier 20-slot pass is not a reliability guarantee.
+The remaining critical path begins with DoReGo's two sequential Vite bundles.
+Their plugins read prepared inputs and emit into separate `dist`/`dist-pages`
+directories. The build task now runs those variants concurrently after one
+unchanged TypeScript check, within its existing two-slot allocation. Both child
+processes must settle before failure is reported; both final manifests still
+undergo the original resource hashes, exact SHA and profile verification.

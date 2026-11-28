@@ -38,7 +38,8 @@
     "prepare:piano-trial": "python3 trials/piano/prepare.py",
     "trial:piano": "npm run prepare:piano-trial && vite --config trials/piano/vite.config.ts",
     "test:piano-trial": "tsc -p trials/piano/tsconfig.json && python3 trials/piano/verify.py && TEST_BROWSER=chromium tsx trials/piano/test.ts && TEST_BROWSER=firefox tsx trials/piano/test.ts && TEST_BROWSER=webkit tsx trials/piano/test.ts",
-    "test:unit": "tsx --test tests/*.test.ts"
+    "test:unit": "tsx --test tests/*.test.ts",
+    "build:ci": "tsc --noEmit && node ../../scripts/ci/dorego-bundles.cjs"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "*",

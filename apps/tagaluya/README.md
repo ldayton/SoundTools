@@ -19,7 +19,10 @@ exercises that compatibility with a shared generic hymn.
 `BilingualMelody` delegates engraving to the existing shared score layout and
 shows the opening clef once. Translation remains readable text under each phrase.
 
-Services use the left navigation; songs use the shared right options drawer.
+Services use the left navigation; songs use the shared table-of-contents drawer.
+Each song shows its service role between the service/date and song title. The
+contents trigger uses the shared list icon in a 56×44 px target, matching the
+text-size control height.
 Horizontal swipes move to adjacent songs without wrapping, while vertical
 scrolling remains native. Preferences are versioned local storage; service/song
 URLs and offline routes use `/services/:service/:song`.

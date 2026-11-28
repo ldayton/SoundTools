@@ -66,6 +66,7 @@ export function Tagalujah({services}:{services:Service[]}) {
     let phraseIndex=0,previousKey="";
     return <Paper component="article" withBorder radius="md" p="lg" className={active?"tagaluya-reader":"tagaluya-reader-preview"} style={{"--reading-size":`${preferences.textSize}px`} as CSSProperties} aria-labelledby={active?"song-title":`song-title-${song?.id}`} lang="en">
         <Text size="sm" c="dimmed" mb="xs">{service?.title} · {service&&new Intl.DateTimeFormat("en",{month:"long",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(service.date+"T12:00:00Z"))}</Text>
+        <Text component="p" className="song-role" fw={600} mb="xs">{song.role}</Text>
         <Title ref={active?title:undefined} order={1} tabIndex={-1} id={active?"song-title":`song-title-${song?.id}`}>{song?.title||"Tagalujah"}</Title>
         {song?.credit&&<Text size="sm" c="dimmed" mt="xs">{song.credit}</Text>}
         {song?.status==="excerpt"&&<Text size="sm" c="dimmed" mt="xs">Opening excerpt</Text>}
@@ -85,7 +86,7 @@ export function Tagalujah({services}:{services:Service[]}) {
         </div> : null}
       </Paper>;
   }
-  return <PracticeOptionsProvider entries={[{id:"songs",title:"Songs",form:songs}]} activeId={settings?undefined:"songs"} activityKey={service?.id} mobileDrawer onMobileOpenChange={setOptionsOpen}>
+  return <PracticeOptionsProvider purpose="contents" entries={[{id:"songs",title:"Table of contents",form:songs}]} activeId={settings?undefined:"songs"} activityKey={service?.id} mobileDrawer onMobileOpenChange={setOptionsOpen}>
     <ApplicationLayout compact toolbarOnly={!settings} mobileToolbarHeight={56} brand={<AppBrand name="Tagalujah" icon="/icon.svg" color="wine.6" />} title={settings?"Settings":"Tagalujah"} area="Service reader"
       navigation={navigation} navigationOpen={navigationOpen} navigationCollapsed={navigationCollapsed}
       onNavigationOpen={()=>setNavigationOpen(true)} onNavigationClose={()=>setNavigationOpen(false)} onNavigationCollapse={()=>setNavigationCollapsed(true)} onNavigationExpand={()=>setNavigationCollapsed(false)}

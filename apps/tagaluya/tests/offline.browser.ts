@@ -13,6 +13,11 @@ try{
   await page.context().setOffline(true);
   await page.goto(server.base+"/services/2026-11-28/salamat-panginoon");await waitForApp(page,".tagaluya-reader");
   await expect(page.locator("#song-title")).toHaveText("Salamat Panginoon");
+  const installed=await page.evaluate(async()=>{
+    const manifest=await fetch(document.querySelector<HTMLLinkElement>('link[rel="manifest"]')!.href);
+    return manifest.json();
+  });
+  assert.equal(installed.display,"standalone");assert.equal(installed.scope,"/");
   await expect(page.getByText("You are good at every moment",{exact:true}).first()).toBeVisible();
   await page.reload();await waitForApp(page,".tagaluya-reader");await expect(page.locator("#song-title")).toHaveText("Salamat Panginoon");
   assert.deepEqual(errors,[]);console.log("PASS Tagalujah offline: verified shell, deep-linked service/song and translated lyrics after reload");

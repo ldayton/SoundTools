@@ -11,6 +11,20 @@ try {
   const page=await newPage(browser,{viewport:{width:1440,height:1000},hasTouch:true});
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.goto(server.base);await waitForApp(page,".tagaluya-reader");
+  // Installed navigation must remain inside an explicit standalone app scope,
+  // including when the Home Screen installation starts on a deep song URL.
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute("href","/manifest.webmanifest");
+  await expect(page.locator('meta[name="apple-mobile-web-app-capable"]')).toHaveAttribute("content","yes");
+  const manifestResponse=await page.request.get(server.base+"/manifest.webmanifest");
+  assert.equal(manifestResponse.status(),200);
+  const manifest=await manifestResponse.json();
+  assert.equal(manifest.display,"standalone");assert.equal(manifest.id,"/");
+  assert.equal(manifest.start_url,"/");assert.equal(manifest.scope,"/");
+  for(const icon of manifest.icons){
+    const response=await page.request.get(new URL(icon.src,server.base+"/manifest.webmanifest").href);
+    assert.equal(response.status(),200);const png=await response.body();
+    assert.equal(`${png.readUInt32BE(16)}x${png.readUInt32BE(20)}`,icon.sizes);
+  }
   await expect(page.locator("#song-title")).toHaveText("O Kay Saya at Kay Ganda");
   await expect(page.locator(".original-line")).toHaveCount(18);await expect(page.locator(".translated-line")).toHaveCount(18);
   await expect(page.getByRole("link",{name:"He Is Lord",exact:true})).toBeVisible();
@@ -66,6 +80,9 @@ try {
     await expect(page.getByRole("dialog",{name:"Songs",exact:true})).toBeVisible();
     await page.getByRole("link",{name:"He Is Lord",exact:true}).click();
     await expect(page.getByRole("dialog",{name:"Songs",exact:true})).toBeHidden();
+    const documentRequests:string[]=[];
+    const recordDocument=(request:import("playwright").Request)=>{if(request.isNavigationRequest())documentRequests.push(request.url());};
+    page.on("request",recordDocument);
     const frame=async()=>page.evaluate(()=>{
       const main=document.getElementById("practice-content")!,header=document.querySelector("header")!;
       return {header:header.getBoundingClientRect().bottom,reader:document.querySelector(".tagaluya-reader:not(.tagaluya-reader-preview)")!.getBoundingClientRect().top,
@@ -85,6 +102,10 @@ try {
     const afterSwipe=await frame();assert.equal(afterSwipe.reader,afterSwipe.header,"Swiping retains the toolbar position without a title strip or top gap");
     assert.equal(afterSwipe.windowScroll,0);
     await swipe(180,0);await expect(page.locator("#song-title")).toHaveText("He Is Lord");
+    await expect(page).toHaveURL(/\/services\/2026-11-28\/he-is-lord$/);
+    assert.deepEqual(documentRequests,[],"Paging changes in-scope history without opening another document");
+    page.off("request",recordDocument);
+    await expect(page.locator('link[rel="manifest"]')).toHaveAttribute("href","/manifest.webmanifest");
   }
   await mkdir("work/tagaluya",{recursive:true});await page.screenshot({path:"work/tagaluya/mobile-interlinear.png",fullPage:true});
   // Test the same reader and shared notation adapter with a capability fixture,

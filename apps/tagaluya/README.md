@@ -39,3 +39,12 @@ The song-ending ornament is GDJ's **Flourish Divider**
 Source: https://openclipart.org/detail/308072/flourish-divider
 License: https://creativecommons.org/publicdomain/zero/1.0/
 The local SVG preserves the artwork paths, with editor metadata removed.
+
+Home Screen installation uses the same manifest convention as the other apps:
+root `id`, `start_url` and `scope`, with `display: standalone`. The root scope
+includes all service/song and settings URLs, including history updates during
+paging. Install icons are produced by `node scripts/generate-branding.cjs tagaluya`.
+The CI reader witness checks the manifest, PNG dimensions and same-document
+paging; the offline witness retains the install metadata on deep song routes.
+Existing Home Screen installations created before the manifest was provided
+should be removed and added again to ensure they adopt the explicit settings.

@@ -19,6 +19,9 @@ test("Tagalog translations stay paired, English choruses are not invented Tagalo
 test("reading links and invalid saved preferences recover safely",()=>{
   assert.deepEqual(readPreferences("bad"),{});assert.deepEqual(readPreferences('{"version":2}'),{});
   assert.equal(readPreferences('{"version":1,"textSize":999}').textSize,36);
+  assert.equal(readPreferences('{"version":1,"textSize":12}').textSize,12);
+  assert.equal(readPreferences('{"version":1,"textSize":8}').textSize,8);
+  assert.equal(readPreferences('{"version":1,"textSize":1}').textSize,8);
   assert.equal(readPreferences('{"version":1,"textSize":null}').textSize,22);
   assert.deepEqual(routeSelection("/services/2026-11-28/he-is-lord"),{service:"2026-11-28",song:"he-is-lord"});
   assert.equal(resolveSelection(services,{service:"missing",song:"missing"}).song?.id,services[0].songs[0].id);

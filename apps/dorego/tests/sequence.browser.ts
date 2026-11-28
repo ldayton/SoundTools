@@ -185,6 +185,7 @@ export async function verifyExerciseNavigation(browser: Browser, base: string) {
       return { settingsX: settings.x + settings.width / 2, accountX: account.x + account.width / 2, settingsY: settings.y, accountY: account.y };
     });
     assert.ok(Math.abs(icons.settingsX - icons.accountX) < 1 && icons.accountY > icons.settingsY, 'Account and Settings icons share a column');
+    assert.ok(await page.locator('#pitch-options').isVisible(), 'Desktop keeps the range controls');
     const order = await page.evaluate(() => ['startingChords', 'repeatTwice', 'repeatTurn', 'repeatHome', 'range-heading', 'voice-feedback'].map(id => document.getElementById(id)!.getBoundingClientRect().y));
     assert.ok(order.every((y, index) => index === 0 || y > order[index - 1]), 'Frequent controls come first; voice feedback comes last');
     assert.equal(await page.getByRole('img', { name: 'Experimental', exact: true }).count(), 1);
@@ -246,6 +247,8 @@ export async function verifyExerciseNavigation(browser: Browser, base: string) {
     }
 
     await openPracticeOptions(page);
+    assert.ok(await page.locator('#pitch-options').isHidden(), 'Mobile omits the redundant Pitch section');
+    assert.ok(await page.locator('#low-spin').isVisible() && await page.locator('#high-spin').isVisible(), 'Mobile range choices stay in the toolbar');
     assert.equal(await track.evaluate(element => getComputedStyle(element).overflowX), 'hidden', 'Options block horizontal exercise navigation');
     await closePracticeOptions(page);
     await page.waitForFunction(() => !document.querySelector('.swipe-pager')?.hasAttribute('data-blocked'));

@@ -731,3 +731,7 @@
   .exercise-preview-actions > button:nth-child(3),
   .exercise-preview-actions > button:last-child { height: 44px; }
 }
+
+@media (max-width: 767px) {
+  .dorego-desktop-pitch { display: none; }
+}

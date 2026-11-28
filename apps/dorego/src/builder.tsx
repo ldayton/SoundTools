@@ -307,7 +307,7 @@ export function Builder({
             </Group>
           </Stack>
         </Stack>
-        <Stack gap="xs">
+        <Stack id="pitch-options" gap="xs" className={vocal ? 'dorego-desktop-pitch' : undefined}>
           <Divider label="Pitch" labelPosition="left" />
           <div hidden={vocal}>
             <NativeSelect
@@ -458,11 +458,15 @@ export function Builder({
               <Group gap={4} wrap="nowrap">
                 <span>Beta</span>
                 <svg
-                  width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  width="20" height="20" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
                   role="img" aria-label="Experimental"
                 >
-                  <path d="M8 3h8M9 3v15a3 3 0 0 0 6 0V3M9 10h6" />
+                  <path
+                    d="M7.5 14c3-1.3 6 1.3 9 0l3 5a.6.6 0 0 1-.5 1H5a.6.6 0 0 1-.5-1Z"
+                    fill="var(--mantine-primary-color-filled)" stroke="none"
+                  />
+                  <path d="M7.5 3h9M9 3v6l-5.6 9.5A1.6 1.6 0 0 0 4.8 21h14.4a1.6 1.6 0 0 0 1.4-2.5L15 9V3" />
                 </svg>
               </Group>
             }

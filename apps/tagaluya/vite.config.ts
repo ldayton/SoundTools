@@ -4,7 +4,7 @@ import {offlineBuild} from "../../packages/music-practice/scripts/offline-build"
 import {startupHTML} from "@ldayton/browser-offline";
 import {execFileSync} from "node:child_process";
 import {resolve} from "node:path";
-const revision=execFileSync("git",["rev-parse","--short=12","HEAD"],{encoding:"utf8"}).trim();
+const revision=process.env.VERCEL_GIT_COMMIT_SHA?.slice(0,12)||execFileSync("git",["rev-parse","--short=12","HEAD"],{encoding:"utf8"}).trim();
 export default defineConfig({
   cacheDir:process.env.CI_VITE_CACHE_DIR?resolve(process.env.CI_VITE_CACHE_DIR,"tagaluya"):undefined,
   plugins:[react(),{name:"tagaluya-dev-startup",apply:"serve",transformIndexHtml:html=>html.replace("<head>","<head>"+startupHTML())},offlineBuild(revision,"tagaluya",["services","settings"])],

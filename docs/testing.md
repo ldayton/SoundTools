@@ -250,7 +250,7 @@ the same commit. Each app/configuration builds once; Chromium and WebKit share
 an app build. Accounts engines use separate backend stacks and builds. Copies
 use filesystem copy-on-write where supported, with private workspace links.
 
-`CI_WORKERS` or `--workers` controls outer scheduling (CI: up to 16 locally; Nightly: up to six;
+`CI_WORKERS` or `--workers` controls outer scheduling (CI: up to 20 locally; Nightly: up to six;
 GitHub: two; range 1–32). `CI_UNIT_WORKERS` bounds the shared music unit-file
 pool (default six in local CI, four in Nightly, two on GitHub; range 1–8). Worker slots are weighted
 scheduling budgets, not a promise to pin every subprocess to a CPU. Compare worker counts against the same CI inventory. A serial CI baseline
@@ -689,3 +689,13 @@ Failure capture bounds live page-state reads and screenshots, then awaits driver
 trace-file export before browser shutdown. The scheduled task's existing deadline
 still bounds a hung driver. A short page-read cutoff must not truncate an archive;
 an explicit export failure records its error and removes the incomplete ZIP.
+
+The 28 November all-app scheduling comparison retained the 16-slot budget
+failures and a successful 20-slot observation at the identical committed graph
+(`b9a8ddc8`, `1795877983993-8dce8427`): 59.64 seconds including installation and
+cleanup. The failed 16-slot run averaged 12.4 active CPU cores on this 24-core
+host while weighted capacity delayed independent browser work. Local CI now
+caps outer capacity at 20 and the host's available core count; inner unit pools,
+ports, audio locks, Nightly and hosted-runner capacity are unchanged. Headroom
+remains narrow: this is one controlled observation, not a p95 guarantee or a
+reason to weaken the hard 60-second limit. Exact-commit validation is still required.

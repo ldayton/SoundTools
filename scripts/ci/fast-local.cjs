@@ -45,10 +45,13 @@ function fastGraph(selected, cwd) {
   for (const task of tasks) task.env = { ...task.env, CI_TIER: 'ci' };
   return orderAppChecks(tasks);
 }
+function localWorkers(opts, available = os.availableParallelism()) {
+  return opts.workersExplicit ? opts.workers : Math.min(20, Math.max(2, available));
+}
 async function fastLocal(opts, { root, started, selected, sha }) {
   const directory = path.join(root, 'work/ci-results', `${Date.now()}-${randomUUID().slice(0, 8)}`);
   const tasks = fastGraph(selected, root);
-  const workers = opts.workersExplicit ? opts.workers : Math.min(16, Math.max(2, os.availableParallelism()));
+  const workers = localWorkers(opts);
   if (opts.plan) { console.log(JSON.stringify({ sha, tier: 'ci', budgetMs: tiers.ci.localBudgetMs, selected, workers, tasks }, null, 2)); return; }
   if (Number(process.versions.node.split('.')[0]) !== 24) throw Error('Local CI requires Node 24');
   assertRevision(root, sha);
@@ -80,4 +83,4 @@ async function fastLocal(opts, { root, started, selected, sha }) {
     if (!passed) process.exitCode = 1;
   }
 }
-module.exports = { fastGraph, fastLocal };
+module.exports = { fastGraph, fastLocal, localWorkers };

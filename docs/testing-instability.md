@@ -1378,3 +1378,13 @@ commands, capacity, locks and reader dependencies are unchanged. This is a
 measured critical-path scheduling correction; it does not remove checks, extend
 the deadline or change hosted/Nightly prerequisite policy. The next complete
 measurement validates the changed committed graph, not an unexplained retry.
+
+The priority-only follow-up at `b9a8ddc8`
+(`1795877715128-70c7afca`) still failed the budget at 62.16 seconds: Tagalujah's
+reader queued until 37.9s and was cancelled. The pool ordering moved the tail,
+not the overall budget. Its task CPU totals averaged 12.4 cores on the 24-core
+host. A documented coordinator comparison on that same committed graph with
+`--workers 20` passed all checks in 59.64 seconds (`1795877983993-8dce8427`).
+The local default now adopts that measured capacity, capped to available cores;
+unit pool sizes, resource locks and hosted/Nightly defaults remain unchanged.
+Narrow headroom remains explicit; the default's new commit must pass full CI.

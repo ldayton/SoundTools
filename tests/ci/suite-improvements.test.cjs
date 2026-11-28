@@ -132,3 +132,10 @@ test('bounded local CI starts critical builds and browser work before the termin
   assert.equal(pool.slots,4);
   assert(tasks.filter(t=>t.id.startsWith('soundglow:ci:')&&t!==pool).every(t=>t.needs.includes(pool.id)));
 });
+
+test('local CI capacity uses available cores with a reviewed cap and preserves explicit diagnostics',()=>{
+  const {localWorkers}=require('../../scripts/ci/fast-local.cjs');
+  assert.equal(localWorkers({},24),20);
+  assert.equal(localWorkers({},8),8);
+  assert.equal(localWorkers({workersExplicit:true,workers:12},24),12);
+});

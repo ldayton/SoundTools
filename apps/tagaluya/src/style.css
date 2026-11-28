@@ -1,10 +1,13 @@
 /* Reading surfaces use maximum black-on-white contrast; the icon and
    interactive brand accents retain their wine-and-gold identity. */
 body { color:#000; --mantine-color-text:#000; --mantine-color-dimmed:#000; }
-:is(.tagaluya-reader,.tagaluya-reader-preview) { max-width: 960px; margin-inline:auto; touch-action:pan-y pinch-zoom; }
-:is(.tagaluya-reader,.tagaluya-reader-preview) h1 { font-size:clamp(1.5rem,3vw,2rem); line-height:1.25; outline:none; }
-.song-section { margin-top:2rem; }
-.song-section h2 { margin-bottom:1rem; color:inherit; }
+:is(.tagaluya-reader,.tagaluya-reader-preview) { max-width: 960px; margin-inline:auto; font-size:var(--reading-size); touch-action:pan-y pinch-zoom; }
+:is(.tagaluya-reader,.tagaluya-reader-preview) h1 { font-size:1.45em; line-height:1.25; outline:none; }
+.song-role { font-size:1em; }
+.song-meta { font-size:.64em; }
+:is(.tagaluya-reader,.tagaluya-reader-preview) > .mantine-Text-root:not(.song-meta):not(.song-role) { font-size:inherit; }
+.song-section { margin-top:1.45em; }
+.song-section h2 { font-size:.91em; margin-bottom:.73em; color:inherit; }
 .bilingual-phrase { margin-block:0 1.3em; scroll-margin-top:100px; }
 .original-line,.translated-line { margin:0; overflow-wrap:anywhere; }
 .original-line { font-size:var(--reading-size); font-weight:650; line-height:1.4; }

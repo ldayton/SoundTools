@@ -45,6 +45,11 @@ try {
   await expect(page.locator("#reading-size")).toHaveValue("24 px");
   await page.getByRole("button",{name:"Decrease text size",exact:true}).click();
   await expect(page.locator("#reading-size")).toHaveValue("22 px");
+  const readerTypography=()=>page.locator(".tagaluya-reader").evaluate(el=>["h1",".song-role",".song-meta",".song-section h2",".original-line"].map(selector=>parseFloat(getComputedStyle(el.querySelector(selector)!).fontSize)));
+  const typography22=await readerTypography();
+  await page.locator("#reading-size").fill("11");await page.locator("#reading-size").press("Enter");
+  const typography11=await readerTypography();
+  typography11.forEach((size,index)=>assert(Math.abs(size-typography22[index]/2)<.02,"Every song text element scales with the reader size"));
   await page.locator("#reading-size").fill("18");await page.locator("#reading-size").press("Enter");
   await page.getByRole("button",{name:"Decrease text size",exact:true}).click();
   await expect(page.locator("#reading-size")).toHaveValue("16 px");

@@ -820,3 +820,13 @@ to 16 coordinator slots and uses the existing `CI_UNIT_WORKERS=2` option: the
 same shared-music files execute in two isolated Node workers, reserving less
 capacity and reducing CPU contention while builds start. No coverage or resource
 locks change. Neither cancelled run is considered a validation pass.
+
+The two-Node-worker measurement (`1795861589415-e1d2732b`) also exceeded the
+budget at 62.21 seconds; shared-music and DoReGo desktop were cancelled. Reducing
+workers was insufficient. Inspection of DoReGo's build log found the identical
+TypeScript project checked once by `build` and again by `build:pages`. The CI
+build now retains `build` as the type-check owner and invokes a separate pages
+bundle script after it succeeds. Standalone `build:pages` still type-checks.
+Both Vite configurations, fresh outputs, preflight and SHA/digest validation
+remain required. The build-policy unit witness retains the standalone and paired
+script contracts. This is duplicate-check consolidation, not displaced coverage.

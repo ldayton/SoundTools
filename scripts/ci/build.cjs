@@ -45,7 +45,9 @@ function build(app, { prepared = false } = {}) {
     run(process.execPath, ['scripts/build-site.cjs'], path.join(root, 'apps/soundglow'));
   } else {
     run('npm', ['run', 'build', '--workspace=' + app]);
-    if (app === 'dorego') run('npm', ['run', 'build:pages', '--workspace=dorego']);
+    // The preceding build owns the identical TypeScript project check. Both
+    // Vite configurations still build fresh outputs at this exact revision.
+    if (app === 'dorego') run('npm', ['run', 'build:pages:bundle', '--workspace=dorego']);
   }
   if (app === 'dorego') for (const out of ['dist', 'dist-pages']) {
     const originals = path.join(root, 'apps/dorego', out, 'samples/bitklavier');

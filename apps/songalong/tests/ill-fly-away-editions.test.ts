@@ -283,3 +283,26 @@ test("section labels identify the first verse bar and the first chorus bar, with
     assert(beams >= 8);
   }
 });
+
+test("Guitar + Voice uses the revised singing harmony, including capo 2 in D, without changing the instrumental lesson", async () => {
+  const {guitarVocalAccompaniment}=await import("../../../packages/music-practice/src/hymn-arrangements");
+  // Independent audition transcription: times and durations are quarter-note beats.
+  const harmony: [number,string,number][]=[
+    [0,"C",4],[4,"Am",4],[8,"F",4],[12,"G7",2],[14,"C",2],
+    [16,"C",4],[20,"Am",4],[24,"C",3],[27,"G7",1],
+    [28,"C",3],[31,"G7",1],[32,"C",3],[35,"Am",1],
+    [36,"C",4],[40,"F",4],[44,"G7",2],[46,"C",2],
+    [48,"C",4],[52,"C",4],[56,"C",3],[59,"G7",1],[60,"C",4],
+  ];
+  const grips: Record<string,number[]>={...strum,Am:[45,52,57,60,64]};
+  const expected=harmony.flatMap(([s,c,d])=>grips[c].map(p=>[p,s,d]));
+  assert.deepEqual(read(guitarVocalAccompaniment(hymn,0).abc).tracks[0],expected);
+  const concert=read(arrangeHymn(hymn,"guitar-vocal",0,0,"both",undefined,2).abc);
+  assert.deepEqual(concert.tracks[1],expected.map(([p,s,d])=>[p+2,s,d]));
+  assert.equal(concert.audio.totalDuration*4,64);
+  assert.equal(concert.tracks[0].length,53);
+  for(let section=0;section<4;section++){
+    const part=read(guitarVocalAccompaniment(hymn,4,section).abc);
+    assert.deepEqual(part.tracks[0],expected.filter(([,s])=>s>=section*16&&s<(section+1)*16).map(([p,s,d])=>[p,s-section*16,d]));
+  }
+});

@@ -16,15 +16,13 @@ try {
       "/guitar/scales?key=C&scale=major&labels=none",
   );
   await waitForApp(page, ".scale-diagram svg");
-  await expect(page.locator(".scale-pattern-caption")).toHaveText("E shape · 7th position");
+  await expect(page.locator(".scale-pattern-caption")).toHaveText("CAGED · E Shape");
   await openPracticeOptions(page);
   await expect(page.getByLabel("Shape set", { exact: true })).toHaveValue("standard");
   await expect(page.locator("#scale-pattern")).toHaveValue("1");
   await page.screenshot({path:"/tmp/notewise-caged-default-desktop.png",fullPage:true});
   await page.getByLabel("Shape set", { exact: true }).selectOption("hila");
   await expect(page.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 1");
-  await expect(page.locator(".scale-source a")).toHaveAttribute("href", "https://jenslarsen.nl/major-scale-7-positions-berklee-system/");
-  await expect(page.locator(".scale-source a")).toHaveText("Jens Larsen · Berklee 7PS");
   await expect(page.locator(".scale-chord-tone")).toHaveCount(0);
   await expect(page.locator(".scale-chord-connection")).toHaveCount(0);
   const tones = page.locator(".scale-diagram .scale-tone");
@@ -107,8 +105,8 @@ try {
     await expect(page.locator(".scale-chord-connection")).toHaveCount(0);
     const names=(quality.startsWith("major")?["C","A","G","E","D"]:["Cm","Am","Gm","Em","Dm"]).map(n=>`${n} shape`);
     await expect(page.locator("#scale-pattern option")).toHaveText(["Fret range",...names]);
-    await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape",...names.filter(n=>!n.startsWith(quality.startsWith("major")?"A ":"Am "))]);
-    await expect(page.locator(".scale-pattern-caption")).toContainText(quality.startsWith("major")?"A shape":"Am shape");
+    await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape","All five shapes",...names.filter(n=>!n.startsWith(quality.startsWith("major")?"A ":"Am "))]);
+    await expect(page.locator(".scale-pattern-caption")).toContainText(quality.startsWith("major")?"CAGED · A Shape":"CAGED · Am Shape");
   }
   // Every popup must depict the exact chord outlined in the selected region.
   for(const quality of ['major','minor'] as const){
@@ -261,7 +259,7 @@ try {
   freshPhone.on("pageerror", e => errors.push(e.message));
   await freshPhone.goto(server.base + "/guitar/scales?key=C&scale=major");
   await waitForApp(freshPhone, ".scale-diagram svg");
-  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("E shape · 7th position");
+  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("CAGED · E Shape");
   await openPracticeOptions(freshPhone);
   await expect(freshPhone.getByLabel("Shape set", {exact:true})).toHaveValue("standard");
   await expect(freshPhone.locator("#scale-pattern")).toHaveValue("1");

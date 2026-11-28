@@ -1,0 +1,831 @@
+{
+  "repository": "https://github.com/dvdrndlph/pydactyl",
+  "revision": "0ad656db9b778508453a7275dc698b9129ca765e",
+  "files": [
+    {
+      "path": "LICENSE",
+      "upstream": "LICENSE",
+      "sha256": "ce31217159fbb1e8bbe6d093289597dd3a2ed34e490c62715824437976891f61"
+    },
+    {
+      "path": "synthetic-cases.json",
+      "upstream": "test/TestConstant.py",
+      "sha256": "c487b82dbf16681d2b47c1ecc319ff367445dae262cba8ed4c7541d066c3a19b",
+      "selection": [
+        "ONE_NOTE",
+        "TWO_NOTES",
+        "ONE_BLACK_NOTE_PER_STAFF",
+        "TWO_WHITE_NOTES_PER_STAFF",
+        "FOUR_NOTES"
+      ]
+    },
+    {
+      "path": "beringer2/arpeggios/common_a_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_a_major.abcd",
+      "sha256": "13f86e2fc994df39770358ccdad3da533cb32d2c5de2e98da60265a54d0ffb07",
+      "upstreamSha256": "462bca2336dcf8969683157c6009605b0b998799cef7d3e4b14fd1da559f0bcc",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_a_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_a_minor.abcd",
+      "sha256": "589d2fc5d63be73f18e97843fd353e322f3a9a71a1f59474775328cd305beaa5",
+      "upstreamSha256": "086fb6b242bc5e9ee297bb9055a60c6d05ffc046de292b3a81fdd028af83c701",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_aflat_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_aflat_major.abcd",
+      "sha256": "21ab86ce52c17b239557cd375beaf8434e05b0c1dda2d8dda883c3a87495c587",
+      "upstreamSha256": "3455be33c9e8f8182e507eb57fe03656170371742c84f42113a90eb07fe0b904",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_b_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_b_major.abcd",
+      "sha256": "0a4be9cc2dc9fde05d63766712eba71c90eeb990983667880503cdfde5f6ef3f",
+      "upstreamSha256": "470c8b845b297841110491a7c3b2850b10e334af0392807fd6ab9887085b2d9f",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_b_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_b_minor.abcd",
+      "sha256": "8038f703a736d80a0297f9484e2784146676b9584b4dc432471d1d22390054e6",
+      "upstreamSha256": "4e23772af2b2e1bf434585be0710549f6d19525a3cce79db4988a7e66053708d",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_bflat_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_bflat_major.abcd",
+      "sha256": "df8c73022d860c6e577be6ab2bca28233709154668d0afcd33746c967d65f1ee",
+      "upstreamSha256": "d8cd260134107883750ed09bcaf7867b48f5b307330523ca057d13bed9ef54b8",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_bflat_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_bflat_minor.abcd",
+      "sha256": "abed4f42683e1c1a601ea70f011657231982fb1659c0283b90d301deff8e6120",
+      "upstreamSha256": "e4da735296c0697a7b951afb85f7bda42d991e44d7896bb5e8c00d203299db30",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_c_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_c_major.abcd",
+      "sha256": "8c2376de274753c6ddda67b4f352107cf23bd461ca022787d2d733f6287549cb",
+      "upstreamSha256": "e696125a7b6691ff39eb63dcaa61d8931a1bc4e950116f6b78fee2ecef010300",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_c_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_c_minor.abcd",
+      "sha256": "85c35a4926267f29af909dc00e64a19eeeda1402bb94cba04f9668e75b287c28",
+      "upstreamSha256": "19c89f8ca26cd6c497958db0577eede15cf8de247353da7f9a2c10e786cb8d8a",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_csharp_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_csharp_minor.abcd",
+      "sha256": "7c23bff31c3d70796d74b05204fd48c499542d5e7f5c4caffe7af715e03ed5ac",
+      "upstreamSha256": "4609f2de9afba6d958a995458fc5327109b72ba0b65dccd1b6ff52c257993960",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_d_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_d_major.abcd",
+      "sha256": "efc06182ad182b411132c19078eff7c79fd4b4a69e3070d3585cd8b7967ccd76",
+      "upstreamSha256": "4c6210001910f736a4517acae78f7f74bd5c2843ffab677474d4fb486b1fa3a2",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_d_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_d_minor.abcd",
+      "sha256": "f3c28fd94cf6fd7d656f2e7597a9b2e6dfab6d0557324c559ecb4fdc22cb70eb",
+      "upstreamSha256": "9d0954b5c8c3f12b972751137ac6aca7e369c173c109f026b09b0113af33bdf3",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_dflat_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_dflat_major.abcd",
+      "sha256": "77d894ef3df076433ed29dce5d7e4918998bfbaec21a0c6888fc762deee4851c",
+      "upstreamSha256": "412d9c147e747dfa8d78e12563eb7f49afa690a2e1d69b84bd3fe6acabc96a6c",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_e_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_e_major.abcd",
+      "sha256": "33c224cdb9b9b255e589169dead5fa0d4df35b1799eb95cf31968e2d4c92cec8",
+      "upstreamSha256": "b209d13882fa4ac036caa5e63e10b48b0fe811523704f2b0c43a502c5beb9055",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_e_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_e_minor.abcd",
+      "sha256": "01caedfa02ff07edb2ba5c4b9f0af8a9a6db09d0d9a3526fdab96ee0bef324f7",
+      "upstreamSha256": "c746434028eb21fe76997fcc138df4b5663546ad633373dbc646978e8edeb03b",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_eflat_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_eflat_major.abcd",
+      "sha256": "4c36c62e59f9e6f6533d389bdb0d8a2932f46458bff1ba9caa81ad0439814248",
+      "upstreamSha256": "cdaf1e37e359f9f66a46c0c1524b90ffe69234d3e309dbb258b09ea0cbaa7b30",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_eflat_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_eflat_minor.abcd",
+      "sha256": "4e790152aeacee5c5b8d6a24a20e7c92f2e6bc6817bdf3f9a8a8fc876af52e03",
+      "upstreamSha256": "7439b901d7ab9eda0c8b1123f35c147fec10c8062954a1292a8da6216571740a",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_f_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_f_major.abcd",
+      "sha256": "03e4f562b6041a1ce997bbf5d4b9a415a0e2ad812863394e34720a547baa0478",
+      "upstreamSha256": "857f29453024e2c40a2ac49215aea83149583c28f18029a713d44714da046a9d",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_f_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_f_minor.abcd",
+      "sha256": "5a7b283ddce943a58e8a23f9378aa505361822e890bbdd434e61bd492b7e111a",
+      "upstreamSha256": "3bed4ec4287978babf17dbcf562f04d7cdbb6c3d9ec3f9ca30cc5e2885a69191",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_fsharp_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_fsharp_major.abcd",
+      "sha256": "9d0677b216cf7c1f09f331991907c166fa3c0821cb9539e06a49c83d96fb9297",
+      "upstreamSha256": "3b5fe3ca2b28dba3c7df9b360ebdea26a9967ffd6b9174a85eb4a967566e9631",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_fsharp_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_fsharp_minor.abcd",
+      "sha256": "8308a80cd6fd6eff17245434104367675c2da1fde1e20198d6386beb41b9fd9a",
+      "upstreamSha256": "27a476daf939470d6afca7306707b5c47a057993c9b80df84bd2e7a8e3a3d86a",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_g_major.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_g_major.abcd",
+      "sha256": "320a006f20583b138d6898652c9f27a44a30c935673022b35bb9af22a83cc5ff",
+      "upstreamSha256": "4b77390f6f665320a0eefda50a73a62813001dd641577349b5e5b7c4cb5714fa",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_g_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_g_minor.abcd",
+      "sha256": "26876bd3d00b940e3bef5c1d868234886f85f01d37df868f1da9a3d2273f6529",
+      "upstreamSha256": "4df3b864ef6c25db53f5f524d92e92ee0494641c3a2df751d2db1fde45b17598",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/common_gsharp_minor.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/common_gsharp_minor.abcd",
+      "sha256": "78cdd9356287a9921b411ea555c264fe7c9456c4055a1d88789c965be63b7805",
+      "upstreamSha256": "de56249cbc53236f1bfd60c7c837ea9820b6b84a8ba2bb5856ee96e8e6f5d1f0",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_a.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_a.abcd",
+      "sha256": "196dff05fb61a5e0174b0c0d78ea2bf79fe7f5e857979c4f3d817001a5a5ab3a",
+      "upstreamSha256": "23ccd77bf41bdfb3c108010c51da18913432f2ad1f4564a1b703c5b5adfccdfa",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_aflat.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_aflat.abcd",
+      "sha256": "97b333fcbbc53e397a31a2af6432654fbc64012a9c63623e6089e3500d5e990c",
+      "upstreamSha256": "922db2607c42ebda3de3909f86cb4b7645b8112a16a45c343815ccf11dabecb6",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_b.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_b.abcd",
+      "sha256": "722cefab2a9254d366e0f2b073dc50e6c78519d66c94933a7ea1164e8a742c9d",
+      "upstreamSha256": "716a656d49b6790814b8d8a0738f3ec07308bf924d61bad045b8c0eabfcada8c",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_bflat.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_bflat.abcd",
+      "sha256": "b2de29c3864804ddd99cf3a6bb905fa9accde26a7c8ce260543a4039178ce668",
+      "upstreamSha256": "1ef3e8386b40120fd44eefa42497efb3970765f415d21d10d98103c4910530cf",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_c.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_c.abcd",
+      "sha256": "9181ce92da291cb92b4199c582bad6f07dccced2736b8cb936aa21a8ec622b9f",
+      "upstreamSha256": "4301f131343cb099aaad99d667bdce04ad896c54127f37bff8d8d38b1e9aec6e",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_d.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_d.abcd",
+      "sha256": "366b9ef89440d554800f131548ed0d0bc5646e980e77afbc3a76dec9393f13dc",
+      "upstreamSha256": "900f984d31d307b5221f41c0b412d1c38c36d8273e99a0273b67734355c4a074",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_dflat.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_dflat.abcd",
+      "sha256": "de3c132bca27459f7f67f7dbd6f910cfd564529cb4feb3f3768716481eb373cf",
+      "upstreamSha256": "a18c7f6f669770827a1168cff49eda8dab83fc0ac0093740d87cde053e26840b",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_e.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_e.abcd",
+      "sha256": "67fff20b5eb30213b26d5f6055c0ae70b7ed3fe04c52f1f018220f8d1cfd0695",
+      "upstreamSha256": "63c7f25373cc644bae9608b9ac405adc425ecfae3dc32ea21a6a79a7e5d84a9b",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_eflat.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_eflat.abcd",
+      "sha256": "d9d00c894a1f73e0faf02bbec22c493b0b28c8e98bd62e4174ba34f1ee2926ef",
+      "upstreamSha256": "7500a65ca71354915d8cb8054df5e0d99b832a0b1591504f6f5a3592d84f3d66",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_f.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_f.abcd",
+      "sha256": "f445841e3226525934ce3ae329817534c00a5e4b7efa89583e7b3bd3d821a157",
+      "upstreamSha256": "f5a6e3db3cea5cc56a3c6d996824d5b51d381ae34c11c57a5ab8c1fc32308bf9",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_fsharp.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_fsharp.abcd",
+      "sha256": "ed709ff4f46a7b7950fcd87b275ff6952ee424503ed91ef4bfe0f7981e4e1224",
+      "upstreamSha256": "b156e79a4da3664074476a4ee7ed06c702050c3a68d64256880e6ef2b321748a",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dim7_g.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dim7_g.abcd",
+      "sha256": "990d5a6c8e6e55be4d9e1947574e839dc76239dac4563d7874f8d7ba6a9d78d0",
+      "upstreamSha256": "3761ee658419827866f5dcdddac4f8d489fd08e75e3ae9fe5dcafc1ea10128cb",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_a.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_a.abcd",
+      "sha256": "48a7149d59e0767fe839fcfb1583c7d67332fc32df5a57f3ce9b7761904be95b",
+      "upstreamSha256": "49a6839237886a112dacea016cd8da679120b22bcd560b248f5ef116ad69ff8b",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_aflat.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_aflat.abcd",
+      "sha256": "9ce8a3189aedd20e6c6e1d6a176a3928ad14a5e7ca488caea83533173984e7d9",
+      "upstreamSha256": "f97fc333f14aae2c76e29bc53ad02293eb220f8220366c1ae5301fb59f6ded45",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_b.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_b.abcd",
+      "sha256": "30690e9ed72fcc40a3b06b81d50db7ea294af57b454b2dd2678dd9bb2ac282f8",
+      "upstreamSha256": "de1fab0eefa00238d3ab7c61bbff8bf5d20f62d74f3e465c96727ab9f181ed3f",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_bflat.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_bflat.abcd",
+      "sha256": "fbaf31d08c95c61e4b5cd6cb32a52fc55cc4e220ab6711bd6a1d95e5681f947c",
+      "upstreamSha256": "e62b9e91f98f795fc4a2b1a303720b3d62deb2971a07724856ebaa41f1f9faa4",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_c.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_c.abcd",
+      "sha256": "76422726c0536815173733cede02330e77731264996b8cc1103d7dbbc3f5aaf9",
+      "upstreamSha256": "9db05b3bb8c1fc635d08c8d8bb2386f409aea00c980584214c37bfe3f477b41f",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_d.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_d.abcd",
+      "sha256": "a2d1d265d51a8d491828102e3a3091cfba725bf429d15775bdbcf401df16ca46",
+      "upstreamSha256": "7c6438ee4f0a6247f2ebbd61789b95a6abc4de797164811c4a08301b15918ab1",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_dflat.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_dflat.abcd",
+      "sha256": "22cdd73717bb68153fa3e2fdf9b8291485b7ee9e665430581608261bf402e891",
+      "upstreamSha256": "66ace02e0fb34384ac0caec8663c1c42381e3ecf739787d0219ef0f345a0d6e3",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_e.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_e.abcd",
+      "sha256": "b3beaca2cefbc067ceed2b1b80e0ae65515dab879ff3441176aad858d962a49d",
+      "upstreamSha256": "26cfc6568fab3db6595c2dba7079226907344ca315a5c63f8e5a174aeb5d7031",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_eflat.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_eflat.abcd",
+      "sha256": "f682fc185a2adc6410fd0480efdbfdd71121ce41d7201da8ada44fed467e0f03",
+      "upstreamSha256": "b9bd59cc18a355b770a864cabad63ab4d6f5c6b7629e57bf04c64ca61d371e92",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_f.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_f.abcd",
+      "sha256": "30b586d3b3e6e9f6c0bbe2d74f60a42a9d1f765e7663b4f4f39fbeaf35dd8bb9",
+      "upstreamSha256": "b0cda4c3d6b3470fe07ea7baac31f66e65370835009cbe8a440960ac620e53e0",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_fsharp.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_fsharp.abcd",
+      "sha256": "447309ab98ffac85b3bde30d62536ef21a44662412061e02c9ca9d11a19a289e",
+      "upstreamSha256": "8e4e01698e02e3db453e2b768f85d5f88ddb37f818b161d0445019b4b74094e6",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/arpeggios/dom7_g.abcd",
+      "upstream": "data/corpora/beringer2/arpeggios/dom7_g.abcd",
+      "sha256": "2c4c6bbada78cbbebb832443d1dd3d22f57518f75bb4208da2e6382c985d243b",
+      "upstreamSha256": "bee4dfe947789becdae5f44fe85eb44f7d304d2ca92cc61336314b0bdc87a908",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/a_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/a_major.abcd",
+      "sha256": "2c54023c56b04bceeaa13a95fa7d469ab08ecaa6575fa08aa203d704150d276e",
+      "upstreamSha256": "40cd3d09e35c6c31d9a1d71ba15b90410aec5ca61866db26d3bd788c2e29578e",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/a_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/a_minor.abcd",
+      "sha256": "b0575d16c03089c17179b74a492ae77e162867d131a485f2fa3e0ff2e261d25b",
+      "upstreamSha256": "6040a648ecc8817d8e0458d84931128be85b0b3111cfd9b6161cb289e71d2172",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/aflat_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/aflat_major.abcd",
+      "sha256": "5bffd9e8b0ce44d0e5d9c6b1d85a81026a70b4e2aa6a7fe934d75b809d6deb43",
+      "upstreamSha256": "ba3a6acd6762c942a666a525bfce38a3e792aac35b485065046857be78f4b1c3",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/b_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/b_major.abcd",
+      "sha256": "fe5473768e960c70b7372e376fdae222994811f4974e6fc0a27bcdee2a763e8a",
+      "upstreamSha256": "83fea7e55a95f298871720741070b28a889f833e4cf8041c7e1e78ee46e7d812",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/b_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/b_minor.abcd",
+      "sha256": "73f81707f18768ac8c7869b5154d3cc512b45d77955ac35fd755d662a8c3f6ff",
+      "upstreamSha256": "e146918314960ef2d19358a8a3e2e35ef32b820d22d0121541e38ec1ff882b27",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/bflat_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/bflat_major.abcd",
+      "sha256": "841e9b24f08551d88d8a51b47c7c97ab36789f37c28f7a88c26434f84f98a8a1",
+      "upstreamSha256": "933f8254ba94a889d041b4f9b7bd1c0f30f9385542c1fb74b07766da9e60f42c",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/bflat_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/bflat_minor.abcd",
+      "sha256": "9e02698db97d8188b804a2a0f8fc7025c734cfcd91366a6748b5655505ef3111",
+      "upstreamSha256": "461ffe2e50dc764a8ccf8bdb29e8b53d084b1140ef49742ab5f596b25b43c91a",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/c_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/c_major.abcd",
+      "sha256": "c25e1740c031bb1634568158cce9bd02de9172411c798c468faf2f5df0722b4b",
+      "upstreamSha256": "5da833e0046ea70b531ad8b5791c0e2a4abf26753d135a9c131c475cd9cbd246",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/c_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/c_minor.abcd",
+      "sha256": "4b63624371357adf342a9c4bbf2fdc994b323cf5c38305de91d1d078c3646074",
+      "upstreamSha256": "f12ab75e4d2033f99eacb29021e8a7c3eb4462cd4a4efab7391b2e3a9465165d",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/csharp_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/csharp_minor.abcd",
+      "sha256": "a7b2a372966454f60d6bc02c4b63db1cfd2841059fa502f622b9c8a47fc3a4e9",
+      "upstreamSha256": "96f5753580067c8988f4448c11cbfdc7c99d9c6619a4c99c1b5568e62e023ae1",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/d_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/d_major.abcd",
+      "sha256": "03e84091a75bcc8daf8bdd768aa831ac1a16615fbe54fb62669a2ec9b9d5de5d",
+      "upstreamSha256": "1405daad27a7f080baf16021b4309d24c5b8ed0b69f5a10ff58f1c303be6339e",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/d_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/d_minor.abcd",
+      "sha256": "46839cf2f9da3980399914fb180c4566ef68db087120b5e42ecb6c377a79bab4",
+      "upstreamSha256": "d0b72fda8fec52f8442b03c52bc70bd81885208d332615c8a6ffcbfd98ce99f6",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/dflat_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/dflat_major.abcd",
+      "sha256": "5f051d934bd3762d28afdb0b3e4c4436d5e19aba4a0acabef2a4609e13ba716d",
+      "upstreamSha256": "a4c592caccabaf921753b6f067bad3991fa5ad09556d11399814693ddcf4c1b3",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/e_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/e_major.abcd",
+      "sha256": "da1518c8b4c4208547707570e2c757f7e9ab05b0608e9704f216936187444fcc",
+      "upstreamSha256": "698b48287dd6eb95195ccce713a088c51bd6acc6a45f38fa558988517abf8973",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/e_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/e_minor.abcd",
+      "sha256": "9e4e488f2f3ea138d5a4c94aa9242f8d6dc2fe277447cd114baaa5d323db21b2",
+      "upstreamSha256": "eac65008a08c41dfa39d95e612f50425da21ba82863fa10976521896908bd1a2",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/eflat_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/eflat_major.abcd",
+      "sha256": "3c98bc245197569fe2f3940fec9cf2a446d1d6f72c93e257ad34feeaa260f46b",
+      "upstreamSha256": "c3116165e5373e473f75938f82e7e6a5444d94baa26d5771b9f51dd96b9ab353",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/eflat_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/eflat_minor.abcd",
+      "sha256": "ad6d4d09049dd17026eaeeca801f3e991add4f5515f9091a5e1449327ceb3c28",
+      "upstreamSha256": "fc87162eeff0d06acd4fd3d76be53b798299eca9b32aa026ebf511f8efe04ad2",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/f_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/f_major.abcd",
+      "sha256": "785d521057604bc3c2392dce46d3fbbba42bb5d46d1a5befa6f6e453c6d1092c",
+      "upstreamSha256": "44e7f4cf799b2c6ab13e5193ea70305bb3ce6dfec35320e7d03f052ee49c60f7",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/f_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/f_minor.abcd",
+      "sha256": "62f3396d677741bd1ca1e2849f9af4e8fee2c8059e97ea1a55feb7cdd85d646d",
+      "upstreamSha256": "8dd040cd7d0589d526616d2717dfa55102cb19ffecd88a55298ba01101495145",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/fsharp_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/fsharp_major.abcd",
+      "sha256": "96c02026a745934deacf5e6959a412d54e50f4c2715f377a3f4712acc724f776",
+      "upstreamSha256": "21adb2876d6e8ca364eb13fdb83980043c51fb290544fe4bc7c868e6ac9543b1",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/fsharp_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/fsharp_minor.abcd",
+      "sha256": "3a5509ec1e9e47c4f82a9ff2baab846fe171ac5dfc984904b4e74130ca0435f4",
+      "upstreamSha256": "51ae07cb64b786813ab65fc4036d14017ccb66d8068d0bfb3e975fde20edbe14",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/g_major.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/g_major.abcd",
+      "sha256": "357c21f7c18953ff7cd51f11dbf80e0d9928fea0bb1f3e635bf813fb70b3372f",
+      "upstreamSha256": "078348d261c73bee3217897a90b6ca4e195dd2113a7c689a500a6a2a64485ef4",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/g_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/g_minor.abcd",
+      "sha256": "4c4abadf6619adac0a080139815507f0f8d71a3cf503e59976993c177ed4aa7f",
+      "upstreamSha256": "849d3cdb6b037ccc2d0c2b888763c3af44644fd1a79892f57cfbc82103dbb1be",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/broken_chords/gsharp_minor.abcd",
+      "upstream": "data/corpora/beringer2/broken_chords/gsharp_minor.abcd",
+      "sha256": "01d610fd92e943f9f1db889e983dff2ecc98ac2ebabf0dde1e9c173cb3845caa",
+      "upstreamSha256": "1486f683690fb149002a8bf3f01a4cac8fd2d7b5434c69247913624ff2957b5b",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/a_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/a_major.abcd",
+      "sha256": "9903fa08beb60a58eb05179f8925bc9184ccd12c57d65782e48a9f8c63427e8e",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "7d9f88b8462804006bd406334bb3e7b9f559a34d70bd9581914d8acc477d5cad",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/a_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/a_minor_harmonic.abcd",
+      "sha256": "2be85e5b26120f6c0d227b07d6f145a90f92e1bc8b5cc72dd9f4a278d6d92adb",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "5b12aad6f375f503670b0be3e20495b5064cc2cbaac9892bdc46ef2d8873f5bd",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/a_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/a_minor_melodic.abcd",
+      "sha256": "8cff2dcf058c331826bf2eaf4405c35d17ee1e2d2b720e0990f569c52c5eb7f6",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "5aecb7ec97f94aaed5bd57e06bc5f69ec9e34f8ad97c17fdb1b9b44f889e4865",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/aflat_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/aflat_major.abcd",
+      "sha256": "7ac36194e2003280cd9f49caa0590d414e2b9e376ffb6947285ba96698ce7559",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "73bb7a7020fa89fc9411c35f0189571c335ee2c0193d4454214a1ba557d5c95a",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/b_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/b_major.abcd",
+      "sha256": "774114bf2ab77de91701252fda9043460c4a5b9373ab98dac072cf406e81acfa",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "916f766fc99f8c142dfe7fb229839054035936ceaa220f354de3a83d2f70870c",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/b_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/b_minor_harmonic.abcd",
+      "sha256": "3a99216a29eecd5bc0b6631ac1e19432efb6a6d73add606f892b82d46cca8a60",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "5f1890f57ee091b37b22b5ad3cc19ebf893fef560b83c0cc2625bc47c7faba0b",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/b_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/b_minor_melodic.abcd",
+      "sha256": "4f5ca7003f7917ab4a84a04a01d127a6ad4c5f999d0d7176802dc455ddbbc951",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "42a6a73159750d4fe3f38407286d6f7f5bf2b70ee44992e11e14da6ee83fba8f",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/bflat_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/bflat_major.abcd",
+      "sha256": "10e878c8da80ad0f058b951a3a0504c30dd6a997083965c6a7899cb4d9d6378e",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "afc3890e665cda0a1faf436eecb396a371377d82475c1a31dd2e412fbcb39242",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/bflat_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/bflat_minor_harmonic.abcd",
+      "sha256": "7c8d873477f9ae2e6b71002f6de99626f99274c756e45039973b481ee1310f6a",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "bd30ff89785161e6eb0c8e938d9e32642f67547f23414b3eb38656e956c61c23",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/bflat_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/bflat_minor_melodic.abcd",
+      "sha256": "109e57200aa27ccee90dd3ea473571ec2b56778382600890a7b25df7bc07439d",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "6df203132311d3fdd8bee0c0a916e3533ebc8fad2060520aa12baa238c9931c0",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/c_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/c_major.abcd",
+      "sha256": "b5ef8e7a349a8dd997f574def1752348dcce81104e40c137f33988379df3080b",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "a403623c2ffba29e8fc6f6011d21a60eef7c127f9854874e2ccdd147a21bc091",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/c_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/c_minor_harmonic.abcd",
+      "sha256": "cba5670e1f3c6c5a35b4154235d51e84f924ebf9ba174392d893ad1ed1fd0724",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "d1649ea3f813b8da4b03efa6097c1aff75baea3501151426e341a0e9385952b5",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/c_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/c_minor_melodic.abcd",
+      "sha256": "e604c08423ffea995f6e9fd78ce0b0d8c727e0caba1cf4c1eb2947634eb49575",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "9e96815dec9f24253bd1c37f0175a9bfa3497cc7b20fe0ceb445cff9984153df",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/chromatic_ascending.abcd",
+      "upstream": "data/corpora/beringer2/scales/chromatic_ascending.abcd",
+      "sha256": "809b84c1f744d6ee215fad5c8e3a92853892043c02725ebf15c4e1d549a02403",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "804e8d4adcce2605d259569c6a98f3f9559d7bf3e1050dcdc7a444ed505b6a96",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/chromatic_descending.abcd",
+      "upstream": "data/corpora/beringer2/scales/chromatic_descending.abcd",
+      "sha256": "7533332f47c4f59ad2f3b07caf7adcab164fd63d4d07a1f3ea7bcac8321f0be5",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "9a7101b694ae9ac9e92af09a8a57247b3f45623f6d4b37d18c8b5e0b62fe734d",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/csharp_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/csharp_minor_harmonic.abcd",
+      "sha256": "3d3c139bdbecd19b0a3314f7c46725d64946b3ca808297f07d7050c54cdeccc2",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "e0df3e46f684a6b29b033cc417a4742e6a587e9c8d726af54b6b6ff6f27101ce",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/csharp_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/csharp_minor_melodic.abcd",
+      "sha256": "b3cf9d567bf81137374594986a7ed8ce5706138ae67fae92b86f86f805631807",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "d546ab6534ee557d813fc18a9dec9e9a906379db18b6c128c2f7fea059093d3b",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/d_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/d_major.abcd",
+      "sha256": "1be753c03addb4d7f9f58c161b8dfd404dda17bde33640de50b66f57f16f3be4",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "4e0223a96ff7ef732a021cfac42d300c9eef07bb3fde3475cd376baf30d19245",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/d_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/d_minor_harmonic.abcd",
+      "sha256": "61ed37448ea7f19dd9e01c6d76dbbab2d56a15b7d60e18e9307152ee5c80a782",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "03ac8b83041a7c0588b8c10cd3c1c35dcf21b76b99dfcf2e554f0081333bcc66",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/d_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/d_minor_melodic.abcd",
+      "sha256": "d5c073d4439220ea47f5e4c353fa3411d115358cd02be6a545b21d292e671ac4",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "6e951b3f052b72bfc784adb9bd8cfff4ea7d0f22240c486292e669706e40876f",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/dflat_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/dflat_major.abcd",
+      "sha256": "475c97b61450fe91fa1bd56c57879deaca6d6a6a907716c38d4296249355a9d1",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "007d504213caf49e1ed421a91c8097487f20d98ec773da7f957ba34c82919c27",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/e_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/e_major.abcd",
+      "sha256": "21324e0340e380274558db4da38e0b125fadf20263e7cbaa24f3a282da2eecfd",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "65dbf1c56f9ffbb78f59d2086b598cf21ea256981c237fd0515770c55e4d9543",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/e_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/e_minor_harmonic.abcd",
+      "sha256": "799d947823dae9a73af5cffcd7bb549acfe661134c5890b3e820ebf842860e6a",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "3cd4cf9e00458d491a1491aaec732b4375b527073b0e1866b01cb15cb42e523d",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/e_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/e_minor_melodic.abcd",
+      "sha256": "e212898df7ca1bbb66ec18bcbab255765fd23e987a5838d6752334621235b2fd",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "1eb099366875911b2dd68bcfa975bbf90b3586af2e5459f6f427440a209decf1",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/eflat_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/eflat_major.abcd",
+      "sha256": "a237aaced357793cdd9b9dd27930b85d63fe1f299890fb4cf61943289b93c613",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "8a5f118639547c1372e8aacdb3056d67d893822dceab1476f510668095ebc7de",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/eflat_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/eflat_minor_harmonic.abcd",
+      "sha256": "a6f5c9f5262e08901ae580c301b40d6278dca6d1f987960743de9e0ddf53d419",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "1c2c8e128eb7230adf416e63357b74fb48445eb7b705035cced29d0ec91b9bcf",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/eflat_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/eflat_minor_melodic.abcd",
+      "sha256": "509c5e1721428280bb1dab535fc9cedd54ef5e0b2b02aa1b109b65721a141b3a",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "62b337687d5982ed3bfd0fc266577e09b12da3490c631f9737e644547c1c37db",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/f_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/f_major.abcd",
+      "sha256": "ca839c1903393592c80bc17f3af37e43b1a55a72e44568f9c7a334bb8ab560ef",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "861909460acfa2c8adabdd6fe69d0cfadfa1e58c06a5d9ba0006081565224836",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/f_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/f_minor_harmonic.abcd",
+      "sha256": "c80fe07fd8dd67921c277147a31a1844a8f8e2691e36af1b958e57381e0d4f9d",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "95e59452116722bf6ed44f665e42827f2e9ab8ed0095deca7aa18f69d19eae56",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/f_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/f_minor_melodic.abcd",
+      "sha256": "3a7e13ba122bdc76c417146a4e75a79100529ff1e6a4425f24d4d21d7ada592b",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "21761d099318d2713e57eaf169391b8a186a2328a3e4a632b22c674f69556cc5",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/fsharp_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/fsharp_major.abcd",
+      "sha256": "229eb39587f6b3ae6e497dccdb2b699e36b95b7d4ab7ffa46897508e1fa65e00",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "819ce5ee5e26340c7f4523a302a8400541435ed464da4e7e3d13a4fadf21a502",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/fsharp_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/fsharp_minor_harmonic.abcd",
+      "sha256": "090a477c464aec0e6ac78d6107abcadfc3e1676abf16f9cd0340050e7d4b2fae",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "88d028c92df5eeeb01e8f9e0faa97666889fa34c62711068b5adb13da3e902c7",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/fsharp_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/fsharp_minor_melodic.abcd",
+      "sha256": "34eaa26543eaf1cc57a526e34e14179f8784d880d4d148f232a985302a9dde6b",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "4f65c2bcb449665670e85f5cf623be650f842a2a59822efc38eab4071a73f28a",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/g_major.abcd",
+      "upstream": "data/corpora/beringer2/scales/g_major.abcd",
+      "sha256": "482847762f7eafb3edb562ce8f2e8745cc8ca6cb06a4df7b893a81f0f77ce176",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "56a34dab68d1e1578dba6f97b19547adb9e56c0c9ec078010a19fdd739a64681",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/g_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/g_minor_harmonic.abcd",
+      "sha256": "142284c83da76127bdff87376ad981aeaa1cfb53b4b48451451e5d6953824fbc",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "5292a900e2834b4d9789b44e5a0fb901870e879030f0147d691c44ea28fdf44a",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/g_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/g_minor_melodic.abcd",
+      "sha256": "ae5e4f7d6732f10b9eb7776115b2bae28795790c287196bb51cf9ab4c7913f64",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "ca659bd116191592ab721063498a9f957ec2a938ac464945d9c570f43feead8e",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/gsharp_minor_harmonic.abcd",
+      "upstream": "data/corpora/beringer2/scales/gsharp_minor_harmonic.abcd",
+      "sha256": "ea8dead878dc7ea70e7d2fb32a0d8df75315805aa4fbf8e4af49d04b86193c1e",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "4d8a3e112e4de90d275cb8a6410615b8460eff136864ae8cbcc6e2256692df3b",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    },
+    {
+      "path": "beringer2/scales/gsharp_minor_melodic.abcd",
+      "upstream": "data/corpora/beringer2/scales/gsharp_minor_melodic.abcd",
+      "sha256": "f2266f8630652ccd4b5a40fea49b831d1ec6814552dedfce878071790a8b6770",
+      "selection": "All annotated .abcd files in the reserved scales family; unannotated .abc variants excluded.",
+      "upstreamSha256": "1069ebe838a181faef3943628513de5cfb66aeb58de07908abe0ab4214c915e4",
+      "normalization": "trailing whitespace removed; notation and annotation contents unchanged"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import type {CagedRouteDirection} from "./caged-route";
 import {isMaqam} from "./maqamat";
 import { BERKLEE_SHAPES, berkleeShift, type BerkleeShape } from "./berklee-scale-shapes";
 import { choice, object } from "./exercise-settings";
@@ -23,6 +24,9 @@ export type GuitarScaleSettings = ScaleSelection & {
   pattern?: ScalePattern;
   shift?: number;
   labels?: "fingers" | "notes" | "none";
+  wholeRoute?: boolean;
+  routeDirection?: CagedRouteDirection;
+  routeVariant?:number;
   firstFret?: number;
   lastFret?: number;
   returnPosition?: { pattern: ScalePattern; shift: number; tonic?: number; quality?: ScaleQuality; spelling?: string };
@@ -100,6 +104,13 @@ export function mergeGuitarScaleSettings(
     patterns,
     base.pattern || "map",
   );
+  if(source.routeVariant!==undefined||base.routeVariant!==undefined)
+    settings.routeVariant=Number.isInteger(source.routeVariant)&&Number(source.routeVariant)>=0&&Number(source.routeVariant)<4?Number(source.routeVariant):base.routeVariant||0;
+  if(source.routeDirection!==undefined||base.routeDirection!==undefined)
+    settings.routeDirection=choice(source.routeDirection,['up','down','both'],base.routeDirection||'both');
+  if(source.wholeRoute!==undefined||base.wholeRoute!==undefined)
+    settings.wholeRoute=(settings.shapeSet||'standard')==='standard'&&!isMaqam(settings.quality)&&
+      (typeof source.wholeRoute==='boolean'?source.wholeRoute:!!base.wholeRoute);
   if (source.pattern !== undefined || base.pattern !== undefined)
     settings.pattern = pattern;
   const validShift = (shift: unknown): shift is number =>
@@ -206,6 +217,9 @@ export function guitarScaleFromQuery(
       ...(query.has("from") ? { firstFret: Number(query.get("from")) } : {}),
       ...(query.has("to") ? { lastFret: Number(query.get("to")) } : {}),
       ...(query.has("labels") ? { labels: query.get("labels") } : {}),
+      ...(query.has('route') ? {routeVariant:Number(query.get('route'))-1} : {}),
+      ...(query.has('direction') ? {routeDirection:query.get('direction')} : {}),
+      ...(query.has('link') ? {wholeRoute:query.get('link')==='all'} : {}),
       ...(shift !== undefined ? { shift } : {}),
     },
     base,

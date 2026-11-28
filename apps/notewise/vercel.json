@@ -55,7 +55,7 @@
       ]
     },
     {
-      "source": "/(piano|guitar|rhythm|theory)/:path*",
+      "source": "/(piano|guitar|theory)/:path*",
       "headers": [
         {
           "key": "Cache-Control",
@@ -111,10 +111,6 @@
     },
     {
       "source": "/guitar/:path*",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/rhythm/:path*",
       "destination": "/index.html"
     },
     {

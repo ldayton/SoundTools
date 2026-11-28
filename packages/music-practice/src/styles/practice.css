@@ -59,50 +59,6 @@
   max-width: 500px;
   margin-inline: auto;
 }
-.rhythm-tap {
-  display: block;
-  max-width: 360px;
-  margin: 16px auto;
-}
-
-.rhythm-paper {
-  display: grid;
-  grid-template-columns: repeat(var(--rhythm-columns, 1), minmax(0, 1fr));
-  gap: 0 16px;
-}
-.rhythm-bar {
-  min-width: 0;
-}
-.rhythm-bar:not(:first-child) .abcjs-time-signature {
-  visibility: hidden;
-}
-.rhythm-tap {
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-}
-.rhythm-tap-response {
-  display: block;
-  min-height: 18px;
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 500;
-}
-.rhythm-tap[data-feedback="hit"] {
-  background: var(--mantine-color-green-light);
-  border-color: var(--mantine-color-green-filled);
-}
-.rhythm-tap[data-feedback="extra"] {
-  background: var(--mantine-color-orange-light);
-  border-color: var(--mantine-color-orange-filled);
-}
-.rhythm-tap[data-feedback="ignored"] {
-  background: var(--mantine-primary-color-light);
-  border-color: var(--mantine-primary-color-filled);
-}
-.rhythm-tap-slot + .sequence-transport {
-  margin-top: 0;
-}
 
 .theory-notation {
   display: flex;

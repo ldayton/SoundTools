@@ -68,6 +68,7 @@ export function SettingsNavigationLink({
       aria-label="Settings"
       aria-description={updateAvailable ? "App update available" : undefined}
       data-settings
+      px={0}
       active={active}
       aria-current={active ? "page" : undefined}
       onClick={onClick}
@@ -88,18 +89,20 @@ export function AppBrand({
   icon,
   href = "/",
   onClick,
+  color = "inherit",
 }: {
   name: string;
   icon: string;
   href?: string;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  color?: string;
 }) {
   return (
     <Anchor
       href={href}
       onClick={onClick}
       aria-label={`${name} home`}
-      c="inherit"
+      c={color}
       underline="never"
     >
       <Group gap="xs" wrap="nowrap">

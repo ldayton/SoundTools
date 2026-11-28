@@ -1,3 +1,4 @@
+import { closePracticeOptions } from './ui-helpers';
 import {
   waitForServer,
   captureFailure,
@@ -132,11 +133,13 @@ try {
   assert.equal(await page.locator('#low-spin').inputValue(), 'C♯4');
   await page.setViewportSize({ width: 390, height: 844 });
   await openPracticeOptions(page);
-  assert.equal(await page.locator('#low-wheel').getAttribute('aria-valuetext'), 'C♯4');
-  assert.equal(
-    await page.locator('#low-wheel [data-midi="61"] .note-wheel-primary').textContent(),
-    'C♯4'
-  );
+  await closePracticeOptions(page);
+  assert.equal(await page.locator('#low-spin').inputValue(), 'C♯4');
+  await page.locator('#low-spin').click();
+  const mobileGrid = page.getByRole('dialog', { name: 'Choose lowest note' });
+  assert.equal(await mobileGrid.getByRole('button', { name: 'C♯4', exact: true }).getAttribute('aria-pressed'), 'true');
+  await page.keyboard.press('Escape');
+  await mobileGrid.waitFor({ state: 'hidden' });
 
   assert.equal(await page.locator('.note-wheel-alias, .note-picker-alias').count(), 0);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));

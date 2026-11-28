@@ -16,7 +16,7 @@ import type { BeginnerInstrument } from "./beginner-score";
 import { bluesPianoAbc, bluesLandmarks } from "./fingerstyle-blues";
 import { hymnLyricsAbc } from "./hymn-lyrics";
 import { instrumentHymnAbc, type InstrumentHymn } from "./instrument-hymn";
-import { jesusEdition, jesusFingers, jesusPosition } from "./jesus-loves-me";
+import { jesusEdition, jesusFingers, jesusPosition, jesusInstrumentAbc, jesusGuitarEdition } from "./jesus-loves-me";
 import {
   faithfulEdition,
   faithfulFingers,
@@ -24,6 +24,7 @@ import {
 } from "./o-come-all-ye-faithful";
 import {
   flyEditionAbc,
+  flyVocalAccompanimentAbc,
   flyLandmarks,
   flyFingers,
   flyGuitarPosition,
@@ -58,6 +59,7 @@ export type InstrumentEdition = {
   /** Polyphonic source editions select a single part after slicing the complete score. */
   selectWholeVoices?: boolean;
   build: (context: BuildContext) => string;
+  vocalAccompaniment?: (melody: string) => string;
   landmarks?: (abc: string, from: number, guitar: boolean) => string;
 };
 export type ChordEditionId = string;
@@ -192,6 +194,7 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     pickup: false,
     tempo: 80,
     shapes: "C, small F and G7",
+    vocalAccompaniment: flyVocalAccompanimentAbc,
     strumPattern: true,
     fingers: flyFingers,
     position: flyGuitarPosition,
@@ -205,14 +208,14 @@ const recipes: Record<ChordEditionKey, Recipe> = {
   },
   "jesus-loves-me": {
     original: true, vocal: true,
-    capo: 3,
+    capo: 8,
     pickup: false,
-    tempo: 72,
-    shapes: "C, small F and G7",
-    guitarKey: jesusEdition.guitarKey,
+    tempo: 80,
+    shapes: "G, C and D7",
+    guitarKey: jesusGuitarEdition.guitarKey,
     fingers: jesusFingers,
     position: jesusPosition,
-    build: buildFrom(jesusEdition),
+    build: ({melody, instrument, hands}) => jesusInstrumentAbc(melody(), instrument, instrument === "guitar" ? hands : "both"),
   },
   "o-come-all-ye-faithful": {
     original: true, vocal: true,

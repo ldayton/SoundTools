@@ -40,17 +40,30 @@ export async function midiAction(
   await page.getByRole("button", { name: label, exact: true }).click();
   await advanceClock?.();
 }
+/** Open the phone instrument chooser; desktop choices are already visible. */
+export async function openHymnInstrumentChoices(page:Page) {
+  await waitForApp(page,".hymn-controls");
+  await dismissPracticeDrawer(page);
+  const picker=page.getByRole("button",{name:"Choose instrument",exact:true});
+  if(await picker.isVisible() && await picker.getAttribute("aria-expanded")!=="true")await picker.click();
+}
+export async function closeHymnInstrumentChoices(page:Page) {
+  const picker=page.getByRole("button",{name:"Choose instrument",exact:true});
+  if(await picker.isVisible() && await picker.getAttribute("aria-expanded")==="true")await picker.click();
+}
 /** Select the primary instrument through its real toolbar radio control. */
 export async function selectHymnInstrument(
   page: Page,
   instrument: "guitar" | "piano" | "sung",
 ) {
-  await waitForApp(page, ".hymn-toolbar-instruments");
+  await waitForApp(page, ".hymn-controls");
   const wasOpen =
     (await page
       .locator("#practice-options-reopen")
       .getAttribute("aria-expanded")) === "true";
   await dismissPracticeDrawer(page);
+  const picker=page.getByRole("button",{name:"Choose instrument",exact:true});
+  if(await picker.isVisible() && await picker.getAttribute("aria-expanded")!=="true") await picker.click();
   const primary=instrument === "sung" ? "piano" : instrument;
   const button=page.locator(`[role="radio"][data-instrument="${primary}"]`);
   await button.waitFor({state:"visible"});
@@ -58,6 +71,7 @@ export async function selectHymnInstrument(
   const voice=page.getByRole("button",{name:"Voice",exact:true});
   if(await voice.getAttribute("aria-pressed")!==String(instrument === "sung"))await voice.click();
   await page.waitForFunction(([primary,sung])=>document.querySelector(`[role="radio"][data-instrument="${primary}"]`)?.getAttribute("aria-checked")==="true" && document.querySelector('[data-instrument="sung"]')?.getAttribute("aria-pressed")===sung,[primary,String(instrument === "sung")]);
+  if(await picker.isVisible()) await picker.click();
   if (wasOpen) await openPracticeOptions(page);
 }
 
@@ -66,9 +80,9 @@ export async function selectHymnScore(page:Page,value:string) {
   if (!["piano","original","guitar-edition","guitar-fingerstyle","guitar-vocal"].includes(value))
     throw Error(`Retired or unsupported score: ${value}`);
   await selectHymnInstrument(page,value.startsWith("guitar")?"guitar":value==="original"?"sung":"piano");
-  if(value === "guitar-vocal"){await dismissPracticeDrawer(page);await page.getByRole("button",{name:"Voice",exact:true}).click();}
+  if(value === "guitar-vocal"){await dismissPracticeDrawer(page);const picker=page.getByRole("button",{name:"Choose instrument",exact:true});if(await picker.isVisible())await picker.click();await page.getByRole("button",{name:"Voice",exact:true}).click();if(await picker.isVisible())await picker.click();}
   await openPracticeOptions(page);
-  await page.waitForFunction(value=>document.querySelector('.hymn-toolbar-instruments [role="radio"][aria-checked="true"]')?.getAttribute("data-arrangement")===value,value);
+  await page.waitForFunction(value=>(document.querySelector('.hymn-instrument-picker') || document.querySelector('.hymn-toolbar-instruments [role="radio"][aria-checked="true"]'))?.getAttribute("data-arrangement")===value,value);
 }
 
 export async function practiceOption(
@@ -100,7 +114,7 @@ export async function practiceOption(
     );
     return;
   }
-  if (["#hymn-size", "#hymn-tempo", "#rhythm-tempo"].includes(selector)) {
+  if (["#hymn-size", "#hymn-tempo"].includes(selector)) {
     await dismissPracticeDrawer(page);
     if (selector.startsWith("#hymn-")) await openHymnControls(page);
     await page.locator(selector).fill(value);
@@ -162,13 +176,8 @@ export async function openHymnControls(page: Page) {
       matchMedia(query).matches,
     MOBILE_SONGALONG_QUERY,
   );
-  const button = page.getByRole("button", {
-    name: "Show controls",
-    exact: true,
-  });
-  if (await button.isVisible()) await button.click();
-  if (await page.locator("#hymn-mobile-controls").count())
-    await page.locator("#hymn-mobile-controls").waitFor({ state: "visible" });
+  if (await page.locator(".hymn-toolbar-mobile").count())
+    await openPracticeOptions(page);
 }
 
 async function optionsLayoutReady(page: Page) {
@@ -350,6 +359,7 @@ export async function selectScoreDisplay(page:Page,display:string){
   if(display==="notation"||display==="chords")await tab.uncheck();
 }
 export async function expectScoreDisplay(page:Page,display:string){
+  await openPracticeOptions(page);
   const {expect}=await import("@playwright/test");
   await expect(page.getByRole("checkbox",{name:"Show Treble",exact:true})).toBeChecked({checked:display==="both"||display==="notation"});
   await expect(page.getByRole("checkbox",{name:"Show Tablature",exact:true})).toBeChecked({checked:display==="both"||display==="tab"});

@@ -20,7 +20,6 @@ export const diagnostics = create({
       "signature",
       "sight",
       "patterns",
-      "rhythm",
       "scales",
       "intervals",
     ],

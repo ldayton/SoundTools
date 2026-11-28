@@ -11,7 +11,13 @@ export type GuitarFingering = {
   fingerCount: number;
   effort: number;
 };
-export type FingeringLimits = { maxFingers: number; allowBarres: boolean };
+export type FingeringLimits = {
+  maxFingers: number;
+  allowBarres: boolean;
+  /** Null strings explicitly absent from playback, numbered 1=high E.
+   * Other null strings retain the conservative muted-string policy. */
+  unplayedStrings?: readonly number[];
+};
 const reaches = [
   [0, 3, 4, 5],
   [3, 0, 2, 3],
@@ -23,8 +29,24 @@ function validLimits(limits: FingeringLimits) {
     Number.isInteger(limits.maxFingers) &&
     limits.maxFingers >= 0 &&
     limits.maxFingers <= 4 &&
-    typeof limits.allowBarres === "boolean"
+    typeof limits.allowBarres === "boolean" &&
+    (limits.unplayedStrings === undefined ||
+      (Array.isArray(limits.unplayedStrings) &&
+        limits.unplayedStrings.every(
+          (s) => Number.isInteger(s) && s >= 1 && s <= 6,
+        )))
   );
+}
+
+function canBarreCross(
+  frets: GuitarFrets,
+  index: number,
+  fret: number,
+  limits: FingeringLimits,
+) {
+  return frets[index] === null
+    ? !!limits.unplayedStrings?.includes(6 - index)
+    : frets[index]! >= fret;
 }
 
 /** Conservative four-finger model. No thumb wrapping, bent barres or finger rolls. */
@@ -68,7 +90,7 @@ export function assessGuitarFingering(
       const from = strings[0],
         to = strings.at(-1)!;
       for (let i = from; i <= to; i++)
-        if (frets[i] === null || frets[i]! < fret) return null;
+        if (!canBarreCross(frets, i, fret, limits)) return null;
       barres.push({ finger, fret, fromString: 6 - from, toString: 6 - to });
     }
   }
@@ -87,6 +109,7 @@ export function assessGuitarFingering(
 
 /** Cover fretted contacts with single fingers or legal barres, then assign fingers.
  * A repeated fret is not automatically a barre: open/lower/muted strings block it.
+ * Explicitly unplayed null strings may be crossed without adding a sounding note.
  */
 export function findGuitarFingering(
   frets: GuitarFrets,
@@ -116,7 +139,7 @@ export function findGuitarFingering(
     if (!limits.allowBarres) continue;
     let mask = 1 << i;
     for (let j = i + 1; j < 6; j++) {
-      if (frets[j] === null || frets[j]! < fret) break;
+      if (!canBarreCross(frets, j, fret, limits)) break;
       if (frets[j] === fret) {
         mask |= 1 << j;
         contacts.push({ fret, mask, start: i });

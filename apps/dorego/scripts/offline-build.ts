@@ -41,7 +41,7 @@ export function offlineBuild(release?: string): Plugin {
       const shell = [
         base,
         ...Object.keys(bundle)
-          .filter((path) => path !== 'index.html' && !path.endsWith('.map'))
+          .filter((path) => path !== 'index.html' && !path.endsWith('.map') && !path.endsWith('.tar.gz'))
           .map((path) => base + path),
         ...[
           'manifest.webmanifest',

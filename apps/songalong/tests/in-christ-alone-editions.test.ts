@@ -206,3 +206,12 @@ test("production playback keeps the teacher form and applies guitar capo exactly
   }
   assert.deepEqual(plans[2], plans[1]);
 });
+
+test("capo-two vocal accompaniment plucks bass plus strings 3–1, then the open fourth string", () => {
+  const picked = read(arrangeHymn(hymn, "guitar-vocal", 0).abc).tracks[1];
+  const at = (beat: number) => picked.filter(n => n[1] === beat).map(n => n[0]);
+  assert.deepEqual(at(.5), [55, 59, 62, 67], "F shape: fourth-string bass and three trebles");
+  assert.deepEqual(at(1.5), [50, 57, 62, 66], "C shape restarts at the change inside the bar");
+  assert.deepEqual(at(2.5), [52], "Open fourth string at capo 2 sounds E3");
+  assert.deepEqual(at(3.5), [55, 59, 62, 67], "The next chord cuts off the previous cycle");
+});

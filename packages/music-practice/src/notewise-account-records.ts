@@ -26,7 +26,6 @@ function settingsRecords(state: DurableState): Records {
       isBackingMixerKey(id) ||
       [
         "patterns",
-        "rhythm",
         "guitar-scales",
         "backing-track",
         "theory-scales",
@@ -48,9 +47,10 @@ export function restoreNotewiseRecords(records: Records): DurableState {
     a.localeCompare(b),
   )) {
     if (value === null) continue;
-    if (key === "schema") continue;
+    if (key === "schema" || key === "activity:rhythm") continue;
     if (key === "current") {
-      const current = value as { mode?: unknown; roundLength?: unknown };
+      const saved = value as { mode?: unknown; roundLength?: unknown };
+      const current = saved?.mode === "rhythm" ? {...saved,mode:state.progress.mode} : saved;
       if (
         !current ||
         !APP_EXERCISES.some((e) => e.mode === current.mode) ||

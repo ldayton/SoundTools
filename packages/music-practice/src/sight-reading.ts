@@ -1,5 +1,10 @@
+import {recommendHymnGuitarCapos,playableGuitarRange} from "./hymn-guitar-capos";
+import {hymnScoreFeatures} from "./hymn-score-features";
+import { usesChristPicking } from "./christ-picked-accompaniment";
+import {hymnScoreCredits} from "./hymn-score-credits";
+import type {ScoreExportSource} from "./score-export";
 import {guitarVocalAccompaniment} from "./hymn-arrangements";
-import {recommendGuitarCapos,capoPosition,capoAccompanimentAbc,type CapoChoice} from "./guitar-capo";
+import {capoPosition,capoAccompanimentAbc,type CapoChoice} from "./guitar-capo";
 import { bindMediaSession } from "@ldayton/ui/media-session";
 import {migrateHymnIdentity} from "./hymn-identity";
 import { abcHasChordSymbols, abcPlaybackStaves, legacyHiddenStaves, type PlaybackStaff } from "./hymn-playback-staves";
@@ -16,6 +21,7 @@ import { shellStatus } from "./shell-status";
 import { mountPracticeSurface } from "./practice-surfaces";
 import {
   HymnControls,
+  HymnLegacyControls,
   HymnPassageControls,
   hymnControlsState,
 } from "./hymn-controls";
@@ -110,12 +116,14 @@ export class SightReading {
           ["playing", "counting", "loading"].includes(this.playback.state)
         )
           return;
+        if(this.capoTempoPending)this.refreshCapoTempo();
         void this.playback.play(this.bpm, this.countInBars);
         this.update();
       },
       pause: () => {
         if (!this.active || this.mode !== "playback") return;
         this.playback.pause();
+        if(this.capoTempoPending)this.refreshCapoTempo();
         this.update();
       },
     },
@@ -155,6 +163,7 @@ export class SightReading {
   private capo: number | null = null;
   private capoChoices: CapoChoice[] = [];
   private capoChoice?: CapoChoice;
+  private capoTempoPending = false;
   private capoCache = new Map<string,CapoChoice[]>();
   private octave?: number;
   private low: number | null = null;
@@ -165,6 +174,26 @@ export class SightReading {
   private arrangement: Arrangement = "melody";
   private scoreDisplay: "notation" | "tab" | "both" | "chords" = "both";
   private hands: HymnHands = "both";
+  private restoreOlderBookmark = () => {
+    const old = this.legacyBookmark;
+    if (
+      this.mode === "playback" ||
+      !persistence.writable ||
+      !old ||
+      old.key !== this.bookmarkKey() ||
+      !this.session ||
+      old.position > this.session.steps.length
+    )
+      return;
+    this.position = old.position;
+    this.paused = false;
+    this.legacyBookmark = undefined;
+    this.restorePending = false;
+    this.render();
+    this.save();
+    shellStatus.set({ notice: "" });
+  };
+
   private viewHands: HymnHands = "both";
   private mutedStaves: number[] = [];
   private hiddenStaves: number[] = [];
@@ -250,6 +279,7 @@ export class SightReading {
     this.progress.setZoom(value, this.staffLayout);
   }
   private options!: HymnOptionsState;
+  private exportScore?: ScoreExportSource;
   private showFingerings = false;
   private showBarNumbers = false;
   private staffSpacingByLayout = { mobile: 100, desktop: 100 };
@@ -411,9 +441,13 @@ export class SightReading {
             if (this.mode === "playback") {
               if (
                 ["playing", "counting", "loading"].includes(this.playback.state)
-              )
+              ) {
                 this.playback.pause();
-              else void this.playback.play(this.bpm, this.countInBars);
+                if(this.capoTempoPending)this.refreshCapoTempo();
+              } else {
+                if(this.capoTempoPending)this.refreshCapoTempo();
+                void this.playback.play(this.bpm, this.countInBars);
+              }
               this.playbackView = "";
               this.update();
               return;
@@ -448,25 +482,7 @@ export class SightReading {
             this.render();
             this.save();
           },
-          restore: () => {
-            const old = this.legacyBookmark;
-            if (
-              this.mode === "playback" ||
-              !persistence.writable ||
-              !old ||
-              old.key !== this.bookmarkKey() ||
-              !this.session ||
-              old.position > this.session.steps.length
-            )
-              return;
-            this.position = old.position;
-            this.paused = false;
-            this.legacyBookmark = undefined;
-            this.restorePending = false;
-            this.render();
-            this.save();
-            shellStatus.set({ notice: "" });
-          },
+          restore: this.restoreOlderBookmark,
         }),
         passage: createElement(HymnPassageControls, {
           model: this.controls,
@@ -534,7 +550,9 @@ export class SightReading {
     registerPracticeOptions(
       element,
       createElement(HymnOptions, {
+        legacy: createElement(HymnLegacyControls, {model:this.controls,restore:this.restoreOlderBookmark,previous:()=>this.changeSection(this.section-1)}),
         model: this.options,
+        exportScore: () => this.exportScore,
         change: (patch) => this.changeOptions(patch),
       }),
       this.mode === "playback" ? "Playback options" : "Practice options",
@@ -914,7 +932,16 @@ export class SightReading {
     this.render(false, continuingPlayback);
     this.save();
   }
+  private refreshCapoTempo() {
+    this.capoTempoPending = false;
+    const time=this.playback.displayPosition,state=this.playback.state;
+    this.restorePending=false;
+    this.render();
+    if(this.mode === "playback")this.playback.seek(time,state === "paused" ? "paused" : "ready");
+  }
+
   private render(layoutOnly = false, continuingPlayback = false) {
+    this.exportScore=undefined;
     this.element.dataset.playbackOnly = String(this.mobileLayout.matches);
     const paper = this.$(".hymn-paper");
     this.lastWidth = Math.round(this.$(".sequence-score").clientWidth);
@@ -938,20 +965,14 @@ export class SightReading {
     }
     this.presentation.set({ title: this.hymn.title });
     const reviewed = isInstrumentArrangement(this.hymn, this.arrangement);
-    const guitarVocal=this.arrangement === "guitar-vocal";
+    const features=hymnScoreFeatures(this.arrangement,this.scoreDisplay);
+    const guitarVocal=features.guitar&&features.voice;
     const chordProfile = reviewed || guitarVocal ? chordEdition(this.hymn) : undefined;
     this.body.patch({
       title: this.hymn.title,
       showStrumPattern: !!chordProfile && "strumPattern" in chordProfile && !!chordProfile.strumPattern &&
-        (this.arrangement === "guitar" || this.arrangement === "guitar-chords" || this.arrangement === "guitar-edition" && this.scoreDisplay === "chords"),
-      credits: this.hymn.credits
-        .filter((credit) => /^(Words:|Music:|(?:\p{L}+\s+)?translation:|Tabledited by )/iu.test(credit))
-        .map((credit) =>
-          credit
-            .split(/\s+Setting:/i)[0]
-            .replace(/\s+/g, " ")
-            .trim(),
-        ),
+        features.guitar,
+      credits: hymnScoreCredits(this.hymn.credits),
       arrangement: this.arrangement,
       noKey: false,
       scoreLabel: reviewed
@@ -984,18 +1005,14 @@ export class SightReading {
       this.capoChoices=[];this.capoChoice=undefined;
       if(capoEdition){
         const guitarShift=guitarVocal ? ((chordProfile.capo+transposition.semitones)%12+12)%12-chordProfile.capo : transposition.semitones;
-        const identity=`${this.hymn.id}:${this.arrangement}:${guitarShift}:${this.capo ?? "auto"}`;
-        let choices=this.capoCache.get(identity);
-        if(!choices){
-          choices=recommendGuitarCapos({abc:guitarVocal ? guitarVocalAccompaniment(this.hymn,0).abc : arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:guitarShift,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position,requestedCapo:this.capo,accompanimentOnly:guitarVocal});
-          this.capoCache.set(identity,choices);
-        }
+        const choices=this.guitarCapoAdvice(guitarShift,guitarVocal,this.capo);
         this.capoChoices=choices;
         this.capoChoice=choices.find(c=>c.fret === this.capo) || choices[0];
         if(this.capo !== null && this.capoChoice?.fret !== this.capo)this.capo=null;
       }
       const capoChoice=this.capoChoice;
       const guitarCapo=capoChoice?.fret ?? (capoEdition ? chordProfile.capo+transposition.semitones : chordProfile?.capo);
+      const pickedAccompaniment=guitarVocal && usesChristPicking(chordProfile?.editionKey,transposition.semitones,guitarCapo);
       const shapeTranspose=guitarVocal ? 0 : capoEdition ? chordProfile.capo+transposition.semitones-guitarCapo! : transposition.semitones;
       const score = arrangeHymn(
         this.hymn,
@@ -1011,7 +1028,7 @@ export class SightReading {
         score.abc = hymnStanzaAbc(score.abc, this.hymn, this.stanza, hymnMelodyOffset(this.hymn, score.from));
       this.section = score.section;
       this.sections = score.sections;
-      this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
+      const drawingOptions: NonNullable<Parameters<typeof drawPracticeScore>[3]> = {
         fitHymnSystems: true,
         barNumbers: this.showBarNumbers,
         scale: this.zoom,
@@ -1019,15 +1036,14 @@ export class SightReading {
         showChordSymbols: this.showChordSymbols,
         guitarSetup: isGuitarArrangement(this.arrangement) && chordProfile
           ? {capo:guitarCapo!,key:this.key === "original" ? this.hymn.key : this.key} : undefined,
-        fingerings:
-          this.showFingerings &&
-          (reviewed
-            ? !!capoEdition || (this.key === "original" || this.key === this.hymn.key) &&
-              (this.arrangement === "piano" || this.octave === 0)
-            : ["melody", "bass", "guitar"].includes(this.arrangement)),
+        fingerings: this.showFingerings && features.fingerings,
         beginnerEdition: reviewed
           ? this.arrangement === "piano" ? "piano" : "guitar" : undefined,
-        hymnEdition: reviewed ? chordEdition(this.hymn)?.id : undefined,
+        hymnEdition: chordProfile?.id,
+        guitarStaffIndex:guitarVocal?features.guitarStaff:undefined,
+        guitarNotation:features.guitar?this.scoreDisplay === "both"||this.scoreDisplay === "notation":undefined,
+        pianoStaffIndexes:features.voice&&!features.guitar?this.staffChoices().filter(s=>s.index>0).map(s=>s.index):undefined,
+        generatedPianoFingerings:!features.guitar&&(features.voice||transposition.semitones!==0),
         fromBar: score.from,
         lyrics: this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||
@@ -1039,18 +1055,17 @@ export class SightReading {
                 skipChordTies: this.arrangement === "guitar" || this.arrangement === "guitar-chords",
               }
             : undefined,
-        guitarTab: !guitarVocal && isGuitarArrangement(this.arrangement) &&
-          (!isEditedGuitar(this.arrangement) || this.scoreDisplay !== "notation" && this.scoreDisplay !== "chords"),
+        guitarTab: features.tablature && ["both","tab"].includes(this.scoreDisplay),
         guitarMidiOffset: guitarMidiOffset(this.arrangement),
-        fingerstyleTab: isEditedGuitar(this.arrangement),
-        tabOnly: isEditedGuitar(this.arrangement) && this.scoreDisplay === "tab",
+        fingerstyleTab: isEditedGuitar(this.arrangement)||guitarVocal,
+        tabOnly: features.tablature && this.scoreDisplay === "tab",
         chordTab: this.arrangement === "guitar-chords",
-        chordsOnly: this.arrangement === "guitar-edition" && this.scoreDisplay === "chords",
+        chordsOnly: features.guitar && this.scoreDisplay === "chords" && (!features.voice||this.hiddenStaves.includes(0)),
         octaveNotation: !isGuitarArrangement(this.arrangement) &&
           !(this.arrangement === "original"),
         printedScore: this.arrangement === "original" || guitarVocal,
-        guitarAccompaniment:guitarVocal && chordProfile ? {capo:guitarCapo!,positionFor:(pitch,chord,_transpose,group)=>capoChoice && !capoChoice.scoreSetting ? capoPosition(capoChoice,pitch,chord,chordProfile.capo+transposition.semitones-guitarCapo!,group) : chordProfile.position(pitch,chord,0)} : undefined,
-        initialSignatures: !reviewed,
+        guitarAccompaniment:guitarVocal && chordProfile ? {capo:guitarCapo!,positionFor:(pitch,chord,_transpose,group)=>capoChoice && !capoChoice.scoreSetting && !pickedAccompaniment ? capoPosition(capoChoice,pitch,chord,chordProfile.capo+transposition.semitones-guitarCapo!,group) : chordProfile.position(pitch,chord,0)} : undefined,
+        initialSignatures: true,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: shapeTranspose,
         capoChoice,
@@ -1086,10 +1101,10 @@ export class SightReading {
               prepared.timing,
               {
                 instrument: hymnPlaybackInstrument(this.hymn, this.arrangement),
-                strum: this.arrangement === "guitar-vocal" || this.arrangement === "guitar-chords" ||
+                strum: this.arrangement === "guitar-vocal" && !pickedAccompaniment || this.arrangement === "guitar-chords" ||
                   (this.arrangement === "guitar-edition" && this.viewHands === "left"),
                 positionFor: edition
-                  ? (pitch, chord, group) => capoChoice ? capoPosition(capoChoice,pitch-guitarCapo!,chord,guitarVocal ? edition.capo+transposition.semitones-guitarCapo! : shapeTranspose,guitarVocal ? group?.map(p=>p-guitarCapo!) : undefined) : edition.position(
+                  ? (pitch, chord, group) => capoChoice && !pickedAccompaniment ? capoPosition(capoChoice,pitch-guitarCapo!,chord,guitarVocal ? edition.capo+transposition.semitones-guitarCapo! : shapeTranspose,guitarVocal ? group?.map(p=>p-guitarCapo!) : undefined) : edition.position(
                       pitch - (capoEdition ? guitarCapo! : edition.capo || 0), chord, shapeTranspose,
                     )
                   : undefined,
@@ -1099,7 +1114,20 @@ export class SightReading {
               this.playback.seek(this.stanzaOffset, "ready");
           }
         },
-      });
+      };
+      this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, drawingOptions);
+      // Export a snapshot of the full music using the exact same display contract.
+      // Rendering it never seeks, pauses or reloads the active practice player.
+      const exportHymn=this.hymn, exportArrangement=this.arrangement, exportStanza=this.stanza;
+      const exportHands=this.mode === "playback" ? "both" : this.viewHands;
+      const exportOptions={...drawingOptions,scale:1,reattackTies:false,playback:undefined};
+      this.exportScore={title:exportHymn.title,credits:hymnScoreCredits(exportHymn.credits),
+        render:(target,width)=>{
+          const full=arrangeHymn(exportHymn,exportArrangement,0,0,exportHands,undefined,transposition.semitones,capoChoice);
+          const abc=hymnStanzaAbc(full.abc,exportHymn,exportStanza,hymnMelodyOffset(exportHymn,full.from));
+          drawPracticeScore(target,abc,width,{...exportOptions,fromBar:full.from,
+            lyrics:exportOptions.lyrics ? {...exportOptions.lyrics,offset:hymnMelodyOffset(exportHymn,full.from)} : undefined});
+        }};
       const visibleEvents = this.events;
       this.visibleEvents = visibleEvents;
       this.passage.bind(visibleEvents);
@@ -1137,11 +1165,11 @@ export class SightReading {
             capoAccompaniment:this.hands === "left",
             guitarSetup: capoEdition && !guitarVocal ? {capo:guitarCapo!,key:transposition.key} : undefined,
             beginnerEdition: this.arrangement === "guitar-edition" ? "guitar" : undefined,
-            hymnEdition: reviewed ? chordEdition(this.hymn)?.id : undefined,
+            hymnEdition: reviewed ? chordProfile?.id : undefined,
             octaveNotation: !isGuitarArrangement(this.arrangement) &&
               !(this.arrangement === "original"),
             printedScore: this.arrangement === "original" || guitarVocal,
-            initialSignatures: !reviewed,
+            initialSignatures: true,
             reattackTies: this.reattackTies,
             lyrics: this.hands === "left" ? undefined : {
               hymn: this.hymn, selected: this.stanzas,
@@ -1293,8 +1321,8 @@ export class SightReading {
     const printed = this.hymn.source === "user-supplied-score" || this.hymn.source === "public-domain-score";
     return {
       hymn: this.hymn.id,
-      playbackStaves: isEditedGuitar(this.arrangement)
-        ? [...this.staffChoices().map(staff=>({...staff,display:"notation" as const})),
+      playbackStaves: hymnScoreFeatures(this.arrangement).tablature
+        ? [...this.staffChoices().map(staff=>({...staff,...(staff.index===hymnScoreFeatures(this.arrangement).guitarStaff?{display:"notation" as const}:{})})),
           {index:this.staffChoices().length,label:"Tablature",display:"tab" as const,playable:false}]
         : this.staffChoices(),
       chordSymbolsAvailable: this.chordSymbolsCache.get(`${this.hymn.id}:${this.arrangement}`) || false,
@@ -1464,6 +1492,11 @@ export class SightReading {
     } else if (patch.bpm !== undefined) {
       this.bpm = next.bpm!;
       this.playback.setTempo(this.bpm);
+      if(this.capoChoices.length) {
+        // Never change a player's shape family underneath an active performance.
+        if(["playing","loading","counting"].includes(this.playback.state))this.capoTempoPending=true;
+        else this.refreshCapoTempo();
+      }
     } else if (patch.key !== undefined) {
       if (!this.availableKeys.includes(next.key!)) return;
       this.save();
@@ -1532,16 +1565,31 @@ export class SightReading {
     }
     return range;
   }
+  private guitarCapoAdvice(transpose:number,voice=false,requestedCapo:number|null=null){
+    const identity=`${this.hymn.id}:${voice}:${transpose}:${requestedCapo??"auto"}:${this.bpm}`;
+    let choices=this.capoCache.get(identity);
+    if(!choices){
+      choices=recommendHymnGuitarCapos(this.hymn,{voice,transpose,bpm:this.bpm,requestedCapo});
+      if(this.capoCache.size>=128)this.capoCache.delete(this.capoCache.keys().next().value!);
+      this.capoCache.set(identity,choices);
+    }
+    return choices;
+  }
   private syncRangeKeys() {
     // Key limits describe the sung melody, independent of accompaniment or hands.
     const range = this.cachedMelodyRange();
-    const { choices, preferred } = hymnRangeKeys(
+    let rangeChoices = hymnRangeKeys(
       this.hymn.key,
       range,
-      this.arrangement === "guitar-edition" ? null : this.low,
-      this.arrangement === "guitar-edition" ? null : this.high,
-      this.arrangement === "guitar-edition" ? {min:-(chordEdition(this.hymn)?.capo || 0),max:11-(chordEdition(this.hymn)?.capo || 0)} : this.arrangement === "guitar-fingerstyle" ? { min: 0, max: 19 } : undefined,
+      this.low,
+      this.high,
+      this.arrangement === "guitar-fingerstyle" ? { min: 0, max: 19 } : undefined,
     );
+    if(this.arrangement === "guitar-edition")rangeChoices=playableGuitarRange(
+      rangeChoices,this.key,this.octave,this.preferRangeDefault,
+      (key,octave)=>this.guitarCapoAdvice(hymnTransposition(this.hymn.key,key,octave).semitones).length>0,
+    );
+    const {choices,preferred}=rangeChoices;
     this.availableKeys = choices
       .filter((choice) => choice.fits)
       .map((choice) => choice.key);

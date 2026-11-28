@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const {apps} = require('./apps.cjs');
 const { launchBrowser, createContext, captureFailure, closeBrowser, waitForApp } = require('./browser-harness.cjs');
 const { macBookAir13, iphone14Pro } = require('../test-devices.cjs');
 async function authorizeStagedContext(context, origin, bypass) {
@@ -41,7 +42,7 @@ async function smokeBrowser(origin, app, { bypass } = {}) {
       else if (app === 'notewise') await page.locator('#notation svg').first().waitFor();
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${app} ${device} overflow`);
       assert.deepEqual(errors, [], `${app} ${device} runtime errors`);
-      if (app !== 'soundglow') {
+      if (app !== 'soundglow' && apps[app]?.accounts !== false) {
         console.log(`Checking ${app} ${device}: isolated email confirmation`);
         await page.addInitScript(() => { window.__confirmationDatabaseOpens = 0; const open = indexedDB.open.bind(indexedDB); indexedDB.open = (...args) => { window.__confirmationDatabaseOpens++; return open(...args); }; });
         await page.goto(origin + '/auth/confirm#token_hash=deployment-check-never-submitted&type=email');

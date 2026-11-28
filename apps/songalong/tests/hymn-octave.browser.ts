@@ -198,9 +198,9 @@ try {
     2,
   );
   for (let i=1;i<await systems.count();i++) {
-    assert.equal(await systems.nth(i).locator(".abcjs-clef").count(),2,"Dedicated Piano repeats both clefs");
-    assert.equal(await systems.nth(i).locator(".abcjs-key-signature").count(),2);
-    assert.equal(await systems.nth(i).locator(".hymn-ottava").count(),2,"Every repeated displaced clef is marked");
+    assert.equal(await systems.nth(i).locator(".abcjs-clef").count(),0,"Continuation systems omit unchanged clefs");
+    assert.equal(await systems.nth(i).locator(".abcjs-key-signature").count(),0);
+    assert.equal(await systems.nth(i).locator(".hymn-ottava").count(),0,"No displaced-clef annotation without a repeated clef");
   }
   assert.equal(
     await page.locator(".hymn-ottava path").count(),

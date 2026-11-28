@@ -1,100 +1,133 @@
 {
   "fontSha256": "90a44b1ca994c9f23f23a5d7417843bcdd3b88e87e5bd342d00205d6301dd453",
-  "bundleSha256": "eb26994cee9bdb7fd8150a752efe3b1ea7327d584b1eaa5985bed622d139b615",
+  "bundleSha256": "8d009baa5095eae2c728c002bdc8d09d8b02151987b6670c93c255c6baa7bde7",
   "engine": "webkit",
   "browser": "27.2",
   "platform": "darwin",
   "dpr": 1,
-  "commit": "8293ab72b63dc7a403bc37ea2814a030e48bb073",
-  "generated": "2026-11-25T13:04:05.874Z",
+  "sourceState": "dirty",
+  "commit": "b98c691ec481b05a5a8d623e3db602dc13d1df1d",
+  "generated": "2026-11-26T07:30:38.007Z",
   "reviewed": true,
   "records": [
     {
       "id": "piano-phone",
       "kind": "piano",
       "width": 320,
-      "imageSha256": "c2294b4d31f18335f51740741722932b9ce7d3722c99587cc037c0fa71bfab33",
+      "imageSha256": "551ef229b8cde4a92b1bcdaf58a941be8720fba2956ce4a7f981f74fce21810d",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
-        "scrollHeight": 168.7741935483871,
+        "scrollHeight": 155.1483870967742,
         "systems": [
           {
-            "height": 20.729032258064517,
-            "topBlank": 1.0322379819808467,
-            "bottomBlank": 1.0322375882056452,
-            "maxNoteGap": 5.392516129032256,
-            "maxRhythmicGap": 5.393039629536291,
+            "height": 18.801612903225806,
+            "topBlank": 1.0321881694178427,
+            "bottomBlank": 1.0522334929435484,
+            "maxNoteGap": 5.392516129032259,
+            "rhythmicColumns": 4,
+            "minColumnGap": 4.710488507986595,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.027885363515546,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 21.204838709677418,
-            "topBlank": 1.0322344380040323,
-            "bottomBlank": 1.0322328629032258,
+            "height": 19.23709677419355,
+            "topBlank": 1.0322312878024194,
+            "bottomBlank": 1.032229712701613,
             "maxNoteGap": 5.901419354838711,
-            "maxRhythmicGap": 5.901071068548387,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.474229632561615,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.4742296325616175,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 20.729032258064517,
-            "topBlank": 1.0322139616935484,
-            "bottomBlank": 1.0322139616935484,
+            "height": 19.653225806451612,
+            "topBlank": 1.0322171118951613,
+            "bottomBlank": 1.0521673387096775,
             "maxNoteGap": 5.921032258064515,
-            "maxRhythmicGap": 5.921118951612903,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.372140111027603,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.372140111027605,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 21.704838709677418,
+            "height": 20.698387096774194,
+            "topBlank": 1.0322454637096774,
+            "bottomBlank": 1.0322454637096774,
+            "maxNoteGap": 5.474064516129032,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.474309260095343,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.47430926009535,
+            "staffCollisions": 0,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 19.29193548387097,
+            "topBlank": 1.0321887600806452,
+            "bottomBlank": 1.0509072580645162,
+            "maxNoteGap": 9.275870967741936,
+            "rhythmicColumns": 2,
+            "minColumnGap": 10.86594432654029,
+            "alignmentError": 0,
+            "maxRhythmicGap": 7.683382917292132,
+            "staffCollisions": 0,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 19.72741935483871,
+            "topBlank": 1.0322139616935484,
+            "bottomBlank": 1.0322202620967742,
+            "maxNoteGap": 9.006451612903223,
+            "rhythmicColumns": 2,
+            "minColumnGap": 10.896957677197456,
+            "alignmentError": 0,
+            "maxRhythmicGap": 7.70531266784913,
+            "staffCollisions": 0,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 19.229032258064517,
             "topBlank": 1.0322076612903226,
             "bottomBlank": 1.0322076612903226,
-            "maxNoteGap": 5.4730322580645145,
-            "maxRhythmicGap": 5.717479681199597,
-            "lyricCollisions": 0,
-            "lyricCrowding": 0,
-            "overflows": 0
-          },
-          {
-            "height": 20.729032258064517,
-            "topBlank": 1.0321887600806452,
-            "bottomBlank": 1.0321887600806452,
-            "maxNoteGap": 9.275870967741936,
-            "maxRhythmicGap": 7.940168849536129,
-            "lyricCollisions": 0,
-            "lyricCrowding": 0,
-            "overflows": 0
-          },
-          {
-            "height": 21.204838709677418,
-            "topBlank": 1.0321824596774194,
-            "bottomBlank": 1.0321824596774194,
-            "maxNoteGap": 9.007483870967741,
-            "maxRhythmicGap": 7.706360174352225,
-            "lyricCollisions": 0,
-            "lyricCrowding": 0,
-            "overflows": 0
-          },
-          {
-            "height": 21.703225806451613,
-            "topBlank": 1.032195060483871,
-            "bottomBlank": 1.032195060483871,
             "maxNoteGap": 6.733419354838712,
-            "maxRhythmicGap": 6.733463016633064,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.474092813992681,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.759783647635857,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 20.729032258064517,
-            "topBlank": 1.032258064516129,
-            "bottomBlank": 1.032258064516129,
-            "maxNoteGap": 1.5865806451612907,
+            "height": 19.008064516129032,
+            "topBlank": 1.0321824596774194,
+            "bottomBlank": 1.0521673387096775,
+            "maxNoteGap": 1.587612903225806,
+            "rhythmicColumns": 1,
+            "minColumnGap": 0,
+            "alignmentError": 0,
             "maxRhythmicGap": 0,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -102,6 +135,301 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 1,
+        "sections": [
+          {
+            "startWidth": 97.6276875,
+            "bars": [
+              {
+                "minimumWidth": 136.9296875,
+                "naturalWidth": 169.7056274847714,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 136.234375,
+                "naturalWidth": 197.3306274847714,
+                "duration": 1,
+                "startInset": 27.625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 164.5625,
+                "naturalWidth": 201.1118774847714,
+                "duration": 1,
+                "startInset": 31.40625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 162.6875,
+                "naturalWidth": 198.2837524847714,
+                "duration": 1,
+                "startInset": 28.578125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 90.40625,
+                "naturalWidth": 149.515625,
+                "duration": 1,
+                "startInset": 29.515625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 94.140625,
+                "naturalWidth": 149.0390624999999,
+                "duration": 1,
+                "startInset": 29.0390625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 174.0156249999999,
+                "naturalWidth": 198.59953311357822,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 52.359375,
+                "naturalWidth": 111.5325012423857,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              97.6276875,
+              75.676,
+              79.45725,
+              76.629125,
+              77.566625,
+              77.0900625,
+              74.7306875,
+              74.7306875
+            ]
+          }
+        ],
+        "vertical": [
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -1.6061253547668457
+            ],
+            "constraints": [
+              {
+                "distance": -1.6061253547668457,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 94.61645303694202,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.124998331069946
+              }
+            ],
+            "saved": 1.6061253547668457,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.642379999160767
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -5.46875
+            ],
+            "constraints": [
+              {
+                "distance": -5.46875,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 72.6679684179785,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 5.46875,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -8.5050048828125
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              1.291259765625
+            ],
+            "constraints": [
+              {
+                "distance": 1.291259765625,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 76.44897407966515,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": -1.291259765625,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -5.2550048828125
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              5.678405702114105
+            ],
+            "constraints": [
+              {
+                "distance": 5.678405702114105,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 73.62256124167013,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": -5.678405702114105,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -0.85784912109375
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              2.1754761338233948
+            ],
+            "constraints": [
+              {
+                "distance": 2.1754761338233948,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 74.56469912574572,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": -2.1754761338233948,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -0.86077880859375
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -1.677490234375
+            ],
+            "constraints": [
+              {
+                "distance": -1.677490234375,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 74.0874003763706,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 1.677490234375,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.7237548828125
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -5.525051116943359
+            ],
+            "constraints": [
+              {
+                "distance": -5.634410858154297,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 156.574461978572,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.12497329711914
+              }
+            ],
+            "saved": 5.525051116943359,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -12.123783111572266
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -0.0335693359375
+            ],
+            "constraints": [
+              {
+                "distance": -0.0335693359375,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 71.72583064368989,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -3.079833984375
+              }
+            ]
+          }
+        ]
+      },
       "systems": [
         [
           0,
@@ -118,38 +446,50 @@
       "id": "piano-desktop",
       "kind": "piano",
       "width": 800,
-      "imageSha256": "b7105b0381f13032480e995a06b691680030c594c7ca70d78ed6882db9bf997a",
+      "imageSha256": "5caadd17170a7dc5981eccb8f9c2044e69e8062e05c039a0ae6352e6d2b72e2b",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
-        "scrollHeight": 64.61935483870968,
+        "scrollHeight": 60.593548387096774,
         "systems": [
           {
-            "height": 21.204838709677418,
-            "topBlank": 1.0322456605972783,
-            "bottomBlank": 1.0322454637096774,
-            "maxNoteGap": 8.776258064516128,
-            "maxRhythmicGap": 8.776102570564516,
+            "height": 20.108064516129033,
+            "topBlank": 1.0321788172568045,
+            "bottomBlank": 1.032177734375,
+            "maxNoteGap": 8.775225806451616,
+            "rhythmicColumns": 12,
+            "minColumnGap": 5.089297864330682,
+            "alignmentError": 0,
+            "maxRhythmicGap": 9.141405920389362,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 21.704838709677418,
-            "topBlank": 1.0322344380040323,
-            "bottomBlank": 1.0322328629032258,
-            "maxNoteGap": 12.791741935483872,
-            "maxRhythmicGap": 10.358631552419356,
-            "lyricCollisions": 0,
-            "lyricCrowding": 0,
-            "overflows": 0
-          },
-          {
-            "height": 21.704838709677418,
+            "height": 20.7,
             "topBlank": 1.032223412298387,
-            "bottomBlank": 1.0322202620967742,
-            "maxNoteGap": 9.222193548387096,
-            "maxRhythmicGap": 9.221459173387096,
+            "bottomBlank": 1.032223412298387,
+            "maxNoteGap": 12.791741935483872,
+            "rhythmicColumns": 8,
+            "minColumnGap": 6.61138214192704,
+            "alignmentError": 0,
+            "maxRhythmicGap": 10.419724842173702,
+            "staffCollisions": 0,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 20.40483870967742,
+            "topBlank": 1.0322013608870968,
+            "bottomBlank": 1.0322013608870968,
+            "maxNoteGap": 9.221161290322582,
+            "rhythmicColumns": 5,
+            "minColumnGap": 5.474074641710448,
+            "alignmentError": 0,
+            "maxRhythmicGap": 8.916426034698045,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -157,6 +497,171 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 1,
+        "sections": [
+          {
+            "startWidth": 97.6276875,
+            "bars": [
+              {
+                "minimumWidth": 136.9296875,
+                "naturalWidth": 169.7056274847714,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 136.234375,
+                "naturalWidth": 197.3306274847714,
+                "duration": 1,
+                "startInset": 27.625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 164.5625,
+                "naturalWidth": 201.1118774847714,
+                "duration": 1,
+                "startInset": 31.40625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 162.6875,
+                "naturalWidth": 198.2837524847714,
+                "duration": 1,
+                "startInset": 28.578125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 90.40625,
+                "naturalWidth": 149.515625,
+                "duration": 1,
+                "startInset": 29.515625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 94.140625,
+                "naturalWidth": 149.0390624999999,
+                "duration": 1,
+                "startInset": 29.0390625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 174.0156249999999,
+                "naturalWidth": 198.59953311357822,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 52.359375,
+                "naturalWidth": 111.5325012423857,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              97.6276875,
+              75.676,
+              79.45725,
+              76.629125,
+              77.566625,
+              77.0900625,
+              74.7306875,
+              74.7306875
+            ]
+          }
+        ],
+        "vertical": [
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              1.2912516593933105
+            ],
+            "constraints": [
+              {
+                "distance": 1.2912516593933105,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 469.2145865994913,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.124998331069946
+              }
+            ],
+            "saved": -1.2912516593933105,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -5.244995355606079
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              1.995147705078125
+            ],
+            "constraints": [
+              {
+                "distance": 1.995147705078125,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 73.62255902245819,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": -1.995147705078125,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.541107177734375
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              3.41070556640625
+            ],
+            "constraints": [
+              {
+                "distance": 3.41070556640625,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 156.57445768482697,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": -3.41070556640625,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -3.07867431640625
+              }
+            ]
+          }
+        ]
+      },
       "systems": [
         [
           2,
@@ -168,88 +673,106 @@
       "id": "guitar-phone",
       "kind": "guitar",
       "width": 320,
-      "imageSha256": "315548b652a5ce54e7bbe481cafcb893d84802efa04bec070db71226043803b9",
+      "imageSha256": "b8159fc9dc8f275f6b61643b4d323a36ed806b11c25c9b8c489be03990ba1d75",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
-        "scrollHeight": 202.94193548387096,
+        "scrollHeight": 157.5225806451613,
         "systems": [
           {
-            "height": 25.011290322580646,
-            "topBlank": 1.0322547174269152,
-            "bottomBlank": 1.032254914314516,
-            "maxNoteGap": 5.510193548387097,
-            "maxRhythmicGap": 5.51006331905242,
+            "height": 22.280645161290323,
+            "topBlank": 1.0321863974294354,
+            "bottomBlank": 1.0321856098790323,
+            "maxNoteGap": 5.509161290322581,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.143975742175277,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.1439757421752805,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 25.967741935483872,
-            "topBlank": 1.0322360131048387,
-            "bottomBlank": 1.0322360131048387,
-            "maxNoteGap": 6.244129032258066,
-            "maxRhythmicGap": 6.243816154233871,
-            "lyricCollisions": 0,
-            "lyricCrowding": 0,
-            "overflows": 0
-          },
-          {
-            "height": 25.966129032258063,
-            "topBlank": 1.0322076612903226,
-            "bottomBlank": 1.0322076612903226,
+            "height": 22.26290322580645,
+            "topBlank": 1.032209236391129,
+            "bottomBlank": 1.0322108114919355,
             "maxNoteGap": 6.243096774193547,
-            "maxRhythmicGap": 6.243642105594758,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.816629354832719,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.816629354832721,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 25.01290322580645,
+            "height": 23.133870967741935,
             "topBlank": 1.0322517641129032,
             "bottomBlank": 1.0322517641129032,
-            "maxNoteGap": 6.02941935483871,
-            "maxRhythmicGap": 6.030221459173387,
+            "maxNoteGap": 6.244129032258066,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.694887481713041,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.694887481713044,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 25.016129032258064,
-            "topBlank": 1.032195060483871,
-            "bottomBlank": 1.032195060483871,
-            "maxNoteGap": 11.874064516129032,
-            "maxRhythmicGap": 8.396378188968017,
+            "height": 23.22258064516129,
+            "topBlank": 1.0322076612903226,
+            "bottomBlank": 1.0322076612903226,
+            "maxNoteGap": 6.030451612903226,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.785865679874934,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.785865679874939,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 25.966129032258063,
-            "topBlank": 1.0322328629032258,
-            "bottomBlank": 1.0322328629032258,
-            "maxNoteGap": 11.543741935483872,
-            "maxRhythmicGap": 8.16291672985492,
-            "lyricCollisions": 0,
-            "lyricCrowding": 0,
-            "overflows": 0
-          },
-          {
-            "height": 24.966129032258063,
-            "topBlank": 1.0322202620967742,
+            "height": 22.774193548387096,
+            "topBlank": 1.0322139616935484,
             "bottomBlank": 1.0322202620967742,
-            "maxNoteGap": 6.820129032258063,
-            "maxRhythmicGap": 6.820299899193548,
+            "maxNoteGap": 8.261161290322582,
+            "rhythmicColumns": 4,
+            "minColumnGap": 4.8189713981594124,
+            "alignmentError": 0,
+            "maxRhythmicGap": 6.056929413455414,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 25.011290322580646,
-            "topBlank": 1.0322328629032258,
-            "bottomBlank": 1.0322328629032258,
+            "height": 21.756451612903227,
+            "topBlank": 1.0322454637096774,
+            "bottomBlank": 1.0322454637096774,
+            "maxNoteGap": 6.821161290322579,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.84731081861202,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.847310818612022,
+            "staffCollisions": 0,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 22.483870967741936,
+            "topBlank": 1.0322076612903226,
+            "bottomBlank": 1.0322076612903226,
             "maxNoteGap": 0,
+            "rhythmicColumns": 1,
+            "minColumnGap": 0,
+            "alignmentError": 0,
             "maxRhythmicGap": 0,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -257,13 +780,281 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 1,
+        "sections": [
+          {
+            "startWidth": 86.5256875,
+            "bars": [
+              {
+                "minimumWidth": 136.9296875,
+                "naturalWidth": 169.7056274847714,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 136.234375,
+                "naturalWidth": 197.3306274847714,
+                "duration": 1,
+                "startInset": 27.625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 164.5625,
+                "naturalWidth": 201.1118774847714,
+                "duration": 1,
+                "startInset": 31.40625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 162.6875,
+                "naturalWidth": 198.2837524847714,
+                "duration": 1,
+                "startInset": 28.578125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 90.40625,
+                "naturalWidth": 149.515625,
+                "duration": 1,
+                "startInset": 29.515625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 94.140625,
+                "naturalWidth": 149.0390625,
+                "duration": 1,
+                "startInset": 29.0390625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 174.015625,
+                "naturalWidth": 198.59953311357822,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 52.359375,
+                "naturalWidth": 111.5325012423857,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              86.5256875,
+              65.676,
+              69.45725,
+              66.629125,
+              67.566625,
+              67.0900625,
+              64.7306875,
+              64.7306875
+            ]
+          }
+        ],
+        "vertical": [
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -21.151131629943848
+            ],
+            "constraints": [
+              {
+                "distance": -21.151131629943848,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 83.52270326490785,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.124998331069946
+              }
+            ],
+            "saved": 21.151131629943848,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.637375116348267
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -28.708740234375
+            ],
+            "constraints": [
+              {
+                "distance": -28.708740234375,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 62.667968803004584,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 28.708740234375,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -8.4949951171875
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -21.958740234375
+            ],
+            "constraints": [
+              {
+                "distance": -21.958740234375,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 66.44897524977827,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 21.958740234375,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -5.244995117187443
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -13.8665771484375
+            ],
+            "constraints": [
+              {
+                "distance": -13.8665771484375,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 63.62255749075702,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 13.8665771484375,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -0.86279296875
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -24.74957275390625
+            ],
+            "constraints": [
+              {
+                "distance": -24.74957275390625,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 64.564697265625,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 24.74957275390625,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.54583740234375
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -24.89501953125
+            ],
+            "constraints": [
+              {
+                "distance": -25.00439453125,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 152.35571229967684,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 24.89501953125,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -12.1236572265625
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -19.583251953125
+            ],
+            "constraints": [
+              {
+                "distance": -19.583251953125,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 61.72583143686933,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 19.583251953125,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -3.07958984375
+              }
+            ]
+          }
+        ]
+      },
       "systems": [
         [
           0,
           1,
           2,
           3,
-          4,
           5,
           6
         ]
@@ -273,38 +1064,50 @@
       "id": "guitar-desktop",
       "kind": "guitar",
       "width": 800,
-      "imageSha256": "3653976fcaa47187058e9ba1253e2400d2fa5ce4fa7e2bc22bb8d749f425e1af",
+      "imageSha256": "770329ba1c9b4ee9bcb0f6cc1e972be6fcde063acdcc3506881f1c959560769a",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
-        "scrollHeight": 76.90322580645162,
+        "scrollHeight": 69.16129032258064,
         "systems": [
           {
-            "height": 25.966129032258063,
-            "topBlank": 1.0322035266507057,
-            "bottomBlank": 1.0322029359879032,
-            "maxNoteGap": 8.894967741935485,
-            "maxRhythmicGap": 8.894691910282258,
+            "height": 23.13225806451613,
+            "topBlank": 1.0322329613470262,
+            "bottomBlank": 1.0322312878024194,
+            "maxNoteGap": 8.894967741935483,
+            "rhythmicColumns": 12,
+            "minColumnGap": 5.2089385665779355,
+            "alignmentError": 0,
+            "maxRhythmicGap": 9.261259415488983,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 25.967741935483872,
-            "topBlank": 1.0322517641129032,
+            "height": 23.225806451612904,
+            "topBlank": 1.0322501890120968,
             "bottomBlank": 1.0322517641129032,
             "maxNoteGap": 12.981677419354838,
-            "maxRhythmicGap": 10.491869329637098,
+            "rhythmicColumns": 8,
+            "minColumnGap": 6.745165034216042,
+            "alignmentError": 0,
+            "maxRhythmicGap": 10.553603720070251,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 25.011290322580646,
-            "topBlank": 1.0322202620967742,
-            "bottomBlank": 1.0322202620967742,
-            "maxNoteGap": 9.222193548387096,
-            "maxRhythmicGap": 9.221446572580644,
+            "height": 22.929032258064517,
+            "topBlank": 1.032198210685484,
+            "bottomBlank": 1.0322013608870968,
+            "maxNoteGap": 9.221161290322582,
+            "rhythmicColumns": 5,
+            "minColumnGap": 5.474064472191962,
+            "alignmentError": 0,
+            "maxRhythmicGap": 8.916409470115841,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -312,6 +1115,178 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 2,
+        "sections": [
+          {
+            "startWidth": 86.5256875,
+            "bars": [
+              {
+                "minimumWidth": 136.9296875,
+                "naturalWidth": 169.7056274847714,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 136.234375,
+                "naturalWidth": 197.3306274847714,
+                "duration": 1,
+                "startInset": 27.625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 164.5625,
+                "naturalWidth": 201.1118774847714,
+                "duration": 1,
+                "startInset": 31.40625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 162.6875,
+                "naturalWidth": 198.2837524847714,
+                "duration": 1,
+                "startInset": 28.578125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 90.40625,
+                "naturalWidth": 149.515625,
+                "duration": 1,
+                "startInset": 29.515625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 94.140625,
+                "naturalWidth": 149.0390625,
+                "duration": 1,
+                "startInset": 29.0390625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 174.015625,
+                "naturalWidth": 198.59953311357822,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 52.359375,
+                "naturalWidth": 111.5325012423857,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              86.5256875,
+              65.676,
+              69.45725,
+              66.629125,
+              67.566625,
+              67.0900625,
+              64.7306875,
+              64.7306875
+            ],
+            "rangeMinimums": [
+              {
+                "from": 3,
+                "to": 8,
+                "minimumWidth": 619.22998046875
+              }
+            ]
+          }
+        ],
+        "vertical": [
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -21.96875810623169
+            ],
+            "constraints": [
+              {
+                "distance": -21.96875810623169,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 465.5114856359953,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.124998331069946
+              }
+            ],
+            "saved": 21.96875810623169,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -5.255005121231079
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -21.2498779296875
+            ],
+            "constraints": [
+              {
+                "distance": -21.2498779296875,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 63.62255956309919,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 21.2498779296875,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.546112060546875
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0,
+              -16.13427734375
+            ],
+            "constraints": [
+              {
+                "distance": -16.13427734375,
+                "upper": "tspan",
+                "lower": "abcjs-top-line",
+                "at": 146.5744645614101,
+                "from": 0,
+                "to": 1,
+                "minimum": 27.125
+              }
+            ],
+            "saved": 16.13427734375,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -3.07366943359375
+              }
+            ]
+          }
+        ]
+      },
       "systems": [
         [
           2,
@@ -323,88 +1298,106 @@
       "id": "hebrew-phone",
       "kind": "hebrew",
       "width": 320,
-      "imageSha256": "9886a0b9ddea99ca207d33c269cecfeafa3d8941bc4f55436c62a6463b9aef49",
+      "imageSha256": "66afeec077daa98fba1a626f47f2a65d710bd4fd59c116f69627c623d4ea6d8e",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
-        "scrollHeight": 116.23225806451613,
+        "scrollHeight": 97.44516129032257,
         "systems": [
           {
-            "height": 14.680645161290322,
-            "topBlank": 1.0322013608870968,
-            "bottomBlank": 1.0322013608870968,
-            "maxNoteGap": 5.539096774193548,
-            "maxRhythmicGap": 5.540018586189516,
+            "height": 14.34032258064516,
+            "topBlank": 1.032245365265877,
+            "bottomBlank": 1.0322454637096774,
+            "maxNoteGap": 5.540129032258066,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.219873143008872,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.219873143008875,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 15.158064516129032,
-            "topBlank": 1.0321761592741936,
-            "bottomBlank": 1.0321761592741936,
+            "height": 14.585483870967742,
+            "topBlank": 1.0322186869959677,
+            "bottomBlank": 1.0322171118951613,
             "maxNoteGap": 6.136774193548387,
-            "maxRhythmicGap": 6.136607311617944,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.754684777499618,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.754684777499619,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 15.161290322580646,
-            "topBlank": 1.032258064516129,
-            "bottomBlank": 1.032258064516129,
-            "maxNoteGap": 5.918967741935483,
-            "maxRhythmicGap": 5.919354838709677,
+            "height": 14.614516129032259,
+            "topBlank": 1.0321509576612904,
+            "bottomBlank": 1.0601310483870967,
+            "maxNoteGap": 5.918967741935484,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.8742506068581655,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.874250606858168,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 14.682258064516128,
-            "topBlank": 1.0321730090725807,
-            "bottomBlank": 1.0321761592741936,
-            "maxNoteGap": 6.4557419354838705,
-            "maxRhythmicGap": 6.455112777217742,
+            "height": 14.851612903225806,
+            "topBlank": 1.0322139616935484,
+            "bottomBlank": 1.0322139616935484,
+            "maxNoteGap": 6.454709677419354,
+            "rhythmicColumns": 4,
+            "minColumnGap": 6.04295222631755,
+            "alignmentError": 0,
+            "maxRhythmicGap": 6.042952226317554,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 14.685483870967742,
-            "topBlank": 1.032258064516129,
-            "bottomBlank": 1.032258064516129,
-            "maxNoteGap": 12.07432258064516,
-            "maxRhythmicGap": 8.53802925912547,
+            "height": 14.609677419354838,
+            "topBlank": 1.0321572580645162,
+            "bottomBlank": 1.0321572580645162,
+            "maxNoteGap": 8.015483870967742,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.007953336881403,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.988709105753239,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 15.161290322580646,
-            "topBlank": 1.032258064516129,
-            "bottomBlank": 1.032258064516129,
-            "maxNoteGap": 11.85858064516129,
-            "maxRhythmicGap": 8.385488078506597,
-            "lyricCollisions": 0,
-            "lyricCrowding": 0,
-            "overflows": 0
-          },
-          {
-            "height": 14.661290322580646,
-            "topBlank": 1.032258064516129,
-            "bottomBlank": 1.032258064516129,
-            "maxNoteGap": 8.134193548387097,
-            "maxRhythmicGap": 8.135052293346774,
+            "height": 13.404838709677419,
+            "topBlank": 1.032163558467742,
+            "bottomBlank": 1.0597404233870968,
+            "maxNoteGap": 8.134193548387096,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.874338204845341,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.874338204845342,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
             "height": 12.01774193548387,
-            "topBlank": 1.0322202620967742,
-            "bottomBlank": 1.0322202620967742,
+            "topBlank": 1.032195060483871,
+            "bottomBlank": 1.032195060483871,
             "maxNoteGap": 0,
+            "rhythmicColumns": 1,
+            "minColumnGap": 0,
+            "alignmentError": 0,
             "maxRhythmicGap": 0,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -412,13 +1405,205 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 2,
+        "sections": [
+          {
+            "startWidth": 84.1819375,
+            "bars": [
+              {
+                "minimumWidth": 112.2578125,
+                "naturalWidth": 169.7056274847714,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 147.171875,
+                "naturalWidth": 199.2525024847714,
+                "duration": 1,
+                "startInset": 29.546875,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 153.37374999999997,
+                "naturalWidth": 195.5337524847714,
+                "duration": 1,
+                "startInset": 25.828125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 133.70062499999995,
+                "naturalWidth": 190.3150024847714,
+                "duration": 1,
+                "startInset": 20.609375,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 76.359375,
+                "naturalWidth": 145.859375,
+                "duration": 1,
+                "startInset": 25.859375,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 82.609375,
+                "naturalWidth": 146.828125,
+                "duration": 1,
+                "startInset": 26.828125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 128.18499999999995,
+                "naturalWidth": 195.53375248477096,
+                "duration": 1,
+                "startInset": 25.828125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 41.320937500000014,
+                "naturalWidth": 101.1887512423857,
+                "duration": 1,
+                "startInset": 16.3359375,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              84.1819375,
+              67.597875,
+              63.879125,
+              58.660375,
+              63.910375,
+              64.879125,
+              63.879125,
+              54.3869375
+            ],
+            "rangeMinimums": [
+              {
+                "from": 6,
+                "to": 8,
+                "minimumWidth": 232.86000061035156
+              }
+            ]
+          }
+        ],
+        "vertical": [
+          {
+            "status": "placed",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -2.6423799991607666
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.4425048828125
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.4425048828125
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": 1.30810546875
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.26409912109375
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -9.94189453125
+              }
+            ]
+          },
+          {
+            "status": "unchanged",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": []
+          }
+        ]
+      },
       "systems": [
         [
           0,
           1,
           2,
           3,
-          4,
           5,
           6
         ]
@@ -428,38 +1613,50 @@
       "id": "verses-desktop",
       "kind": "verses",
       "width": 800,
-      "imageSha256": "e2f4de7af75cc52d413020868b657b18053e4716ba5922ede22327f397bf36b1",
+      "imageSha256": "5c42613170b7d715537c5f88bd9d2826b7a4e0aa52da19aa3c4c8185bf57e11f",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
-        "scrollHeight": 52.851612903225806,
+        "scrollHeight": 51.096774193548384,
         "systems": [
           {
-            "height": 17.79193548387097,
-            "topBlank": 1.0322346348916331,
-            "bottomBlank": 1.0322344380040323,
+            "height": 17.143548387096775,
+            "topBlank": 1.0322434948336694,
+            "bottomBlank": 1.0604681199596775,
             "maxNoteGap": 8.874322580645162,
-            "maxRhythmicGap": 8.874799962197581,
+            "rhythmicColumns": 12,
+            "minColumnGap": 5.188326455519106,
+            "alignmentError": 0,
+            "maxRhythmicGap": 9.240688473142978,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 17.79193548387097,
-            "topBlank": 1.0322344380040323,
-            "bottomBlank": 1.0322360131048387,
+            "height": 17.206451612903226,
+            "topBlank": 1.0322470388104839,
+            "bottomBlank": 1.0322454637096774,
             "maxNoteGap": 12.981677419354838,
-            "maxRhythmicGap": 10.491696068548388,
+            "rhythmicColumns": 8,
+            "minColumnGap": 6.745141320114198,
+            "alignmentError": 0,
+            "maxRhythmicGap": 10.55356661656986,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 17.31451612903226,
-            "topBlank": 1.032258064516129,
-            "bottomBlank": 1.032258064516129,
+            "height": 16.946774193548386,
+            "topBlank": 1.032254914314516,
+            "bottomBlank": 1.0612871723790323,
             "maxNoteGap": 9.222193548387096,
-            "maxRhythmicGap": 9.221774193548388,
+            "rhythmicColumns": 5,
+            "minColumnGap": 5.474361342311336,
+            "alignmentError": 0,
+            "maxRhythmicGap": 8.916893025900988,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -467,6 +1664,138 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 1,
+        "sections": [
+          {
+            "startWidth": 86.5256875,
+            "bars": [
+              {
+                "minimumWidth": 136.9296875,
+                "naturalWidth": 169.7056274847714,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 147.171875,
+                "naturalWidth": 199.2525024847714,
+                "duration": 1,
+                "startInset": 29.546875,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 169.578125,
+                "naturalWidth": 201.1118774847714,
+                "duration": 1,
+                "startInset": 31.40625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 167.328125,
+                "naturalWidth": 198.2837524847714,
+                "duration": 1,
+                "startInset": 28.578125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 90.40625,
+                "naturalWidth": 149.515625,
+                "duration": 1,
+                "startInset": 29.515625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 94.140625,
+                "naturalWidth": 149.0390625,
+                "duration": 1,
+                "startInset": 29.0390625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 174.015625,
+                "naturalWidth": 198.59953311357822,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 52.359375,
+                "naturalWidth": 111.5325012423857,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              86.5256875,
+              67.597875,
+              69.45725,
+              66.629125,
+              67.566625,
+              67.0900625,
+              64.7306875,
+              64.7306875
+            ]
+          }
+        ],
+        "vertical": [
+          {
+            "status": "placed",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -5.244995355606079
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -4.5391387939453125
+              }
+            ]
+          },
+          {
+            "status": "placed",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": [
+              {
+                "staff": 0,
+                "role": "lyrics",
+                "offset": -3.074676513671875
+              }
+            ]
+          }
+        ]
+      },
       "systems": [
         [
           2,
@@ -478,7 +1807,7 @@
       "id": "sparse-desktop",
       "kind": "sparse",
       "width": 800,
-      "imageSha256": "8b6c6ea22650e7c69542efb6354354bd0b4c16fa8e60a11acdf9ed75214f8e58",
+      "imageSha256": "e0c988532e18e37d0e9d0b5ab7f5574ee8572aab46b5ab79954ceb4061120d0a",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
@@ -488,8 +1817,12 @@
             "height": 9.425806451612903,
             "topBlank": 1.0321619833669355,
             "bottomBlank": 1.0321619833669355,
-            "maxNoteGap": 12.627612903225806,
-            "maxRhythmicGap": 6.3136903824344754,
+            "maxNoteGap": 12.367483870967742,
+            "rhythmicColumns": 3,
+            "minColumnGap": 12.366953654714244,
+            "alignmentError": 0,
+            "maxRhythmicGap": 6.183476827357123,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -497,6 +1830,57 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 1,
+        "sections": [
+          {
+            "startWidth": 70.846,
+            "bars": [
+              {
+                "minimumWidth": 24.985,
+                "naturalWidth": 84.8528137423857,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 35.985,
+                "naturalWidth": 95.8528137423857,
+                "duration": 1,
+                "startInset": 11,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 35.984999999999985,
+                "naturalWidth": 95.8528137423857,
+                "duration": 1,
+                "startInset": 11,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              70.846,
+              49.051,
+              49.051
+            ]
+          }
+        ],
+        "vertical": [
+          {
+            "status": "unchanged",
+            "offsets": [
+              0
+            ],
+            "constraints": [],
+            "saved": 0,
+            "annotations": []
+          }
+        ]
+      },
       "systems": [
         []
       ]
@@ -504,8 +1888,7 @@
   ],
   "review": {
     "reviewer": "Codex",
-    "date": "2026-11-25",
-    "method": "Viewed all seven original PNGs per engine at phone and desktop widths; checked readable lyric separation, pointed Hebrew, complete staves/tab, short endings, and no accidental horizontal crop."
-  },
-  "sourceState": "Uncommitted layout implementation based on the recorded commit; bundleSha256 identifies the exact browser fixture and renderer code."
+    "date": "2026-11-26",
+    "method": "Reviewed all seven before/after cases and four-platform contact sheets for lyric clearance, Hebrew points, stanza alignment and unchanged physical scale and line breaks."
+  }
 }

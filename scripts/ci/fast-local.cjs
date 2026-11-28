@@ -11,7 +11,10 @@ const { runTasks } = require('./run.cjs');
 const { tiers } = require('./tiers.cjs');
 const { execute } = require('./execute.cjs');
 function fastGraph(selected, cwd) {
-  const tasks = sharedTasks(cwd, { unitWorkers: Number(process.env.CI_UNIT_WORKERS || 8) });
+  const tasks = sharedTasks(cwd, { unitWorkers: Number(process.env.CI_UNIT_WORKERS || 6) });
+  // Reserve the large shared pool before app setup fills the available slots.
+  // Starting it late leaves otherwise-complete all-app runs waiting at the deadline.
+  tasks.find(task => task.id === 'shared:music').priority = 70;
   const preparation = tasks.find(task => task.id === 'shared:diagnostics');
   preparation.args = ['run', 'build:shared'];
   for (const app of selected.apps) {
@@ -22,6 +25,12 @@ function fastGraph(selected, cwd) {
       // are disjoint; there is no shared-checkout build race to serialize.
       task.locks = [`build:${app}`];
       if (task.id.endsWith(':build')) task.args.push('--prepared');
+      // These units read source/fixtures only. Keep their complete required
+      // task, but let the independent app build start after shared preparation.
+      if(['songalong','dorego','tagaluya'].includes(app)) {
+        if(task.id.endsWith(':units'))task.locks=[];
+        if(task.id.endsWith(':build'))task.needs=task.needs.filter(id=>id!==`${app}:units`);
+      }
     }
     tasks.push(...setup, ...commandTasks(app, 'ci', 'chromium', cwd));
   }

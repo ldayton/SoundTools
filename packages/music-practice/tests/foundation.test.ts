@@ -17,7 +17,6 @@ import {
   FLASHCARD_EXERCISES,
 } from "../src/exercises";
 import { mergePatternSettings } from "../src/patterns-model";
-import { mergeRhythmSettings } from "../src/rhythm-model";
 import {
   mergeHymnSettings,
   hymnSettingsFromQuery,
@@ -102,13 +101,6 @@ test("live preferences reject damaged values without borrowing unrelated flashca
       { key: "bad", hand: 3, level: null },
     ),
     { key: "G", hand: "left", level: "skips" },
-  );
-  assert.deepEqual(
-    mergeRhythmSettings(
-      { bpm: 95, level: "long-short" },
-      { bpm: 151.5, level: "bad" },
-    ),
-    { bpm: 95, level: "long-short" },
   );
   const hymn: HymnSettings = {
     hymn: practiceHymn.id,
@@ -227,11 +219,4 @@ test("durable flashcard checkpoints restore exact feedback and retain rejected p
   assert.equal(rejected, damaged);
   assert.equal(fresh.current, null);
   assert.equal(damaged.session.current, "missing");
-});
-
-test("typed tempo accepts integer BPM values between preset steps", () => {
-  assert.equal(
-    mergeRhythmSettings({ bpm: 95, level: "pulse" }, { bpm: 151 }).bpm,
-    151,
-  );
 });

@@ -286,7 +286,7 @@ try {
     "same guitar string chokes, another string keeps ringing",
   );
   assert.ok(result.hatChoke, "closed hat chokes its open predecessor");
-  assert.equal(result.phrasing, "funk-pocket-sixteenths-v2");
+  assert.equal(result.phrasing, "approved-ensemble-v1");
   assert.equal(result.changedTempo, 120);
   assert.ok(result.bassCount > 128 && result.bassCount <= 256);
   assert.equal(result.final.style, "funk");

@@ -1,3 +1,4 @@
+import {openHymnInstrumentChoices} from "../../../packages/music-practice/browser-tests/helpers";
 import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
@@ -31,7 +32,8 @@ try {
     await page.goto(
       server.base + "/piano/hymns/in-christ-alone?mode=playback",
     );
-    await waitForApp(page, ".hymn-toolbar-instruments");
+    await waitForApp(page, ".hymn-controls");
+    await openHymnInstrumentChoices(page);
     await expect(
       page.getByRole("button", { name: "Voice", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
@@ -195,7 +197,7 @@ try {
         await page.getByRole("checkbox",{name:"Show Chords",exact:true}).uncheck();
         await expect(page.locator(".abcjs-chord")).toHaveCount(0);
         if (instrument === "guitar" && width === 1960) {
-          await page.reload();await waitForApp(page,".hymn-toolbar-instruments");
+          await page.reload();await waitForApp(page, ".hymn-controls");
           await openPracticeOptions(page);
           await expect(page.getByRole("checkbox",{name:"Show Chords",exact:true})).not.toBeChecked();
           await expect(page.locator(".abcjs-chord")).toHaveCount(0);
@@ -229,10 +231,10 @@ try {
     }
     await selectHymnInstrument(page, "guitar");
     await page.reload();
-    await waitForApp(page, ".hymn-toolbar-instruments");
+    await waitForApp(page, ".hymn-controls");
     await expect(
-      page.getByRole("radio", { name: "Guitar", exact: true }),
-    ).toHaveAttribute("aria-checked", "true");
+      page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]'),
+    ).toHaveAttribute("data-instrument", "guitar");
     assert.deepEqual(errors, []);
     await page.close();
     console.log(`PASS teacher editions ${width}px`);

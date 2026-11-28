@@ -39,17 +39,17 @@ No account, API key, microphone access, or hosted service is required. CC BY 4.0
   explicitly when ready. Settings and the selected exercise are saved on this device.
 
 - Singing exercises: **Arpeggio & Scale** (default: E3–F5, 150 BPM), **Octave Arpeggio**, **Rossini Scale**, **Pentatonic Threes** (6, 9, or 12 notes), **Major Scale** (5 or 8 notes), **Glides** (fifth or octave), **Maqamat**, and **Yemenite ✡︎**. Size, interval and collection selectors are in the main pane. Phrase shape and movement between rounds are separate controls; Rossini keeps its fixed phrase.
-- Choose your lowest/highest vocal notes in octaves 2–6, phrase contour, and round progression. The 8-note Major Scale uses a single Key selector; the other exercises move by semitone through your range.
-- Click anywhere on a desktop note field to open a note grid organized by octave; typing is disabled. Enter or Space also opens the picker. Mobile uses snapping swipe wheels. Arrow keys move by semitone and Page Up/Down by octave.
+- Choose your lowest/highest vocal notes in octaves 2–6 directly in the toolbar; phrase contour and round progression remain in Practice options. The 8-note Major Scale uses a single Key selector; the other exercises move by semitone through your range.
+- Click or tap either toolbar note field to open a note grid organized by octave on desktop and mobile; typing is disabled. The chooser initially shows C3–B5; **Extended range** reveals C2–B6. A saved note outside C3–B5 opens the expanded view automatically. Enter or Space also opens the picker. Arrow keys move by semitone and Page Up/Down by octave.
 - Transpose the key and range together with the minus/plus buttons.
 - Adjust tempo (60–240 BPM), rounds, inter-round rests, count-in, and volume. Pitched phrases use the sampled bitKlavier Steinway Grand with fixed natural articulation. Glides use sustained VSCO cello recordings, with the usual piano chord introduction. All beats are quarter-note beats. The default count-in is two bars of 4/4 (eight beats), displayed as two labeled four-beat groups with the active beat highlighted and each downbeat accented.
 - Piano samples warm up automatically before playback. A “Loading...” indicator appears immediately while preparing; Play becomes available as soon as the selected exercise is ready; failed loads offer a retry.
 - Exercise, range, tempo, direction, and other preferences are saved automatically in browser local storage and restored on return. New users start with Arpeggio & Scale E3–F5 at 150 BPM.
 - Tempo −/+ buttons step by 5 BPM. Repeats count additional passes (None means one pass); repeats and rest use stacked arrows on desktop and None–4 dropdowns on mobile.
-- Volume is independent beneath tempo and can change during playback with a short gain ramp. Count-in clicks stop when the exercise begins.
-- Play/pause, scrub, restart, and fullscreen. Space toggles playback, R restarts, F toggles fullscreen when a form control is not focused. Tempo is independent: change it at any time with the slider, numeric field, or −/+ buttons. Playback keeps the current round and beat, including through count-ins, rests, and cello glides. Volume also changes live without restarting, in its own row below tempo. Other exercise edits update future rounds.
+- Volume and tempo stay in the toolbar; volume can change during playback with a short gain ramp. Count-in clicks stop when the exercise begins.
+- Play/pause, previous/next round, restart, and Repeat round sit together beneath the note display, with elapsed time beside the round count. Space toggles playback, R restarts, F toggles fullscreen when a form control is not focused. Tempo is independent: change it at any time with the slider, numeric field, or −/+ buttons. Playback keeps the current round and beat, including through count-ins, rests, and cello glides. Volume also changes live without restarting. Other exercise edits update future rounds.
 - Option edits preserve the current round and update the remaining sequence. Chords, phrase variations, range, progression and pass changes affect future rounds; a rest already underway stays fixed. Count-in applies to the next fresh start. Tempo, volume and the tonic-drone mixer remain live. Only switching exercises resets playback; an empty continuation ends naturally after the current round. See [the sequence contract](../../docs/dorego-sequences.md).
-- **Repeat round**, below the note display, replays the current round after the configured inter-round rest while playing, paused, or finished—even when there is no next round. It includes that round’s introduction, skips the session count-in, then continues normally without changing saved settings.
+- **Repeat round**, below the note display, replays the current round after the configured inter-round rest while playing, paused, or finished—even when there is no next round. It creates a fresh round at the current pitch using the latest round options, skips the session count-in, then continues with the updated sequence.
 
 The live practice pane uses a borderless white surface with the normal page
 padding. Instead of piano geometry, equally sized touch pads show the distinct
@@ -59,7 +59,22 @@ pitch. Playback and finger presses use distinct whole-pad highlights. Phone
 spacing keeps the controls, readout and pads on one screen. Video exports retain
 their separate canvas keyboard layout.
 
-Note names stay visible for the full rhythmic slot. The highlighted key follows the sounding duration, so detached notes have a short unlit gap. Repeated notes get a fresh progress bar. No pitch detection or singing assessment is implemented.
+Note names stay visible for the full rhythmic slot. The highlighted key follows the sounding duration, so detached notes have a short unlit gap. Repeated notes get a fresh progress bar. Optional **Voice feedback** in Practice options adds only a grey guide phrase,
+a green sung-pitch ribbon and their legend. It is off by default and remembered
+on this device, separately from account settings. Microphone access starts only
+while playing; pause, disable, navigation away and backgrounding release capture.
+The vetted Soundglow Praat WASM worker is loaded lazily and runs locally; no audio
+is uploaded or retained as a recording. Use headphones to reduce accompaniment
+bleed. Reliable voiced runs are confirmed before drawing, lightly smoothed, and
+broken across uncertain frames, gaps or large jumps. No score, tuning needle or
+automatic octave correction is applied. The ribbon resets for each round and seek.
+This is pitch feedback, not an assessment of vocal technique. Physical-phone
+latency and speaker bleed still require device listening checks.
+
+Regression ownership: `tests/voice-ribbon.test.ts` covers confidence, continuity,
+fractional pitches and glide targets. `tests/voice-feedback.browser.ts` has a dedicated required
+CI/Nightly browser lane with real WASM and generated input,
+covering opt-in, rendering, capture release and permission errors.
 
 ## Maqam scale prototype
 
@@ -189,7 +204,7 @@ Preferences are saved automatically. Legacy descending selections become falling
 ### Note names
 
 Range and key selectors use sharp-only pitch names: C, C♯, D, D♯, E, F, F♯, G, G♯, A, A♯, B.
-Desktop pickers and mobile wheels show one name per pitch.
+Desktop and mobile note grids show one name per pitch.
 
 Musical labels use each round's actual major key, including its diatonic letter names.
 F-major phrases use B♭; F♯-major phrases use E♯. Current and next rounds get separate

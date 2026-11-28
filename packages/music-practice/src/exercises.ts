@@ -24,7 +24,6 @@ const loaders = {
   sight: async () => {
     throw Error("Hymn practice belongs to SongAlong");
   },
-  rhythm: () => import("./rhythm").then((m) => m.RhythmPractice),
 } satisfies Record<LiveMode, () => Promise<Constructor>>;
 export const EXERCISES = CATALOG.filter((e) => belongsToApp(e.mode)).map((e) =>
   e.kind === "live" ? { ...e, load: loaders[e.mode] } : e,

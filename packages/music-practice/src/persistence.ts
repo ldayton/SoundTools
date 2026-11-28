@@ -11,7 +11,6 @@ const keys = {
   progress: STORAGE_KEY,
   sight: `soundtools:${APP.id}:sight-reading:v1`,
   patterns: `soundtools:${APP.id}:patterns:v1`,
-  rhythm: `soundtools:${APP.id}:rhythm:v1`,
 };
 export const persistence = {
   state: migrateLegacy({}) as DurableState,

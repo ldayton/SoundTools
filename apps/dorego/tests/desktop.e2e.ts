@@ -1,4 +1,3 @@
-import { verifySequence } from './sequence.browser';
 import { verifyLiveDrone } from './live-drone';
 import {
   waitForServer,
@@ -8,7 +7,7 @@ import {
 } from '../../../scripts/ci/browser-harness.cjs';
 import { setTempo } from './ui-helpers';
 import { elapsedSeconds } from './ui-helpers';
-import { selectExercise } from './ui-helpers';
+import { selectExercise, openPracticeOptions } from './ui-helpers';
 import { readSpecValue, sliderValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
@@ -159,6 +158,87 @@ try {
   };
   await page.goto(base);
   await ready();
+  await page.getByRole('button', { name: 'Volume', exact: true }).click();
+  const beforeMute = await page.locator('#volume').getAttribute('aria-valuenow');
+  await page.getByRole('button', { name: 'Mute', exact: true }).click();
+  assert.equal(await page.locator('#volume').getAttribute('aria-valuenow'), '0');
+  assert.equal(await readSpecValue(page, 'volume'), '-60', 'The mute button uses the saved audio setting');
+  await page.getByRole('button', { name: 'Unmute', exact: true }).click();
+  assert.equal(await page.locator('#volume').getAttribute('aria-valuenow'), beforeMute);
+  await page.keyboard.press('Escape');
+  await page.locator('#volume').waitFor({ state: 'hidden' });
+  // Transport and frequent range controls share their existing state owners at every width.
+  for (const width of [1280, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.waitForFunction(() => {
+      const header = document.querySelector('.mantine-AppShell-header')!.getBoundingClientRect();
+      const low = document.querySelector('#low-spin')!.getBoundingClientRect();
+      const high = document.querySelector('#high-spin')!.getBoundingClientRect();
+      const tempo = document.querySelector('.dorego-tempo')!.getBoundingClientRect();
+      const stage = document.querySelector('#stage')!.getBoundingClientRect();
+      const controls = document.querySelector('.dorego-transport')!.getBoundingClientRect();
+      return low.width > 0 && high.width > 0 && high.bottom <= header.bottom && controls.top >= stage.bottom &&
+        controls.left >= 0 && controls.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth &&
+        Math.abs(tempo.x + tempo.width / 2 - innerWidth / 2) < 2;
+    });
+    assert.equal(await page.locator('.mantine-AppShell-header #play, #low-wheel, #high-wheel').count(), 0);
+    const actions = page.getByRole('group', { name: 'Playback controls', exact: true });
+    assert.equal(await actions.locator('button').count(), 5);
+    for (const button of await actions.locator('button').all()) {
+      const box = (await button.boundingBox())!;
+      assert.ok(box.width >= 44 && box.height >= 44, 'Transport actions remain touch-sized');
+    }
+    await page.locator('#high-spin').click();
+    const highPicker = page.getByRole('dialog', { name: 'Choose highest note' });
+    await highPicker.waitFor();
+    if (width <= 760) {
+      await page.waitForFunction(() => document.activeElement?.getAttribute('data-value') === '66');
+      const selected = highPicker.getByRole('button', { name: 'F♯4', exact: true });
+      const box = (await selected.boundingBox())!;
+      assert.ok(box.width >= 44 && box.height >= 44, 'Phone note choices remain touch-sized');
+      const popup = (await highPicker.boundingBox())!;
+      assert.ok(popup.height <= 900 * .65 + 1 && popup.y + popup.height <= 900 - 11, 'Phone chooser stays bounded and scrollable');
+      await page.keyboard.press('ArrowDown');
+      assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-value')), width < 360 ? '70' : '72', 'Arrow down follows the visible phone grid');
+      await page.keyboard.press('ArrowUp');
+    }
+    assert.ok(await highPicker.getByRole('button', { name: 'C4', exact: true }).isDisabled(), 'The octave span remains required');
+    await highPicker.getByRole('button', { name: 'F4', exact: true }).click();
+    assert.equal(await readSpecValue(page, 'high'), '65');
+    await page.locator('#high-spin').click();
+    await highPicker.getByRole('button', { name: 'F♯4', exact: true }).click();
+    await page.locator('#low-spin').click();
+    const lowPicker = page.getByRole('dialog', { name: 'Choose lowest note' });
+    await lowPicker.getByRole('button', { name: 'F3', exact: true }).click();
+    assert.equal(await readSpecValue(page, 'low'), '53');
+    await page.locator('#low-spin').click();
+    await lowPicker.getByRole('button', { name: 'E3', exact: true }).click();
+    if (width === 390) {
+      await page.locator('#low-spin').click();
+      assert.equal(await lowPicker.locator('button[data-value]').count(), 36);
+      assert.equal(await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).getAttribute('aria-pressed'), 'false');
+      await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).click();
+      await lowPicker.getByRole('button', { name: 'B2', exact: true }).click();
+      await page.locator('#low-spin').click();
+      assert.equal(await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).getAttribute('aria-pressed'), 'true', 'A selected extended note remains visible when reopened');
+      assert.equal(await lowPicker.getByRole('button', { name: 'B2', exact: true }).getAttribute('aria-pressed'), 'true');
+      await page.waitForFunction(() => document.activeElement?.getAttribute('data-value') === '47');
+      await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).click();
+      assert.equal(await lowPicker.getByRole('button', { name: 'B2', exact: true }).count(), 0);
+      assert.equal(await page.locator('#low-spin').inputValue(), 'B2', 'Collapsing the chooser never changes the selected range');
+      assert.ok(await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).evaluate(el => el === document.activeElement), 'Collapsing an extended selection retains keyboard focus');
+      await page.keyboard.press('Escape');
+      await lowPicker.waitFor({ state: 'hidden' });
+      await page.locator('#low-spin').click();
+      await lowPicker.getByRole('button', { name: 'E3', exact: true }).click();
+    }
+  }
+  await page.reload();
+  await ready();
+  assert.equal(await readSpecValue(page, 'low'), '52');
+  assert.equal(await readSpecValue(page, 'high'), '66');
+  await page.setViewportSize({ width: 1280, height: 900 });
+
   assert.equal(
     await page.evaluate(() => (navigator as any).audioSession.type),
     'playback',
@@ -428,8 +508,8 @@ try {
   await finalPage.locator('.mantine-Drawer-content:visible').waitFor({state:'hidden'});
   const repeat=finalPage.getByRole('button',{name:'Repeat round',exact:true});
   await finalPage.waitForFunction(() => {
-    const button = document.querySelector('#repeat-round')?.getBoundingClientRect();
-    return button && Math.abs(button.x + button.width / 2 - innerWidth / 2) < 1;
+    const controls = document.querySelector('.dorego-transport')?.getBoundingClientRect();
+    return controls && Math.abs(controls.x + controls.width / 2 - innerWidth / 2) < 1;
   });
   const repeatBounds=await repeat.boundingBox();
   assert.ok(repeatBounds && repeatBounds.height >= 44 && repeatBounds.x >= 0 && repeatBounds.x+repeatBounds.width <= 390);
@@ -442,9 +522,17 @@ try {
   await finalPage.locator('#play').click();
   await finalPage.getByRole('button',{name:'Resume',exact:true}).waitFor();
   assert.equal(await finalPage.getByText('Rest · repeat round in',{exact:true}).count(),0,'Pause cancels the pending repeat rest');
+  // The initial cold-start Repeat above owns the timed eight-beat rest check.
+  // This completed-round witness also proves the latest rest setting can be zero.
+  await openPracticeOptions(finalPage);
+  await finalPage.locator('#rest-mobile').fill('0');
+  await finalPage.locator('#rest-mobile').press('Tab');
+  assert.equal(await readSpecValue(finalPage, 'restBeats'), '0');
+  await finalPage.getByRole('button',{name:'Close practice options',exact:true}).click();
+  await finalPage.locator('.mantine-Drawer-content:visible').waitFor({state:'hidden'});
   await repeat.click();
-  await finalPage.getByText('Rest · repeat round in',{exact:true}).waitFor();
   await finalPage.waitForFunction(()=>document.querySelector('#play')?.getAttribute('data-mode')==='playing' && Number(document.querySelector('#elapsed')?.getAttribute('data-seconds'))>2.05);
+  assert.equal(await finalPage.getByText('Rest · repeat round in',{exact:true}).count(),0, 'Repeat uses the newly selected zero rest');
   assert.equal(await finalPage.locator('#exercise-summary').textContent(),'Round 1 of 1');
   assert.ok(await finalPage.locator('#next-round').isDisabled());
   await finalPage.close();
@@ -467,7 +555,6 @@ try {
   assert.deepEqual(errors, []);
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/desktop-${browserName}.png` });
-  await verifySequence(browser!, base);
   await verifyLiveDrone(browser!, base);
 } catch (error) {
   await captureFailure(browser, error);

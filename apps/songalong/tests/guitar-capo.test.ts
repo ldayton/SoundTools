@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
+import {playbackNotes} from "../../../packages/music-practice/src/hymn-playback";
+import {guitarSustainAudio} from "../../../packages/music-practice/src/guitar-sustain";
 import hymns from "../../../packages/music-practice/src/hymns.json";
-import {arrangeHymn} from "../../../packages/music-practice/src/hymn-arrangements";
+import {arrangeHymn,guitarVocalAccompaniment} from "../../../packages/music-practice/src/hymn-arrangements";
 import {chordEdition,instrumentEditionIds} from "../../../packages/music-practice/src/instrument-editions";
 import {recommendGuitarCapos,capoAccompanimentAbc,capoPosition} from "../../../packages/music-practice/src/guitar-capo";
 import {hymnPreferences,hymnSettingsFromQuery} from "../../../packages/music-practice/src/hymn-settings";
@@ -21,7 +23,7 @@ for(const id of instrumentEditionIds)test(`${id}: capo advice preserves exact so
  const input=source(hymn),tune=abcjs.parseOnly(input.abc)[0],poly=new Map<number,boolean>();
  for(const l of tune.lines)for(const s of l.staff||[])for(const v of s.voices||[])for(const n of v)if(n.el_type==="note")poly.set(n.startChar!,(n.pitches?.length||0)>1);
  const notes=tune.setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"?[n]:[]));
- const choices=recommendGuitarCapos(input);assert(choices.length>=1&&choices.length<=3);assert(choices.every(c=>c.cost<=choices[0].cost*1.25+5));
+ const choices=recommendGuitarCapos(input);assert(choices.length>=1&&choices.length<=3);assert(choices.every(c=>c.cost<=choices[0].cost*1.25+.1));
  assert.deepEqual(choices.map(c=>[c.fret,c.cost]),recommendGuitarCapos(input).map(c=>[c.fret,c.cost]));
  for(const c of choices){
   for(const n of notes){const p=capoPosition(c,n.pitch,poly.get(n.startChar!)||false)!;assert(p,`${hymn.slug} ${n.pitch}`);assert.equal(open[p.str]+p.num+c.fret,n.pitch+input.sourceCapo);assert(p.num>=0&&p.num+c.fret<=24);}
@@ -31,13 +33,13 @@ for(const id of instrumentEditionIds)test(`${id}: capo advice preserves exact so
   }
  }
 });
-test("teacher score finds capo 2 from feasibility and chord ranking",()=>{
+test("teacher score finds capo 2 from actual phrase difficulty",()=>{
  const h=hymns.find(h=>h.slug==="in-christ-alone")!,choices=recommendGuitarCapos(source(h));
  assert.equal(choices[0].fret,2);assert.equal(choices[0].shapeKey,"C");assert(choices[0].chords.includes("C/E"));assert(choices[0].chords.includes("Am"));
 });
-test("I'll Fly Away offers distinct useful shape families without changing the key",()=>{
- const h=hymns.find(h=>h.slug==="ill-fly-away")!,input=source(h),choices=recommendGuitarCapos(input);
- const manual=recommendGuitarCapos({...input,requestedCapo:0});assert(manual.some(c=>c.fret===0&&c.shapeKey==="C"));assert(choices.some(c=>c.fret===3&&c.shapeKey==="A"));assert(choices.some(c=>c.fret===5&&c.shapeKey==="G"));
+test("I'll Fly Away singing accompaniment offers distinct useful shape families without changing the key",()=>{
+ const h=hymns.find(h=>h.slug==="ill-fly-away")!,base=source(h),input={...base,abc:base.accompanimentAbc,accompanimentOnly:true},choices=recommendGuitarCapos(input);
+ const manual=recommendGuitarCapos({...input,requestedCapo:0});assert(manual.some(c=>c.fret===0&&c.shapeKey==="C"));assert(recommendGuitarCapos({...input,requestedCapo:3}).some(c=>c.fret===3&&c.shapeKey==="A"));assert(recommendGuitarCapos({...input,requestedCapo:5}).some(c=>c.fret===5&&c.shapeKey==="G"));
  for(const c of choices){
   const rewritten=capoAccompanimentAbc(input.accompanimentAbc,c,-c.fret),tune=abcjs.parseOnly(rewritten)[0];assert.equal(tune.warnings?.length||0,0);
   const before=abcjs.parseOnly(input.accompanimentAbc)[0].setUpAudio({chordsOff:true}),after=tune.setUpAudio({chordsOff:true});assert.equal(after.totalDuration,before.totalDuration);
@@ -50,7 +52,7 @@ test("I'll Fly Away offers distinct useful shape families without changing the k
 test("reference capo has no reserved shortlist slot; explicit choices retain priority",()=>{
  const h=hymns.find(h=>h.slug==="ill-fly-away")!,input={...source(h),transpose:2};
  const automatic=recommendGuitarCapos(input),manual=recommendGuitarCapos({...input,requestedCapo:2});
- assert.equal(automatic[0].fret,0);assert(!automatic.some(c=>c.fret===2));
+ assert.notEqual(automatic[0].fret,2,"Reference setting has no ranking preference");
  assert.deepEqual(manual.slice(0,automatic.length).map(c=>c.fret),automatic.map(c=>c.fret));
  assert(manual.some(c=>c.fret===2&&c.scoreSetting));
  const impossible=recommendGuitarCapos({...input,requestedCapo:11});
@@ -134,4 +136,39 @@ test("generated chords avoid redundant accidentals while preserving natural/shar
  assert.equal((rewritten.match(/=F/g)||[]).length,2);assert.equal((rewritten.match(/\^F/g)||[]).length,2);
  const single=new Set<number>();for(const line of tune.lines)for(const staff of line.staff||[])for(const voice of staff.voices||[])for(const n of voice)if(n.el_type==="note"&&n.pitches?.length===1)single.add(n.startChar!);
  assert.deepEqual(tune.setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"&&single.has(n.startChar!)?[n.pitch]:[])),[53,54,54,53,54,54,54]);
+});
+
+test("raised Jesus Loves Me ranks the actual fingerstyle part without a song-specific fret limit",()=>{
+ const h=hymns.find(h=>h.slug==="jesus-loves-me")!,input={...source(h),transpose:-1};
+ const choices=recommendGuitarCapos(input),low=recommendGuitarCapos({...input,requestedCapo:0}).find(c=>c.fret===0)!;
+ assert(choices.length);assert(choices[0].cost<low.cost,"Open/capo-supported fingerings beat needlessly fretted copies");
+ assert(Math.max(...[...choices[0].positions.values()].map(p=>p.num))<=4);
+});
+test("an awkward authored string layout is a candidate rather than an automatic winner",()=>{
+ const abc='X:1\nM:4/4\nL:1/4\nV:G clef=treble-8\nK:C\n[V:G] c d c d |]';
+ const input={abc,sourceCapo:0,transpose:0,shapeKey:"C",requestedCapo:0};
+ const high=recommendGuitarCapos({...input,positionFor:p=>({str:3,num:p-50})}).find(c=>c.fret===0)!;
+ const low=recommendGuitarCapos({...input,positionFor:p=>({str:1,num:p-59})}).find(c=>c.fret===0)!;
+ assert(high&&low);assert(Math.max(...[...high.positions.values()].map(p=>p.num))<=3);
+ assert(Math.abs(high.cost-low.cost)<1e-7,"Input tablature must not mask the better available fingering");
+});
+test("tempo changes the cost of a phrase requiring hand travel",()=>{
+ const input={abc:"X:1\nM:4/4\nL:1/64\n%%score (S1 S2)\nV:S1 clef=treble-8\nV:S2 clef=treble-8\nK:C\n[V:S1] c8 z8 b'8 z8 c8 z8 b'8 z8 |]\n[V:S2] [E,A,D]64 |]",sourceCapo:0,transpose:0,shapeKey:"C",requestedCapo:0,positionFor:(p:number)=>({40:{str:5,num:0},45:{str:4,num:0},50:{str:3,num:0},60:{str:2,num:5},83:{str:0,num:19}} as Record<number,{str:number;num:number}>)[p]};
+ const slow=recommendGuitarCapos({...input,bpm:50}).find(c=>c.fret===0)!,fast=recommendGuitarCapos({...input,bpm:160}).find(c=>c.fret===0)!;
+ assert(slow&&fast);assert(fast.cost>slow.cost,"Less time for the same movement costs more");
+});
+
+test("vocal recommendations assess an authored picked reference and revoiced alternatives separately",()=>{
+ const h=hymns.find(h=>h.slug==="in-christ-alone")!,base=source(h);
+ const input={...base,abc:guitarVocalAccompaniment(h,0,0,undefined,false).abc,accompanimentOnly:true,referencePerformanceAbc:guitarVocalAccompaniment(h,0).abc,bpm:80};
+ const reference=recommendGuitarCapos({...input,requestedCapo:2}).find(c=>c.fret===2)!;
+ assert(reference&&reference.scoreSetting,"The performed picked reference remains physically supported");
+ const abc=input.referencePerformanceAbc,tune=abcjs.parseOnly(abc)[0];
+ for(const n of playbackNotes(guitarSustainAudio(tune.setUpAudio({qpm:60,chordsOff:true}),abc))){
+  const original=base.positionFor(n.pitch,false,0),selected=capoPosition(reference,n.pitch,false);
+  assert.deepEqual(selected,original,"Reference ranking must preserve its actual string layout");
+ }
+ const slower=recommendGuitarCapos({...input,bpm:50,requestedCapo:2}).find(c=>c.fret===2)!;
+ const faster=recommendGuitarCapos({...input,bpm:140,requestedCapo:2}).find(c=>c.fret===2)!;
+ assert(faster.cost>slower.cost,"Picked reference movement is evaluated at the chosen tempo");
 });

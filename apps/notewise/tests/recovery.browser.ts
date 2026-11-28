@@ -73,7 +73,7 @@ try {
   );
   const first = await stored();
   assert.ok(first.state.activities.piano.session.current);
-  await page.locator('[data-piano="60"]').click();
+  await page.locator('#piano [data-piano="60"]').click();
   await page.waitForFunction(() =>
     document.querySelector("#saved")?.textContent?.includes("Saved"),
   );
@@ -107,24 +107,6 @@ try {
     pattern,
     "exact pattern and pause",
   );
-  await selectPractice(page, "rhythm");
-  await practiceOption(page, "#rhythm-level", "eighths");
-  await page.waitForFunction(() =>
-    document.querySelector("#saved")?.textContent?.includes("Saved"),
-  );
-  const rhythm = (await stored()).state.activities.rhythm;
-  await page.locator(".rhythm-start").click();
-  await page.reload();
-  await page.locator(".rhythm-start").waitFor();
-  assert.match(
-    (await page.locator(".rhythm-start").textContent()) || "",
-    /Start/,
-  );
-  assert.deepEqual(
-    (await stored()).state.activities.rhythm.bars,
-    rhythm.bars,
-    "same rhythm, no resumed wall clock",
-  );
   console.log("live activity recovery passed");
   // Both windows remain usable and save without an exclusive lifetime lock.
   const other = await context.newPage();
@@ -136,21 +118,21 @@ try {
     false,
   );
   await selectPractice(other, "piano");
-  await other.locator('[data-piano="60"]').click();
+  await other.locator('#piano [data-piano="60"]').click();
   await other.locator("#feedback-next").waitFor();
   await other.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
   // The original window can still save a different activity after the new one saves.
-  await practiceOption(page, "#rhythm-level", "pulse");
+  await practiceOption(page, "#pattern-level", "steps");
   await page.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
   const both = await stored();
   assert.equal(both.state.activities.piano.session.answered, 2);
-  assert.ok(both.state.activities.rhythm);
+  assert.equal(both.state.activities.patterns.level,"steps");
   await page.close();
   await other.reload();
   await other.locator("#feedback-next").waitFor();
@@ -159,7 +141,7 @@ try {
   // Restore completion and history through actual reload, using valid state prepared through normal answers.
   await selectPractice(other, "piano");
   for (let i = 0; i < 10; i++) {
-    await other.locator('[data-piano="60"]').click();
+    await other.locator('#piano [data-piano="60"]').click();
     await other.locator("#feedback-next").click();
   }
   await other.locator("#summary").waitFor();

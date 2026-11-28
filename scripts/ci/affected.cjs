@@ -4,6 +4,7 @@ const { execFileSync } = require('node:child_process');
 const { apps: appConfig } = require('./apps.cjs');
 const root = path.resolve(__dirname, '../..');
 const names = Object.keys(appConfig);
+const publishable = names.filter(app => appConfig[app].project && appConfig[app].origin);
 function workspaces(directory = root) {
   return ['apps', 'packages'].flatMap(parent => fs.readdirSync(path.join(directory, parent)).flatMap(name => {
     const folder = `${parent}/${name}`, file = path.join(directory, folder, 'package.json');
@@ -40,7 +41,7 @@ function affected(files, graph = workspaces(), all = false) {
       accounts = true;
     }
   }
-  return { apps: names.filter(x => test.has(x)), deploy: all ? [] : names.filter(x => deploy.has(x)), accounts };
+  return { apps: names.filter(x => test.has(x)), deploy: all ? [] : publishable.filter(x => deploy.has(x)), accounts };
 }
 
 async function changes({ env = process.env, fetch: request = fetch, git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim() } = {}) {
@@ -50,17 +51,17 @@ async function changes({ env = process.env, fetch: request = fetch, git = args =
   // Source validation follows this push. Pending releases are recovered below
   // from each app's live SHA, independent of unrelated workflow failures.
   const base = env.CI_BASE_SHA || event.pull_request?.base?.sha || event.before;
-  if (!base) return { apps: names, deploy: env.GITHUB_EVENT_NAME === 'pull_request' ? [] : names, accounts: true, base: null, head };
+  if (!base) return { apps: names, deploy: env.GITHUB_EVENT_NAME === 'pull_request' ? [] : publishable, accounts: true, base: null, head };
   if (!/^[a-f0-9]{40}$/.test(base) || !/^[a-f0-9]{40}$/.test(head)) throw Error('Changes require full commit SHAs');
   let files;
   try { files = git(['diff', '--name-only', '--no-renames', `${base}...${head}`]).split('\n').filter(Boolean); }
-  catch { return { apps: names, deploy: env.GITHUB_EVENT_NAME === 'pull_request' ? [] : names, accounts: true, base: null, head }; }
+  catch { return { apps: names, deploy: env.GITHUB_EVENT_NAME === 'pull_request' ? [] : publishable, accounts: true, base: null, head }; }
   const result = affected(files);
   if (env.GITHUB_EVENT_NAME === 'push') {
     // Validation can finish while a newer commit prevents promotion. Compare
     // publication separately against each app's actual live revision, so that
     // an unpromoted code change is never lost behind a later docs-only push.
-    const pending = await Promise.all(names.map(async app => {
+    const pending = await Promise.all(publishable.map(async app => {
       try {
         const r = await request(appConfig[app].origin + '/build-info.json', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
         if (!r.ok) return { app, accounts: true };

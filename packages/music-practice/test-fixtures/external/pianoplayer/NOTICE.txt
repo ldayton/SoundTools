@@ -1,0 +1,17 @@
+Source: Marco Musy, pianoplayer
+https://github.com/marcomusy/pianoplayer
+Revision: 6fb0e2114d7b21f75c0be5208172e1243a57323e
+License: MIT; full upstream LICENSE retained.
+Copyright (c) 2017 Marco Musy
+
+The original tests/test_hand_regression.py is retained as .py.txt, for provenance
+only. It is never imported or executed. anchor.json adapts the literal synthetic
+sequence in test_hand_respects_existing_fingering_anchor: twelve ascending
+chromatic pitches beginning at MIDI 60, with finger 5 fixed on the second note.
+The original test stubs its optimizer; we test the retained anchor against our
+real TypeScript search instead. No expected full sequence is invented.
+
+Source one-second notes are represented as quarter notes (.25 whole-note units)
+in our legacy API. No source score, PIG annotation, optimizer code or external
+installation script was imported or executed. This is an anchor-retention test,
+not an expert ergonomic evaluation of that chromatic fingering.

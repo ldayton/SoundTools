@@ -1,13 +1,15 @@
+import { attachDirectionalSwipe } from "@ldayton/browser-controls/directional-swipe";
+import type {CagedRouteDirection} from "./caged-route";
 import type { cagedChordDiagram } from "./guitar-scale-patterns";
 import { GuitarChordGraphic } from "./guitar-chord-diagram";
 import { useMediaQuery } from "@mantine/hooks";
-import { useSyncExternalStore, useState, useRef, type ReactNode } from "react";
-import { ActionIcon, Button, Kbd, Modal, Table, Text, Title, Tooltip } from "@mantine/core";
+import { useSyncExternalStore, useState, useRef, useEffect, type ReactNode } from "react";
+import { ActionIcon, Button, Kbd, Modal, NativeSelect, Table, Text, Title, Tooltip } from "@mantine/core";
 import { frameState } from "./practice-frame";
-import { ScaleDetails } from "./scale-controls";
 export const scaleBodyState = () =>
   frameState({
     title: "",
+    caption: "",
     shortcutsOpen: false,
     shiftMode: false,
     shiftSelected: false,
@@ -21,14 +23,12 @@ export const scaleBodyState = () =>
     chordDiagrams: [] as ReturnType<typeof cagedChordDiagram>[],
     reversedColors: false,
     linkHelp: "",
-    notes: "",
-    relativeExplanation: "",
     movable: false,
-    footnote: "",
-    source: "",
-    sourceLabel: "GuitarScale.org",
     maqamReference: "",
-    rows: [] as { string: number; notes: string }[],
+    wholeRoute: false,
+    routeDirection: 'both' as CagedRouteDirection,
+    routeVariant:0,
+    routeChoices:[] as {value:string;label:string}[],
   });
 export function ScaleFrame({
   body,
@@ -37,6 +37,9 @@ export function ScaleFrame({
   clearShift,
   reverseLink,
   setChordOpen,
+  navigate,
+  setRouteDirection,
+  setRouteVariant,
 }: {
   body: ReturnType<typeof scaleBodyState>;
   relative: ReactNode;
@@ -44,15 +47,34 @@ export function ScaleFrame({
   clearShift(): void;
   reverseLink(): void;
   setChordOpen(open: boolean): void;
+  navigate(axis: "tonic" | "shape", direction: number): void;
+  setRouteDirection(direction:CagedRouteDirection):void;
+  setRouteVariant(variant:number):void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   const [horizontal,setHorizontal]=useState(true);
   const [chordFrame,setChordFrame]=useState(0);
+  const surface = useRef<HTMLElement>(null);
   const chordTrigger=useRef<HTMLButtonElement>(null);
   const activeChord=s.chordDiagrams[Math.min(chordFrame,s.chordDiagrams.length-1)];
   const hoverable = useMediaQuery("(min-width: 48em) and (hover: hover) and (pointer: fine)", undefined, { getInitialValueInEffect: false });
+  useEffect(() => {
+    const root = surface.current;
+    const content = root?.closest<HTMLElement>('#practice-content');
+    if (!root || !content) return;
+    const active = () => root.getClientRects().length > 0 && !root.closest('[hidden]');
+    return attachDirectionalSwipe(content, {
+      active, axes:"both", dominance:1,
+      ignore:'button, a, input, select, textarea, summary, [role="button"], [role="slider"], [contenteditable="true"], .practice-options, .scale-diagram:has(.scale-whole-route-board)',
+      onSwipe:direction=>{
+        if(direction==="left"||direction==="right")navigate("tonic",direction==="right"?1:-1);
+        else navigate("shape",direction==="down"?1:-1);
+      },
+    });
+  }, [navigate]);
   return (
     <section
+      ref={surface}
       className="practice-surface scale-card sequence-practice"
       aria-labelledby="scale-title"
     >
@@ -75,30 +97,24 @@ export function ScaleFrame({
             ].map(([keys, action]) => <Table.Tr key={keys}><Table.Td><Kbd>{keys}</Kbd></Table.Td><Table.Td>{action}</Table.Td></Table.Tr>)}
           </Table.Tbody>
         </Table>
-        <Text size="sm" c="dimmed" mt="md">Linked shapes move together. Shape and octave shifts apply to movable shapes and stop at the fretboard limits. Shortcuts pause while you use an input or this panel.</Text>
+        <Text size="sm" c="dimmed" mt="md">Linked shapes move together. Shape and octave shifts apply to individual shapes and pairs, and stop at the fretboard limits. Shortcuts pause while you use an input or this panel.</Text>
       </Modal>
       <div className="scale-heading">
-        <Title order={2} id="scale-title">
-          {s.title}
-        </Title>
-        <div className="scale-relative">{relative}</div>
+        <div className="scale-heading-text">
+          <Title order={2} id="scale-title">{s.title}</Title>
+          {s.caption && <Text className="scale-pattern-caption" size="sm" role="status">{s.caption}</Text>}
+        </div>
       </div>
+
+      <div className="scale-toolbar" role="group" aria-label="Scale toolbar" tabIndex={-1} onChange={event=>{if(event.target instanceof HTMLSelectElement)event.currentTarget.focus({preventScroll:true});}}>
       <div className="scale-key-navigation" hidden={!s.movable}>
         {navigation}
       </div>
-      <div className="scale-link-legend">
-        <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
-        {s.blueNoteLabel && <span><i className="scale-blue-swatch" aria-hidden="true" />{s.blueNoteLabel}</span>}
-        {s.omittedNoteLabel && <span><i className="scale-omitted-swatch" aria-hidden="true" />{s.omittedNoteLabel}</span>}
+        <div className="scale-relative">{relative}</div>
+      {s.wholeRoute && <section className="scale-whole-route" aria-label="Across fretboard route">
+        <div className="scale-whole-route-heading"><NativeSelect aria-label="Scale route" size="xs" value={String(s.routeVariant)} data={s.routeChoices} onChange={event=>setRouteVariant(Number(event.currentTarget.value))} /><NativeSelect aria-label="Route direction" size="xs" value={s.routeDirection} data={[{value:'both',label:'Both ways'},{value:'up',label:'Up the neck'},{value:'down',label:'Down the neck'}]} onChange={event=>setRouteDirection(event.currentTarget.value as CagedRouteDirection)} /></div>
+      </section>}
         {s.chordAvailable && <button type="button" className="scale-chord-trigger" ref={chordTrigger} aria-expanded={s.chordOpen} aria-controls="scale-chord-panel" onClick={()=>{setChordOpen(!s.chordOpen);setChordFrame(0);if(!s.chordOpen)setHorizontal(true);}}>{s.chordOpen ? "Hide chord shape" : "Show chord shape"}</button>}
-        {s.linkedLegend && <>
-        {s.linkedLegend.split("|")
-          .map((label, index) => ({ label, color: (index === 0) !== s.reversedColors ? "link-first" : "link-second" }))
-          .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }))
-          .map(({ label, color }) => <span key={label}><i className={color} />{label}</span>)}
-        {!s.shiftSelected && <span><i className="link-shared" />Shared note</span>}
-        <span><i className="link-shift" />Clickable shift</span>
-        </>}
         {s.shiftMode && <div className="scale-link-actions" role="group" aria-label="Linked shape controls">
           <Tooltip label="Reverse shapes" disabled={!hoverable} transitionProps={{ duration: 0 }}>
             <ActionIcon variant="subtle" size="md" aria-label="Reverse shapes" disabled={!s.canReverse} onClick={reverseLink}>
@@ -111,6 +127,21 @@ export function ScaleFrame({
             </ActionIcon>
           </Tooltip>
         </div>}
+      </div>
+      <div className="scale-link-legend">
+        <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
+        {s.blueNoteLabel && <span><i className="scale-blue-swatch" aria-hidden="true" />{s.blueNoteLabel}</span>}
+        {s.omittedNoteLabel && <span><i className="scale-omitted-swatch" aria-hidden="true" />{s.omittedNoteLabel}</span>}
+
+        {s.linkedLegend && <>
+        {s.linkedLegend.split("|")
+          .map((label, index) => ({ label, color: (index === 0) !== s.reversedColors ? "link-first" : "link-second" }))
+          .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }))
+          .map(({ label, color }) => <span key={label}><i className={color} />{label}</span>)}
+        {!s.shiftSelected && <span><i className="link-shared" />Shared note</span>}
+        <span><i className="link-shift" />Clickable shift</span>
+        </>}
+
       </div>
       {s.shiftMode && s.shiftMessage && <Text className="scale-shift-status" size="sm" role="status">{s.shiftMessage}</Text>}
       {s.chordAvailable && s.chordOpen && activeChord && <section id="scale-chord-panel" className="scale-chord-panel" aria-label="Chord shape diagram">
@@ -128,57 +159,9 @@ export function ScaleFrame({
       </section>}
       {s.maqamReference && <Text className="scale-maqam-reference" size="sm" c="dimmed" mb="sm">{s.maqamReference}</Text>}
       <div className="scale-diagram" />
+
       {s.linkHelp && <Text className="scale-link-help">{s.linkHelp}</Text>}
-      <Button className="scale-shortcuts-button" variant="subtle" size="compact-xs" aria-keyshortcuts="?" onClick={() => body.patch({ shortcutsOpen: true })}>Keyboard shortcuts (?)</Button>
-      <div className="scale-note-list">
-        <ScaleDetails>
-          <div className="scale-detail-body">
-            <Text className="scale-notes">{s.notes}</Text>
-            <Text className="scale-help">
-              Standard tuning · high E at the top, low E at the bottom.
-            </Text>
-            <Text className="scale-footnote">{s.footnote}</Text>
-            <Text className="scale-optional-legend" hidden={s.movable}>
-              Gray notes can also be played on the next open string.
-            </Text>
-            <Text className="scale-relative-explanation">
-              {s.relativeExplanation}
-            </Text>
-            <div className="scale-note-table">
-              <Table>
-                <caption>{s.title} · sounding pitches</caption>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>String</Table.Th>
-                    <Table.Th>Fret: note</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {s.rows.map((row) => (
-                    <Table.Tr key={row.string}>
-                      <Table.Th scope="row">
-                        {row.string}
-                        {row.string === 6
-                          ? " · low E"
-                          : row.string === 1
-                            ? " · high E"
-                            : ""}
-                      </Table.Th>
-                      <Table.Td>{row.notes}</Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </div>
-            {s.source && <Text className="scale-source">
-              {s.maqamReference ? "Maqam reference: " : "Source: "}
-              <a href={s.source} target="_blank" rel="noopener noreferrer">
-                {s.sourceLabel}
-              </a>
-            </Text>}
-          </div>
-        </ScaleDetails>
-      </div>
+
     </section>
   );
 }

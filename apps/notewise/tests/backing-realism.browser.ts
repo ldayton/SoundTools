@@ -275,7 +275,7 @@ try {
     "same guitar string chokes, another string keeps ringing",
   );
   assert.ok(result.hatChoke, "closed hat chokes its open predecessor");
-  assert.equal(result.phrasing, "roots-rock-dynamics-v3");
+  assert.equal(result.phrasing, "approved-ensemble-v1");
   assert.equal(result.changedTempo, 120);
   assert.equal(result.sharedPocket, "drummer-relative-v1");
   assert.equal(result.guitarTransitions, "connected-strings-v1");

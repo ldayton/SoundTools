@@ -1,6 +1,6 @@
 import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import {checkVocalEdition} from "../../../packages/music-practice/test-fixtures/song-edition.browser";
-import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
+import { openHymnInstrumentChoices, selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
@@ -115,7 +115,8 @@ try {
     await checkScore(page);
     await openPracticeOptions(page);
   await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);
-    await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
+    await openHymnInstrumentChoices(page);
+  await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeEnabled();
     await selectHymnInstrument(page, 'guitar');
     await expect(page.locator("[data-name=tabNumber]").first()).toBeVisible();
@@ -218,7 +219,7 @@ try {
     await page.reload();
     await page.locator(".hymn-paper svg").first().waitFor();
     await openPracticeOptions(page);
-    await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]')).toHaveAttribute('data-instrument', 'guitar');
     await expectScoreDisplay(page,"tab");
     await dismissPracticeDrawer(page);
     if (width === 1440) {

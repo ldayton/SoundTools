@@ -1,0 +1,5954 @@
+{
+  "schema": 1,
+  "decision": "Release default preserves the released mono objective and adds whole-hand constraints and sustained stepwise thumb passage. Research models remain disabled.",
+  "comparison": {
+    "baselineRevision": "0a593873044a2145e9b99254911d480aadd5ed20",
+    "baselineSha256": "2d1c79dfb3f9ee9200c569bdb46d5490d050fc430b22ded242485e4a25248808",
+    "comparable": 230,
+    "excluded": [
+      {
+        "id": "hanon-study-20-19",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-43-15",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-50-26",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-50-27",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-51-28",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-29",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-30",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-31",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-32",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-33",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-34",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-35",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-36",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-37",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-38",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-39",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-40",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-41",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-42",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-43",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-44",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-45",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-46",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-47",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-48",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-49",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-50",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-51",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-52",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "hanon-study-53-53",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "czerny-op599-no11",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      },
+      {
+        "id": "schumann-melodie",
+        "reason": "Concurrent contacts cannot be represented by the released single-note API"
+      }
+    ],
+    "summary": {
+      "eligible": 15999,
+      "before": 6969,
+      "after": 8311,
+      "beforeCovered": 15999,
+      "afterCovered": 15950
+    },
+    "families": {
+      "scales": {
+        "eligible": 1600,
+        "before": 632,
+        "after": 1075,
+        "beforeCovered": 1600,
+        "afterCovered": 1600
+      },
+      "chromatic": {
+        "eligible": 1070,
+        "before": 407,
+        "after": 736,
+        "beforeCovered": 1070,
+        "afterCovered": 1021
+      },
+      "arpeggios": {
+        "eligible": 567,
+        "before": 164,
+        "after": 164,
+        "beforeCovered": 567,
+        "afterCovered": 567
+      },
+      "five-finger": {
+        "eligible": 3137,
+        "before": 2666,
+        "after": 2666,
+        "beforeCovered": 3137,
+        "afterCovered": 3137
+      },
+      "technical": {
+        "eligible": 792,
+        "before": 248,
+        "after": 248,
+        "beforeCovered": 792,
+        "afterCovered": 792
+      },
+      "repertoire": {
+        "eligible": 76,
+        "before": 67,
+        "after": 67,
+        "beforeCovered": 76,
+        "afterCovered": 76
+      },
+      "beringer-arpeggios": {
+        "eligible": 5136,
+        "before": 1139,
+        "after": 1139,
+        "beforeCovered": 5136,
+        "afterCovered": 5136
+      },
+      "beringer-broken-chords": {
+        "eligible": 1536,
+        "before": 880,
+        "after": 880,
+        "beforeCovered": 1536,
+        "afterCovered": 1536
+      },
+      "beringer-scales": {
+        "eligible": 2085,
+        "before": 766,
+        "after": 1336,
+        "beforeCovered": 2085,
+        "afterCovered": 2085
+      }
+    },
+    "rows": [
+      {
+        "id": "hanon-39-0",
+        "family": "scales",
+        "eligible": 42,
+        "before": 18,
+        "after": 23,
+        "beforeCovered": 42,
+        "afterCovered": 42,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-1",
+        "family": "scales",
+        "eligible": 42,
+        "before": 19,
+        "after": 35,
+        "beforeCovered": 42,
+        "afterCovered": 42,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-2",
+        "family": "scales",
+        "eligible": 41,
+        "before": 19,
+        "after": 24,
+        "beforeCovered": 41,
+        "afterCovered": 41,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-3",
+        "family": "scales",
+        "eligible": 43,
+        "before": 18,
+        "after": 20,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-4",
+        "family": "scales",
+        "eligible": 42,
+        "before": 20,
+        "after": 36,
+        "beforeCovered": 42,
+        "afterCovered": 42,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-5",
+        "family": "scales",
+        "eligible": 43,
+        "before": 18,
+        "after": 15,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-6",
+        "family": "scales",
+        "eligible": 43,
+        "before": 9,
+        "after": 11,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-7",
+        "family": "scales",
+        "eligible": 43,
+        "before": 18,
+        "after": 36,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-8",
+        "family": "scales",
+        "eligible": 41,
+        "before": 18,
+        "after": 22,
+        "beforeCovered": 41,
+        "afterCovered": 41,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-9",
+        "family": "scales",
+        "eligible": 44,
+        "before": 10,
+        "after": 28,
+        "beforeCovered": 44,
+        "afterCovered": 44,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-10",
+        "family": "scales",
+        "eligible": 43,
+        "before": 18,
+        "after": 31,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-11",
+        "family": "scales",
+        "eligible": 42,
+        "before": 17,
+        "after": 31,
+        "beforeCovered": 42,
+        "afterCovered": 42,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-12",
+        "family": "scales",
+        "eligible": 43,
+        "before": 14,
+        "after": 38,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-13",
+        "family": "scales",
+        "eligible": 43,
+        "before": 22,
+        "after": 39,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-14",
+        "family": "scales",
+        "eligible": 43,
+        "before": 17,
+        "after": 30,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-15",
+        "family": "scales",
+        "eligible": 46,
+        "before": 12,
+        "after": 45,
+        "beforeCovered": 46,
+        "afterCovered": 46,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-16",
+        "family": "scales",
+        "eligible": 48,
+        "before": 22,
+        "after": 38,
+        "beforeCovered": 48,
+        "afterCovered": 48,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-17",
+        "family": "scales",
+        "eligible": 48,
+        "before": 20,
+        "after": 37,
+        "beforeCovered": 48,
+        "afterCovered": 48,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-18",
+        "family": "scales",
+        "eligible": 48,
+        "before": 19,
+        "after": 39,
+        "beforeCovered": 48,
+        "afterCovered": 48,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-19",
+        "family": "scales",
+        "eligible": 43,
+        "before": 18,
+        "after": 13,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-20",
+        "family": "scales",
+        "eligible": 48,
+        "before": 15,
+        "after": 42,
+        "beforeCovered": 48,
+        "afterCovered": 48,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-21",
+        "family": "scales",
+        "eligible": 43,
+        "before": 15,
+        "after": 28,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-22",
+        "family": "scales",
+        "eligible": 46,
+        "before": 6,
+        "after": 21,
+        "beforeCovered": 46,
+        "afterCovered": 46,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-23",
+        "family": "scales",
+        "eligible": 65,
+        "before": 38,
+        "after": 49,
+        "beforeCovered": 65,
+        "afterCovered": 65,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-24",
+        "family": "scales",
+        "eligible": 42,
+        "before": 21,
+        "after": 34,
+        "beforeCovered": 42,
+        "afterCovered": 42,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-25",
+        "family": "scales",
+        "eligible": 47,
+        "before": 6,
+        "after": 21,
+        "beforeCovered": 47,
+        "afterCovered": 47,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-26",
+        "family": "scales",
+        "eligible": 47,
+        "before": 20,
+        "after": 40,
+        "beforeCovered": 47,
+        "afterCovered": 47,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-27",
+        "family": "scales",
+        "eligible": 43,
+        "before": 24,
+        "after": 31,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-28",
+        "family": "scales",
+        "eligible": 41,
+        "before": 11,
+        "after": 14,
+        "beforeCovered": 41,
+        "afterCovered": 41,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-29",
+        "family": "scales",
+        "eligible": 47,
+        "before": 20,
+        "after": 38,
+        "beforeCovered": 47,
+        "afterCovered": 47,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-30",
+        "family": "scales",
+        "eligible": 43,
+        "before": 19,
+        "after": 32,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-31",
+        "family": "scales",
+        "eligible": 43,
+        "before": 14,
+        "after": 31,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-32",
+        "family": "scales",
+        "eligible": 44,
+        "before": 15,
+        "after": 20,
+        "beforeCovered": 44,
+        "afterCovered": 44,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-33",
+        "family": "scales",
+        "eligible": 43,
+        "before": 20,
+        "after": 21,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-34",
+        "family": "scales",
+        "eligible": 43,
+        "before": 22,
+        "after": 34,
+        "beforeCovered": 43,
+        "afterCovered": 43,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-39-35",
+        "family": "scales",
+        "eligible": 44,
+        "before": 20,
+        "after": 28,
+        "beforeCovered": 44,
+        "afterCovered": 44,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-40-36",
+        "family": "chromatic",
+        "eligible": 194,
+        "before": 75,
+        "after": 139,
+        "beforeCovered": 194,
+        "afterCovered": 194,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-40-37",
+        "family": "chromatic",
+        "eligible": 194,
+        "before": 75,
+        "after": 145,
+        "beforeCovered": 194,
+        "afterCovered": 194,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-40-38",
+        "family": "chromatic",
+        "eligible": 194,
+        "before": 78,
+        "after": 138,
+        "beforeCovered": 194,
+        "afterCovered": 194,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-40-39",
+        "family": "chromatic",
+        "eligible": 194,
+        "before": 79,
+        "after": 136,
+        "beforeCovered": 194,
+        "afterCovered": 194,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-40-40",
+        "family": "chromatic",
+        "eligible": 49,
+        "before": 17,
+        "after": 0,
+        "beforeCovered": 49,
+        "afterCovered": 0,
+        "diagnostics": [
+          {
+            "hand": "right",
+            "code": "hand_conflict",
+            "at": 6
+          },
+          {
+            "hand": "left",
+            "code": "hand_conflict",
+            "at": 6
+          }
+        ],
+        "collisionNotes": [
+          "right:24",
+          "left:73"
+        ]
+      },
+      {
+        "id": "hanon-40-41",
+        "family": "chromatic",
+        "eligible": 98,
+        "before": 35,
+        "after": 72,
+        "beforeCovered": 98,
+        "afterCovered": 98,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-40-42",
+        "family": "chromatic",
+        "eligible": 49,
+        "before": 17,
+        "after": 35,
+        "beforeCovered": 49,
+        "afterCovered": 49,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-40-43",
+        "family": "chromatic",
+        "eligible": 98,
+        "before": 31,
+        "after": 71,
+        "beforeCovered": 98,
+        "afterCovered": 98,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-0",
+        "family": "arpeggios",
+        "eligible": 25,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 25,
+        "afterCovered": 25,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-1",
+        "family": "arpeggios",
+        "eligible": 28,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 28,
+        "afterCovered": 28,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-2",
+        "family": "arpeggios",
+        "eligible": 25,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 25,
+        "afterCovered": 25,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-3",
+        "family": "arpeggios",
+        "eligible": 17,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 17,
+        "afterCovered": 17,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-4",
+        "family": "arpeggios",
+        "eligible": 21,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 21,
+        "afterCovered": 21,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-5",
+        "family": "arpeggios",
+        "eligible": 24,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 24,
+        "afterCovered": 24,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-6",
+        "family": "arpeggios",
+        "eligible": 25,
+        "before": 5,
+        "after": 5,
+        "beforeCovered": 25,
+        "afterCovered": 25,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-7",
+        "family": "arpeggios",
+        "eligible": 20,
+        "before": 7,
+        "after": 7,
+        "beforeCovered": 20,
+        "afterCovered": 20,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-8",
+        "family": "arpeggios",
+        "eligible": 27,
+        "before": 5,
+        "after": 5,
+        "beforeCovered": 27,
+        "afterCovered": 27,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-9",
+        "family": "arpeggios",
+        "eligible": 24,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 24,
+        "afterCovered": 24,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-10",
+        "family": "arpeggios",
+        "eligible": 25,
+        "before": 5,
+        "after": 5,
+        "beforeCovered": 25,
+        "afterCovered": 25,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-11",
+        "family": "arpeggios",
+        "eligible": 30,
+        "before": 11,
+        "after": 11,
+        "beforeCovered": 30,
+        "afterCovered": 30,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-12",
+        "family": "arpeggios",
+        "eligible": 22,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-13",
+        "family": "arpeggios",
+        "eligible": 25,
+        "before": 11,
+        "after": 11,
+        "beforeCovered": 25,
+        "afterCovered": 25,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-14",
+        "family": "arpeggios",
+        "eligible": 19,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 19,
+        "afterCovered": 19,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-15",
+        "family": "arpeggios",
+        "eligible": 28,
+        "before": 4,
+        "after": 4,
+        "beforeCovered": 28,
+        "afterCovered": 28,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-16",
+        "family": "arpeggios",
+        "eligible": 19,
+        "before": 5,
+        "after": 5,
+        "beforeCovered": 19,
+        "afterCovered": 19,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-17",
+        "family": "arpeggios",
+        "eligible": 24,
+        "before": 3,
+        "after": 3,
+        "beforeCovered": 24,
+        "afterCovered": 24,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-18",
+        "family": "arpeggios",
+        "eligible": 19,
+        "before": 5,
+        "after": 5,
+        "beforeCovered": 19,
+        "afterCovered": 19,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-19",
+        "family": "arpeggios",
+        "eligible": 27,
+        "before": 4,
+        "after": 4,
+        "beforeCovered": 27,
+        "afterCovered": 27,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-20",
+        "family": "arpeggios",
+        "eligible": 18,
+        "before": 5,
+        "after": 5,
+        "beforeCovered": 18,
+        "afterCovered": 18,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-21",
+        "family": "arpeggios",
+        "eligible": 26,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 26,
+        "afterCovered": 26,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-22",
+        "family": "arpeggios",
+        "eligible": 26,
+        "before": 7,
+        "after": 7,
+        "beforeCovered": 26,
+        "afterCovered": 26,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-41-23",
+        "family": "arpeggios",
+        "eligible": 23,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 23,
+        "afterCovered": 23,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-1-0",
+        "family": "five-finger",
+        "eligible": 122,
+        "before": 122,
+        "after": 122,
+        "beforeCovered": 122,
+        "afterCovered": 122,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-2-1",
+        "family": "five-finger",
+        "eligible": 157,
+        "before": 157,
+        "after": 157,
+        "beforeCovered": 157,
+        "afterCovered": 157,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-3-2",
+        "family": "five-finger",
+        "eligible": 165,
+        "before": 165,
+        "after": 165,
+        "beforeCovered": 165,
+        "afterCovered": 165,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-4-3",
+        "family": "five-finger",
+        "eligible": 87,
+        "before": 87,
+        "after": 87,
+        "beforeCovered": 87,
+        "afterCovered": 87,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-5-4",
+        "family": "five-finger",
+        "eligible": 112,
+        "before": 112,
+        "after": 112,
+        "beforeCovered": 112,
+        "afterCovered": 112,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-6-5",
+        "family": "five-finger",
+        "eligible": 114,
+        "before": 114,
+        "after": 114,
+        "beforeCovered": 114,
+        "afterCovered": 114,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-7-6",
+        "family": "five-finger",
+        "eligible": 142,
+        "before": 77,
+        "after": 77,
+        "beforeCovered": 142,
+        "afterCovered": 142,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-8-7",
+        "family": "five-finger",
+        "eligible": 149,
+        "before": 134,
+        "after": 134,
+        "beforeCovered": 149,
+        "afterCovered": 149,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-9-8",
+        "family": "five-finger",
+        "eligible": 160,
+        "before": 115,
+        "after": 115,
+        "beforeCovered": 160,
+        "afterCovered": 160,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-10-9",
+        "family": "five-finger",
+        "eligible": 136,
+        "before": 136,
+        "after": 136,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-11-10",
+        "family": "five-finger",
+        "eligible": 152,
+        "before": 152,
+        "after": 152,
+        "beforeCovered": 152,
+        "afterCovered": 152,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-12-11",
+        "family": "five-finger",
+        "eligible": 159,
+        "before": 159,
+        "after": 159,
+        "beforeCovered": 159,
+        "afterCovered": 159,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-13-12",
+        "family": "five-finger",
+        "eligible": 202,
+        "before": 106,
+        "after": 106,
+        "beforeCovered": 202,
+        "afterCovered": 202,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-14-13",
+        "family": "five-finger",
+        "eligible": 207,
+        "before": 111,
+        "after": 111,
+        "beforeCovered": 207,
+        "afterCovered": 207,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-15-14",
+        "family": "five-finger",
+        "eligible": 252,
+        "before": 244,
+        "after": 244,
+        "beforeCovered": 252,
+        "afterCovered": 252,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-16-15",
+        "family": "five-finger",
+        "eligible": 170,
+        "before": 158,
+        "after": 158,
+        "beforeCovered": 170,
+        "afterCovered": 170,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-17-16",
+        "family": "five-finger",
+        "eligible": 248,
+        "before": 201,
+        "after": 201,
+        "beforeCovered": 248,
+        "afterCovered": 248,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-18-17",
+        "family": "five-finger",
+        "eligible": 202,
+        "before": 115,
+        "after": 115,
+        "beforeCovered": 202,
+        "afterCovered": 202,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-19-18",
+        "family": "five-finger",
+        "eligible": 201,
+        "before": 201,
+        "after": 201,
+        "beforeCovered": 201,
+        "afterCovered": 201,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-42-0",
+        "family": "technical",
+        "eligible": 30,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 30,
+        "afterCovered": 30,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-42-1",
+        "family": "technical",
+        "eligible": 22,
+        "before": 12,
+        "after": 12,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-42-2",
+        "family": "technical",
+        "eligible": 21,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 21,
+        "afterCovered": 21,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-42-3",
+        "family": "technical",
+        "eligible": 22,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-42-4",
+        "family": "technical",
+        "eligible": 22,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-42-5",
+        "family": "technical",
+        "eligible": 21,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 21,
+        "afterCovered": 21,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-42-6",
+        "family": "technical",
+        "eligible": 22,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-42-7",
+        "family": "technical",
+        "eligible": 4,
+        "before": 1,
+        "after": 1,
+        "beforeCovered": 4,
+        "afterCovered": 4,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-43-8",
+        "family": "technical",
+        "eligible": 22,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-43-9",
+        "family": "technical",
+        "eligible": 22,
+        "before": 12,
+        "after": 12,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-43-10",
+        "family": "technical",
+        "eligible": 22,
+        "before": 12,
+        "after": 12,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-43-11",
+        "family": "technical",
+        "eligible": 22,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-43-12",
+        "family": "technical",
+        "eligible": 22,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-43-13",
+        "family": "technical",
+        "eligible": 21,
+        "before": 11,
+        "after": 11,
+        "beforeCovered": 21,
+        "afterCovered": 21,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-43-14",
+        "family": "technical",
+        "eligible": 21,
+        "before": 11,
+        "after": 11,
+        "beforeCovered": 21,
+        "afterCovered": 21,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-44-16",
+        "family": "technical",
+        "eligible": 70,
+        "before": 14,
+        "after": 14,
+        "beforeCovered": 70,
+        "afterCovered": 70,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-45-17",
+        "family": "technical",
+        "eligible": 32,
+        "before": 8,
+        "after": 8,
+        "beforeCovered": 32,
+        "afterCovered": 32,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-45-18",
+        "family": "technical",
+        "eligible": 28,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 28,
+        "afterCovered": 28,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-45-19",
+        "family": "technical",
+        "eligible": 28,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 28,
+        "afterCovered": 28,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-45-20",
+        "family": "technical",
+        "eligible": 32,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 32,
+        "afterCovered": 32,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-45-21",
+        "family": "technical",
+        "eligible": 26,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 26,
+        "afterCovered": 26,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-45-22",
+        "family": "technical",
+        "eligible": 28,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 28,
+        "afterCovered": 28,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-45-23",
+        "family": "technical",
+        "eligible": 2,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 2,
+        "afterCovered": 2,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-46-24",
+        "family": "technical",
+        "eligible": 24,
+        "before": 24,
+        "after": 24,
+        "beforeCovered": 24,
+        "afterCovered": 24,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "hanon-study-47-25",
+        "family": "technical",
+        "eligible": 206,
+        "before": 36,
+        "after": 36,
+        "beforeCovered": 206,
+        "afterCovered": 206,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beyer-abendlied",
+        "family": "repertoire",
+        "eligible": 11,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 11,
+        "afterCovered": 11,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beyer-kinderlied",
+        "family": "repertoire",
+        "eligible": 3,
+        "before": 3,
+        "after": 3,
+        "beforeCovered": 3,
+        "afterCovered": 3,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beyer-op101-no66",
+        "family": "repertoire",
+        "eligible": 22,
+        "before": 19,
+        "after": 19,
+        "beforeCovered": 22,
+        "afterCovered": 22,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "turk-aller-anfang",
+        "family": "repertoire",
+        "eligible": 20,
+        "before": 20,
+        "after": 20,
+        "beforeCovered": 20,
+        "afterCovered": 20,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "turk-bey-der-wiege",
+        "family": "repertoire",
+        "eligible": 5,
+        "before": 4,
+        "after": 4,
+        "beforeCovered": 5,
+        "afterCovered": 5,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "turk-hans-ohne-sorgen",
+        "family": "repertoire",
+        "eligible": 4,
+        "before": 3,
+        "after": 3,
+        "beforeCovered": 4,
+        "afterCovered": 4,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "turk-matt-und-krank",
+        "family": "repertoire",
+        "eligible": 7,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 7,
+        "afterCovered": 7,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "turk-muntere-knabe",
+        "family": "repertoire",
+        "eligible": 4,
+        "before": 3,
+        "after": 3,
+        "beforeCovered": 4,
+        "afterCovered": 4,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_a_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 20,
+        "after": 20,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_a_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 14,
+        "after": 14,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_aflat_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 16,
+        "after": 16,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_b_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 18,
+        "after": 18,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_b_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 19,
+        "after": 19,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_bflat_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 18,
+        "after": 18,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_bflat_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 26,
+        "after": 26,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_c_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 14,
+        "after": 14,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_c_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 19,
+        "after": 19,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_csharp_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 19,
+        "after": 19,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_d_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 20,
+        "after": 20,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_d_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 14,
+        "after": 14,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_dflat_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 16,
+        "after": 16,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_e_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 20,
+        "after": 20,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_e_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 14,
+        "after": 14,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_eflat_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 16,
+        "after": 16,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_eflat_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 34,
+        "after": 34,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_f_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 14,
+        "after": 14,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_f_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 19,
+        "after": 19,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_fsharp_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 37,
+        "after": 37,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_fsharp_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 19,
+        "after": 19,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_g_major",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 14,
+        "after": 14,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_g_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 19,
+        "after": 19,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-common_gsharp_minor",
+        "family": "beringer-arpeggios",
+        "eligible": 78,
+        "before": 19,
+        "after": 19,
+        "beforeCovered": 78,
+        "afterCovered": 78,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_a",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 29,
+        "after": 29,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_aflat",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 29,
+        "after": 29,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_b",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 28,
+        "after": 28,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_bflat",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 29,
+        "after": 29,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_c",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 26,
+        "after": 26,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_d",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 21,
+        "after": 21,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_dflat",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 28,
+        "after": 28,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_e",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 32,
+        "after": 32,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_eflat",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 24,
+        "after": 24,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_f",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 33,
+        "after": 33,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_fsharp",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 27,
+        "after": 27,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_g",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 25,
+        "after": 25,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_a",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 32,
+        "after": 32,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_aflat",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 28,
+        "after": 28,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_b",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 27,
+        "after": 27,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_bflat",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 26,
+        "after": 26,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_c",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 25,
+        "after": 25,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_d",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 31,
+        "after": 31,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_dflat",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 28,
+        "after": 28,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_e",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 43,
+        "after": 43,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_eflat",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 34,
+        "after": 34,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_f",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 26,
+        "after": 26,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_fsharp",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 18,
+        "after": 18,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_g",
+        "family": "beringer-arpeggios",
+        "eligible": 136,
+        "before": 32,
+        "after": 32,
+        "beforeCovered": 136,
+        "afterCovered": 136,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-a_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 36,
+        "after": 36,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-a_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 24,
+        "after": 24,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-aflat_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 46,
+        "after": 46,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-b_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 43,
+        "after": 43,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-b_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 39,
+        "after": 39,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-bflat_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 28,
+        "after": 28,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-bflat_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 50,
+        "after": 50,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-c_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 24,
+        "after": 24,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-c_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 32,
+        "after": 32,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-csharp_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 44,
+        "after": 44,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-d_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 36,
+        "after": 36,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-d_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 24,
+        "after": 24,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-dflat_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 46,
+        "after": 46,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-e_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 36,
+        "after": 36,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-e_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 24,
+        "after": 24,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-eflat_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 46,
+        "after": 46,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-eflat_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 44,
+        "after": 44,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-f_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 32,
+        "after": 32,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-f_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 32,
+        "after": 32,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-fsharp_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 50,
+        "after": 50,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-fsharp_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 44,
+        "after": 44,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-g_major",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 24,
+        "after": 24,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-g_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 32,
+        "after": 32,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-broken_chords-gsharp_minor",
+        "family": "beringer-broken-chords",
+        "eligible": 64,
+        "before": 44,
+        "after": 44,
+        "beforeCovered": 64,
+        "afterCovered": 64,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-a_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 85,
+        "after": 130,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-a_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-a_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-aflat_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 74,
+        "after": 123,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-b_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 51,
+        "after": 83,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-b_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-b_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-bflat_major",
+        "family": "beringer-scales",
+        "eligible": 173,
+        "before": 40,
+        "after": 45,
+        "beforeCovered": 173,
+        "afterCovered": 173,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-bflat_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-bflat_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-c_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 69,
+        "after": 102,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-c_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-c_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-chromatic_ascending",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-chromatic_descending",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-csharp_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-csharp_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-d_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 72,
+        "after": 123,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-d_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-d_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-dflat_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 43,
+        "after": 163,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-e_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 93,
+        "after": 133,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-e_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-e_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-eflat_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 53,
+        "after": 92,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-eflat_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-eflat_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-f_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 63,
+        "after": 95,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-f_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-f_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-fsharp_major",
+        "family": "beringer-scales",
+        "eligible": 172,
+        "before": 54,
+        "after": 143,
+        "beforeCovered": 172,
+        "afterCovered": 172,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-fsharp_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-fsharp_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-g_major",
+        "family": "beringer-scales",
+        "eligible": 174,
+        "before": 69,
+        "after": 104,
+        "beforeCovered": 174,
+        "afterCovered": 174,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-g_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-g_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-gsharp_minor_harmonic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      },
+      {
+        "id": "beringer2-scales-gsharp_minor_melodic",
+        "family": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0,
+        "diagnostics": [],
+        "collisionNotes": []
+      }
+    ]
+  },
+  "production": {
+    "original:development": {
+      "summary": {
+        "sequence": {
+          "eligibleCases": 77,
+          "completeCases": 10,
+          "eligibleHands": 143,
+          "completeHands": 25,
+          "eligibleTransitions": 3089,
+          "matchedTransitions": 1851
+        },
+        "cases": 110,
+        "macroAgreement": 0.5772948703749481,
+        "totalNotes": 17922,
+        "predictedNotes": 17824,
+        "eligible": 5284,
+        "covered": 5235,
+        "matches": 3566,
+        "flagged": 484,
+        "inferred": 2087,
+        "coverage": 0.9907267221801666,
+        "agreementSupported": 0.6811843361986628,
+        "agreementAll": 0.6748675246025738
+      },
+      "families": {
+        "scales": {
+          "sequence": {
+            "eligibleCases": 24,
+            "completeCases": 0,
+            "eligibleHands": 44,
+            "completeHands": 1,
+            "eligibleTransitions": 331,
+            "matchedTransitions": 211
+          },
+          "cases": 24,
+          "macroAgreement": 0.6668461082545739,
+          "totalNotes": 2736,
+          "predictedNotes": 2736,
+          "eligible": 947,
+          "covered": 947,
+          "matches": 623,
+          "flagged": 89,
+          "inferred": 1700,
+          "coverage": 1,
+          "agreementSupported": 0.6578669482576558,
+          "agreementAll": 0.6578669482576558
+        },
+        "chromatic": {
+          "sequence": {
+            "eligibleCases": 5,
+            "completeCases": 0,
+            "eligibleHands": 8,
+            "completeHands": 0,
+            "eligibleTransitions": 672,
+            "matchedTransitions": 302
+          },
+          "cases": 5,
+          "macroAgreement": 0.5758468335787924,
+          "totalNotes": 778,
+          "predictedNotes": 680,
+          "eligible": 680,
+          "covered": 631,
+          "matches": 455,
+          "flagged": 98,
+          "inferred": 0,
+          "coverage": 0.9279411764705883,
+          "agreementSupported": 0.7210776545166403,
+          "agreementAll": 0.6691176470588235
+        },
+        "arpeggios": {
+          "sequence": {
+            "eligibleCases": 7,
+            "completeCases": 0,
+            "eligibleHands": 9,
+            "completeHands": 0,
+            "eligibleTransitions": 56,
+            "matchedTransitions": 0
+          },
+          "cases": 16,
+          "macroAgreement": 0.30639598496741355,
+          "totalNotes": 800,
+          "predictedNotes": 800,
+          "eligible": 116,
+          "covered": 116,
+          "matches": 35,
+          "flagged": 297,
+          "inferred": 387,
+          "coverage": 1,
+          "agreementSupported": 0.3017241379310345,
+          "agreementAll": 0.3017241379310345
+        },
+        "five-finger": {
+          "sequence": {
+            "eligibleCases": 15,
+            "completeCases": 8,
+            "eligibleHands": 30,
+            "completeHands": 16,
+            "eligibleTransitions": 1711,
+            "matchedTransitions": 1284
+          },
+          "cases": 15,
+          "macroAgreement": 0.844668843356469,
+          "totalNotes": 6750,
+          "predictedNotes": 6750,
+          "eligible": 2572,
+          "covered": 2572,
+          "matches": 2128,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.8273716951788491,
+          "agreementAll": 0.8273716951788491
+        },
+        "technical": {
+          "sequence": {
+            "eligibleCases": 20,
+            "completeCases": 0,
+            "eligibleHands": 40,
+            "completeHands": 0,
+            "eligibleTransitions": 284,
+            "matchedTransitions": 19
+          },
+          "cases": 44,
+          "macroAgreement": 0.2760171362365673,
+          "totalNotes": 6456,
+          "predictedNotes": 6456,
+          "eligible": 872,
+          "covered": 872,
+          "matches": 242,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.2775229357798165,
+          "agreementAll": 0.2775229357798165
+        },
+        "repertoire": {
+          "sequence": {
+            "eligibleCases": 6,
+            "completeCases": 2,
+            "eligibleHands": 12,
+            "completeHands": 8,
+            "eligibleTransitions": 35,
+            "matchedTransitions": 35
+          },
+          "cases": 6,
+          "macroAgreement": 0.8721694971694971,
+          "totalNotes": 402,
+          "predictedNotes": 402,
+          "eligible": 97,
+          "covered": 97,
+          "matches": 83,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.8556701030927835,
+          "agreementAll": 0.8556701030927835
+        }
+      }
+    },
+    "original:validation": {
+      "summary": {
+        "sequence": {
+          "eligibleCases": 36,
+          "completeCases": 3,
+          "eligibleHands": 68,
+          "completeHands": 11,
+          "eligibleTransitions": 1306,
+          "matchedTransitions": 860
+        },
+        "cases": 42,
+        "macroAgreement": 0.6546845691752179,
+        "totalNotes": 6219,
+        "predictedNotes": 6219,
+        "eligible": 2134,
+        "covered": 2134,
+        "matches": 1640,
+        "flagged": 225,
+        "inferred": 970,
+        "coverage": 1,
+        "agreementSupported": 0.7685098406747891,
+        "agreementAll": 0.7685098406747891
+      },
+      "families": {
+        "scales": {
+          "sequence": {
+            "eligibleCases": 12,
+            "completeCases": 0,
+            "eligibleHands": 22,
+            "completeHands": 2,
+            "eligibleTransitions": 212,
+            "matchedTransitions": 129
+          },
+          "cases": 12,
+          "macroAgreement": 0.6942335122281648,
+          "totalNotes": 1368,
+          "predictedNotes": 1368,
+          "eligible": 522,
+          "covered": 522,
+          "matches": 369,
+          "flagged": 49,
+          "inferred": 797,
+          "coverage": 1,
+          "agreementSupported": 0.7068965517241379,
+          "agreementAll": 0.7068965517241379
+        },
+        "chromatic": {
+          "sequence": {
+            "eligibleCases": 3,
+            "completeCases": 0,
+            "eligibleHands": 6,
+            "completeHands": 0,
+            "eligibleTransitions": 384,
+            "matchedTransitions": 200
+          },
+          "cases": 3,
+          "macroAgreement": 0.723507959884985,
+          "totalNotes": 390,
+          "predictedNotes": 390,
+          "eligible": 390,
+          "covered": 390,
+          "matches": 281,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.7205128205128205,
+          "agreementAll": 0.7205128205128205
+        },
+        "arpeggios": {
+          "sequence": {
+            "eligibleCases": 3,
+            "completeCases": 0,
+            "eligibleHands": 4,
+            "completeHands": 0,
+            "eligibleTransitions": 27,
+            "matchedTransitions": 2
+          },
+          "cases": 8,
+          "macroAgreement": 0.2540106951871658,
+          "totalNotes": 400,
+          "predictedNotes": 400,
+          "eligible": 53,
+          "covered": 53,
+          "matches": 15,
+          "flagged": 174,
+          "inferred": 173,
+          "coverage": 1,
+          "agreementSupported": 0.2830188679245283,
+          "agreementAll": 0.2830188679245283
+        },
+        "five-finger": {
+          "sequence": {
+            "eligibleCases": 5,
+            "completeCases": 2,
+            "eligibleHands": 10,
+            "completeHands": 4,
+            "eligibleTransitions": 567,
+            "matchedTransitions": 488
+          },
+          "cases": 5,
+          "macroAgreement": 0.9419070651506081,
+          "totalNotes": 2300,
+          "predictedNotes": 2300,
+          "eligible": 867,
+          "covered": 867,
+          "matches": 804,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.9273356401384083,
+          "agreementAll": 0.9273356401384083
+        },
+        "technical": {
+          "sequence": {
+            "eligibleCases": 9,
+            "completeCases": 1,
+            "eligibleHands": 18,
+            "completeHands": 2,
+            "eligibleTransitions": 78,
+            "matchedTransitions": 19
+          },
+          "cases": 10,
+          "macroAgreement": 0.5103415103415103,
+          "totalNotes": 1223,
+          "predictedNotes": 1223,
+          "eligible": 198,
+          "covered": 198,
+          "matches": 102,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.5151515151515151,
+          "agreementAll": 0.5151515151515151
+        },
+        "repertoire": {
+          "sequence": {
+            "eligibleCases": 4,
+            "completeCases": 0,
+            "eligibleHands": 8,
+            "completeHands": 3,
+            "eligibleTransitions": 38,
+            "matchedTransitions": 22
+          },
+          "cases": 4,
+          "macroAgreement": 0.7506693648816937,
+          "totalNotes": 538,
+          "predictedNotes": 538,
+          "eligible": 104,
+          "covered": 104,
+          "matches": 69,
+          "flagged": 2,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.6634615384615384,
+          "agreementAll": 0.6634615384615384
+        }
+      }
+    },
+    "hanon:development:classic": {
+      "summary": {
+        "sequence": {
+          "eligibleCases": 86,
+          "completeCases": 10,
+          "eligibleHands": 170,
+          "completeHands": 25,
+          "eligibleTransitions": 3225,
+          "matchedTransitions": 1878
+        },
+        "cases": 110,
+        "macroAgreement": 0.5495586482969823,
+        "totalNotes": 17922,
+        "predictedNotes": 17824,
+        "eligible": 5615,
+        "covered": 5566,
+        "matches": 3707,
+        "flagged": 153,
+        "inferred": 2087,
+        "coverage": 0.991273374888691,
+        "agreementSupported": 0.66600790513834,
+        "agreementAll": 0.6601959038290294
+      },
+      "families": {
+        "scales": {
+          "sequence": {
+            "eligibleCases": 24,
+            "completeCases": 0,
+            "eligibleHands": 48,
+            "completeHands": 1,
+            "eligibleTransitions": 362,
+            "matchedTransitions": 234
+          },
+          "cases": 24,
+          "macroAgreement": 0.6627202945711879,
+          "totalNotes": 2736,
+          "predictedNotes": 2736,
+          "eligible": 1031,
+          "covered": 1031,
+          "matches": 684,
+          "flagged": 5,
+          "inferred": 1700,
+          "coverage": 1,
+          "agreementSupported": 0.6634335596508244,
+          "agreementAll": 0.6634335596508244
+        },
+        "chromatic": {
+          "sequence": {
+            "eligibleCases": 5,
+            "completeCases": 0,
+            "eligibleHands": 8,
+            "completeHands": 0,
+            "eligibleTransitions": 672,
+            "matchedTransitions": 302
+          },
+          "cases": 5,
+          "macroAgreement": 0.5758468335787924,
+          "totalNotes": 778,
+          "predictedNotes": 680,
+          "eligible": 680,
+          "covered": 631,
+          "matches": 455,
+          "flagged": 98,
+          "inferred": 0,
+          "coverage": 0.9279411764705883,
+          "agreementSupported": 0.7210776545166403,
+          "agreementAll": 0.6691176470588235
+        },
+        "arpeggios": {
+          "sequence": {
+            "eligibleCases": 16,
+            "completeCases": 0,
+            "eligibleHands": 32,
+            "completeHands": 0,
+            "eligibleTransitions": 161,
+            "matchedTransitions": 4
+          },
+          "cases": 16,
+          "macroAgreement": 0.3158831348651647,
+          "totalNotes": 800,
+          "predictedNotes": 800,
+          "eligible": 363,
+          "covered": 363,
+          "matches": 115,
+          "flagged": 50,
+          "inferred": 387,
+          "coverage": 1,
+          "agreementSupported": 0.3168044077134986,
+          "agreementAll": 0.3168044077134986
+        },
+        "five-finger": {
+          "sequence": {
+            "eligibleCases": 15,
+            "completeCases": 8,
+            "eligibleHands": 30,
+            "completeHands": 16,
+            "eligibleTransitions": 1711,
+            "matchedTransitions": 1284
+          },
+          "cases": 15,
+          "macroAgreement": 0.844668843356469,
+          "totalNotes": 6750,
+          "predictedNotes": 6750,
+          "eligible": 2572,
+          "covered": 2572,
+          "matches": 2128,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.8273716951788491,
+          "agreementAll": 0.8273716951788491
+        },
+        "technical": {
+          "sequence": {
+            "eligibleCases": 20,
+            "completeCases": 0,
+            "eligibleHands": 40,
+            "completeHands": 0,
+            "eligibleTransitions": 284,
+            "matchedTransitions": 19
+          },
+          "cases": 44,
+          "macroAgreement": 0.2760171362365673,
+          "totalNotes": 6456,
+          "predictedNotes": 6456,
+          "eligible": 872,
+          "covered": 872,
+          "matches": 242,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.2775229357798165,
+          "agreementAll": 0.2775229357798165
+        },
+        "repertoire": {
+          "sequence": {
+            "eligibleCases": 6,
+            "completeCases": 2,
+            "eligibleHands": 12,
+            "completeHands": 8,
+            "eligibleTransitions": 35,
+            "matchedTransitions": 35
+          },
+          "cases": 6,
+          "macroAgreement": 0.8721694971694971,
+          "totalNotes": 402,
+          "predictedNotes": 402,
+          "eligible": 97,
+          "covered": 97,
+          "matches": 83,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.8556701030927835,
+          "agreementAll": 0.8556701030927835
+        }
+      }
+    },
+    "hanon:validation:classic": {
+      "summary": {
+        "sequence": {
+          "eligibleCases": 41,
+          "completeCases": 3,
+          "eligibleHands": 82,
+          "completeHands": 11,
+          "eligibleTransitions": 1410,
+          "matchedTransitions": 869
+        },
+        "cases": 42,
+        "macroAgreement": 0.5996273348909533,
+        "totalNotes": 6219,
+        "predictedNotes": 6219,
+        "eligible": 2332,
+        "covered": 2332,
+        "matches": 1696,
+        "flagged": 27,
+        "inferred": 970,
+        "coverage": 1,
+        "agreementSupported": 0.7272727272727273,
+        "agreementAll": 0.7272727272727273
+      },
+      "families": {
+        "scales": {
+          "sequence": {
+            "eligibleCases": 12,
+            "completeCases": 0,
+            "eligibleHands": 24,
+            "completeHands": 2,
+            "eligibleTransitions": 234,
+            "matchedTransitions": 137
+          },
+          "cases": 12,
+          "macroAgreement": 0.679250836635024,
+          "totalNotes": 1368,
+          "predictedNotes": 1368,
+          "eligible": 569,
+          "covered": 569,
+          "matches": 391,
+          "flagged": 2,
+          "inferred": 797,
+          "coverage": 1,
+          "agreementSupported": 0.687170474516696,
+          "agreementAll": 0.687170474516696
+        },
+        "chromatic": {
+          "sequence": {
+            "eligibleCases": 3,
+            "completeCases": 0,
+            "eligibleHands": 6,
+            "completeHands": 0,
+            "eligibleTransitions": 384,
+            "matchedTransitions": 200
+          },
+          "cases": 3,
+          "macroAgreement": 0.723507959884985,
+          "totalNotes": 390,
+          "predictedNotes": 390,
+          "eligible": 390,
+          "covered": 390,
+          "matches": 281,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.7205128205128205,
+          "agreementAll": 0.7205128205128205
+        },
+        "arpeggios": {
+          "sequence": {
+            "eligibleCases": 8,
+            "completeCases": 0,
+            "eligibleHands": 16,
+            "completeHands": 0,
+            "eligibleTransitions": 109,
+            "matchedTransitions": 3
+          },
+          "cases": 8,
+          "macroAgreement": 0.2447375541125541,
+          "totalNotes": 400,
+          "predictedNotes": 400,
+          "eligible": 204,
+          "covered": 204,
+          "matches": 49,
+          "flagged": 23,
+          "inferred": 173,
+          "coverage": 1,
+          "agreementSupported": 0.24019607843137256,
+          "agreementAll": 0.24019607843137256
+        },
+        "five-finger": {
+          "sequence": {
+            "eligibleCases": 5,
+            "completeCases": 2,
+            "eligibleHands": 10,
+            "completeHands": 4,
+            "eligibleTransitions": 567,
+            "matchedTransitions": 488
+          },
+          "cases": 5,
+          "macroAgreement": 0.9419070651506081,
+          "totalNotes": 2300,
+          "predictedNotes": 2300,
+          "eligible": 867,
+          "covered": 867,
+          "matches": 804,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.9273356401384083,
+          "agreementAll": 0.9273356401384083
+        },
+        "technical": {
+          "sequence": {
+            "eligibleCases": 9,
+            "completeCases": 1,
+            "eligibleHands": 18,
+            "completeHands": 2,
+            "eligibleTransitions": 78,
+            "matchedTransitions": 19
+          },
+          "cases": 10,
+          "macroAgreement": 0.5103415103415103,
+          "totalNotes": 1223,
+          "predictedNotes": 1223,
+          "eligible": 198,
+          "covered": 198,
+          "matches": 102,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.5151515151515151,
+          "agreementAll": 0.5151515151515151
+        },
+        "repertoire": {
+          "sequence": {
+            "eligibleCases": 4,
+            "completeCases": 0,
+            "eligibleHands": 8,
+            "completeHands": 3,
+            "eligibleTransitions": 38,
+            "matchedTransitions": 22
+          },
+          "cases": 4,
+          "macroAgreement": 0.7506693648816937,
+          "totalNotes": 538,
+          "predictedNotes": 538,
+          "eligible": 104,
+          "covered": 104,
+          "matches": 69,
+          "flagged": 2,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.6634615384615384,
+          "agreementAll": 0.6634615384615384
+        }
+      }
+    },
+    "beringer:development:classic": {
+      "summary": {
+        "sequence": {
+          "eligibleCases": 24,
+          "completeCases": 0,
+          "eligibleHands": 48,
+          "completeHands": 0,
+          "eligibleTransitions": 1488,
+          "matchedTransitions": 529
+        },
+        "cases": 24,
+        "macroAgreement": 0.5729166666666666,
+        "totalNotes": 1536,
+        "predictedNotes": 1536,
+        "eligible": 1536,
+        "covered": 1536,
+        "matches": 880,
+        "flagged": 0,
+        "inferred": 0,
+        "coverage": 1,
+        "agreementSupported": 0.5729166666666666,
+        "agreementAll": 0.5729166666666666
+      },
+      "families": {
+        "beringer-broken-chords": {
+          "sequence": {
+            "eligibleCases": 24,
+            "completeCases": 0,
+            "eligibleHands": 48,
+            "completeHands": 0,
+            "eligibleTransitions": 1488,
+            "matchedTransitions": 529
+          },
+          "cases": 24,
+          "macroAgreement": 0.5729166666666666,
+          "totalNotes": 1536,
+          "predictedNotes": 1536,
+          "eligible": 1536,
+          "covered": 1536,
+          "matches": 880,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.5729166666666666,
+          "agreementAll": 0.5729166666666666
+        }
+      }
+    },
+    "beringer:validation:classic": {
+      "summary": {
+        "sequence": {
+          "eligibleCases": 48,
+          "completeCases": 0,
+          "eligibleHands": 96,
+          "completeHands": 0,
+          "eligibleTransitions": 4464,
+          "matchedTransitions": 336
+        },
+        "cases": 48,
+        "macroAgreement": 0.22664891277023627,
+        "totalNotes": 5136,
+        "predictedNotes": 5136,
+        "eligible": 5136,
+        "covered": 5136,
+        "matches": 1139,
+        "flagged": 0,
+        "inferred": 0,
+        "coverage": 1,
+        "agreementSupported": 0.22176791277258567,
+        "agreementAll": 0.22176791277258567
+      },
+      "families": {
+        "beringer-arpeggios": {
+          "sequence": {
+            "eligibleCases": 48,
+            "completeCases": 0,
+            "eligibleHands": 96,
+            "completeHands": 0,
+            "eligibleTransitions": 4464,
+            "matchedTransitions": 336
+          },
+          "cases": 48,
+          "macroAgreement": 0.22664891277023627,
+          "totalNotes": 5136,
+          "predictedNotes": 5136,
+          "eligible": 5136,
+          "covered": 5136,
+          "matches": 1139,
+          "flagged": 0,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.22176791277258567,
+          "agreementAll": 0.22176791277258567
+        }
+      }
+    },
+    "scales:classic": {
+      "summary": {
+        "sequence": {
+          "eligibleCases": 12,
+          "completeCases": 0,
+          "eligibleHands": 24,
+          "completeHands": 0,
+          "eligibleTransitions": 1944,
+          "matchedTransitions": 1105
+        },
+        "cases": 38,
+        "macroAgreement": 0.6407676754332428,
+        "totalNotes": 8451,
+        "predictedNotes": 8451,
+        "eligible": 2085,
+        "covered": 2085,
+        "matches": 1336,
+        "flagged": 6366,
+        "inferred": 0,
+        "coverage": 1,
+        "agreementSupported": 0.640767386091127,
+        "agreementAll": 0.640767386091127
+      },
+      "families": {
+        "beringer-scales": {
+          "sequence": {
+            "eligibleCases": 12,
+            "completeCases": 0,
+            "eligibleHands": 24,
+            "completeHands": 0,
+            "eligibleTransitions": 1944,
+            "matchedTransitions": 1105
+          },
+          "cases": 38,
+          "macroAgreement": 0.6407676754332428,
+          "totalNotes": 8451,
+          "predictedNotes": 8451,
+          "eligible": 2085,
+          "covered": 2085,
+          "matches": 1336,
+          "flagged": 6366,
+          "inferred": 0,
+          "coverage": 1,
+          "agreementSupported": 0.640767386091127,
+          "agreementAll": 0.640767386091127
+        }
+      }
+    }
+  },
+  "supersededCandidate": {
+    "baselineRevision": "0a593873044a2145e9b99254911d480aadd5ed20",
+    "comparison": "Whole cases with no overlapping notes within either hand; all other cases retained as explicit exclusions, not comparable to the old mono API. Baseline uses whole-note duration units; generated planner uses quarter beats and corpus BPM.",
+    "summary": {
+      "eligible": 15999,
+      "before": 6969,
+      "after": 8229,
+      "beforeCovered": 15999,
+      "afterCovered": 15950
+    },
+    "families": {
+      "scales": {
+        "eligible": 1600,
+        "before": 632,
+        "after": 832,
+        "beforeCovered": 1600,
+        "afterCovered": 1600
+      },
+      "chromatic": {
+        "eligible": 1070,
+        "before": 407,
+        "after": 410,
+        "beforeCovered": 1070,
+        "afterCovered": 1021
+      },
+      "arpeggios": {
+        "eligible": 567,
+        "before": 164,
+        "after": 182,
+        "beforeCovered": 567,
+        "afterCovered": 567
+      },
+      "five-finger": {
+        "eligible": 3137,
+        "before": 2666,
+        "after": 1990,
+        "beforeCovered": 3137,
+        "afterCovered": 3137
+      },
+      "technical": {
+        "eligible": 792,
+        "before": 248,
+        "after": 371,
+        "beforeCovered": 792,
+        "afterCovered": 792
+      },
+      "repertoire": {
+        "eligible": 76,
+        "before": 67,
+        "after": 63,
+        "beforeCovered": 76,
+        "afterCovered": 76
+      },
+      "beringer-arpeggios": {
+        "eligible": 5136,
+        "before": 1139,
+        "after": 2246,
+        "beforeCovered": 5136,
+        "afterCovered": 5136
+      },
+      "beringer-broken-chords": {
+        "eligible": 1536,
+        "before": 880,
+        "after": 1184,
+        "beforeCovered": 1536,
+        "afterCovered": 1536
+      },
+      "beringer-scales": {
+        "eligible": 2085,
+        "before": 766,
+        "after": 951,
+        "beforeCovered": 2085,
+        "afterCovered": 2085
+      }
+    },
+    "comparable": 230,
+    "excluded": [
+      "hanon-study-20-19",
+      "hanon-study-43-15",
+      "hanon-study-50-26",
+      "hanon-study-50-27",
+      "hanon-study-51-28",
+      "hanon-study-53-29",
+      "hanon-study-53-30",
+      "hanon-study-53-31",
+      "hanon-study-53-32",
+      "hanon-study-53-33",
+      "hanon-study-53-34",
+      "hanon-study-53-35",
+      "hanon-study-53-36",
+      "hanon-study-53-37",
+      "hanon-study-53-38",
+      "hanon-study-53-39",
+      "hanon-study-53-40",
+      "hanon-study-53-41",
+      "hanon-study-53-42",
+      "hanon-study-53-43",
+      "hanon-study-53-44",
+      "hanon-study-53-45",
+      "hanon-study-53-46",
+      "hanon-study-53-47",
+      "hanon-study-53-48",
+      "hanon-study-53-49",
+      "hanon-study-53-50",
+      "hanon-study-53-51",
+      "hanon-study-53-52",
+      "hanon-study-53-53",
+      "czerny-op599-no11",
+      "schumann-melodie"
+    ],
+    "rows": [
+      {
+        "id": "hanon-39-0",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 42,
+        "before": 18,
+        "after": 23,
+        "beforeCovered": 42,
+        "afterCovered": 42
+      },
+      {
+        "id": "hanon-39-1",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 42,
+        "before": 19,
+        "after": 26,
+        "beforeCovered": 42,
+        "afterCovered": 42
+      },
+      {
+        "id": "hanon-39-2",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 41,
+        "before": 19,
+        "after": 18,
+        "beforeCovered": 41,
+        "afterCovered": 41
+      },
+      {
+        "id": "hanon-39-3",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 18,
+        "after": 29,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-4",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 42,
+        "before": 20,
+        "after": 31,
+        "beforeCovered": 42,
+        "afterCovered": 42
+      },
+      {
+        "id": "hanon-39-5",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 18,
+        "after": 17,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-6",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 9,
+        "after": 7,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-7",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 18,
+        "after": 31,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-8",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 41,
+        "before": 18,
+        "after": 16,
+        "beforeCovered": 41,
+        "afterCovered": 41
+      },
+      {
+        "id": "hanon-39-9",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 44,
+        "before": 10,
+        "after": 1,
+        "beforeCovered": 44,
+        "afterCovered": 44
+      },
+      {
+        "id": "hanon-39-10",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 18,
+        "after": 28,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-11",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 42,
+        "before": 17,
+        "after": 23,
+        "beforeCovered": 42,
+        "afterCovered": 42
+      },
+      {
+        "id": "hanon-39-12",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 14,
+        "after": 9,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-13",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 22,
+        "after": 25,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-14",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 17,
+        "after": 29,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-15",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 46,
+        "before": 12,
+        "after": 20,
+        "beforeCovered": 46,
+        "afterCovered": 46
+      },
+      {
+        "id": "hanon-39-16",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 48,
+        "before": 22,
+        "after": 21,
+        "beforeCovered": 48,
+        "afterCovered": 48
+      },
+      {
+        "id": "hanon-39-17",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 48,
+        "before": 20,
+        "after": 28,
+        "beforeCovered": 48,
+        "afterCovered": 48
+      },
+      {
+        "id": "hanon-39-18",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 48,
+        "before": 19,
+        "after": 27,
+        "beforeCovered": 48,
+        "afterCovered": 48
+      },
+      {
+        "id": "hanon-39-19",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 18,
+        "after": 4,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-20",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 48,
+        "before": 15,
+        "after": 18,
+        "beforeCovered": 48,
+        "afterCovered": 48
+      },
+      {
+        "id": "hanon-39-21",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 15,
+        "after": 30,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-22",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 46,
+        "before": 6,
+        "after": 17,
+        "beforeCovered": 46,
+        "afterCovered": 46
+      },
+      {
+        "id": "hanon-39-23",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 65,
+        "before": 38,
+        "after": 40,
+        "beforeCovered": 65,
+        "afterCovered": 65
+      },
+      {
+        "id": "hanon-39-24",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 42,
+        "before": 21,
+        "after": 36,
+        "beforeCovered": 42,
+        "afterCovered": 42
+      },
+      {
+        "id": "hanon-39-25",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 47,
+        "before": 6,
+        "after": 17,
+        "beforeCovered": 47,
+        "afterCovered": 47
+      },
+      {
+        "id": "hanon-39-26",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 47,
+        "before": 20,
+        "after": 25,
+        "beforeCovered": 47,
+        "afterCovered": 47
+      },
+      {
+        "id": "hanon-39-27",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 24,
+        "after": 26,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-28",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 41,
+        "before": 11,
+        "after": 17,
+        "beforeCovered": 41,
+        "afterCovered": 41
+      },
+      {
+        "id": "hanon-39-29",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 47,
+        "before": 20,
+        "after": 25,
+        "beforeCovered": 47,
+        "afterCovered": 47
+      },
+      {
+        "id": "hanon-39-30",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 19,
+        "after": 24,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-31",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 14,
+        "after": 34,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-32",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 44,
+        "before": 15,
+        "after": 21,
+        "beforeCovered": 44,
+        "afterCovered": 44
+      },
+      {
+        "id": "hanon-39-33",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 20,
+        "after": 25,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-34",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 43,
+        "before": 22,
+        "after": 34,
+        "beforeCovered": 43,
+        "afterCovered": 43
+      },
+      {
+        "id": "hanon-39-35",
+        "family": "scales",
+        "source": "hanon",
+        "eligible": 44,
+        "before": 20,
+        "after": 30,
+        "beforeCovered": 44,
+        "afterCovered": 44
+      },
+      {
+        "id": "hanon-40-36",
+        "family": "chromatic",
+        "source": "hanon",
+        "eligible": 194,
+        "before": 75,
+        "after": 75,
+        "beforeCovered": 194,
+        "afterCovered": 194
+      },
+      {
+        "id": "hanon-40-37",
+        "family": "chromatic",
+        "source": "hanon",
+        "eligible": 194,
+        "before": 75,
+        "after": 77,
+        "beforeCovered": 194,
+        "afterCovered": 194
+      },
+      {
+        "id": "hanon-40-38",
+        "family": "chromatic",
+        "source": "hanon",
+        "eligible": 194,
+        "before": 78,
+        "after": 78,
+        "beforeCovered": 194,
+        "afterCovered": 194
+      },
+      {
+        "id": "hanon-40-39",
+        "family": "chromatic",
+        "source": "hanon",
+        "eligible": 194,
+        "before": 79,
+        "after": 77,
+        "beforeCovered": 194,
+        "afterCovered": 194
+      },
+      {
+        "id": "hanon-40-40",
+        "family": "chromatic",
+        "source": "hanon",
+        "eligible": 49,
+        "before": 17,
+        "after": 0,
+        "beforeCovered": 49,
+        "afterCovered": 0
+      },
+      {
+        "id": "hanon-40-41",
+        "family": "chromatic",
+        "source": "hanon",
+        "eligible": 98,
+        "before": 35,
+        "after": 37,
+        "beforeCovered": 98,
+        "afterCovered": 98
+      },
+      {
+        "id": "hanon-40-42",
+        "family": "chromatic",
+        "source": "hanon",
+        "eligible": 49,
+        "before": 17,
+        "after": 19,
+        "beforeCovered": 49,
+        "afterCovered": 49
+      },
+      {
+        "id": "hanon-40-43",
+        "family": "chromatic",
+        "source": "hanon",
+        "eligible": 98,
+        "before": 31,
+        "after": 47,
+        "beforeCovered": 98,
+        "afterCovered": 98
+      },
+      {
+        "id": "hanon-41-0",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 25,
+        "before": 8,
+        "after": 10,
+        "beforeCovered": 25,
+        "afterCovered": 25
+      },
+      {
+        "id": "hanon-41-1",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 28,
+        "before": 9,
+        "after": 11,
+        "beforeCovered": 28,
+        "afterCovered": 28
+      },
+      {
+        "id": "hanon-41-2",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 25,
+        "before": 8,
+        "after": 9,
+        "beforeCovered": 25,
+        "afterCovered": 25
+      },
+      {
+        "id": "hanon-41-3",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 17,
+        "before": 6,
+        "after": 7,
+        "beforeCovered": 17,
+        "afterCovered": 17
+      },
+      {
+        "id": "hanon-41-4",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 21,
+        "before": 8,
+        "after": 9,
+        "beforeCovered": 21,
+        "afterCovered": 21
+      },
+      {
+        "id": "hanon-41-5",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 24,
+        "before": 8,
+        "after": 10,
+        "beforeCovered": 24,
+        "afterCovered": 24
+      },
+      {
+        "id": "hanon-41-6",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 25,
+        "before": 5,
+        "after": 3,
+        "beforeCovered": 25,
+        "afterCovered": 25
+      },
+      {
+        "id": "hanon-41-7",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 20,
+        "before": 7,
+        "after": 9,
+        "beforeCovered": 20,
+        "afterCovered": 20
+      },
+      {
+        "id": "hanon-41-8",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 27,
+        "before": 5,
+        "after": 3,
+        "beforeCovered": 27,
+        "afterCovered": 27
+      },
+      {
+        "id": "hanon-41-9",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 24,
+        "before": 8,
+        "after": 9,
+        "beforeCovered": 24,
+        "afterCovered": 24
+      },
+      {
+        "id": "hanon-41-10",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 25,
+        "before": 5,
+        "after": 3,
+        "beforeCovered": 25,
+        "afterCovered": 25
+      },
+      {
+        "id": "hanon-41-11",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 30,
+        "before": 11,
+        "after": 11,
+        "beforeCovered": 30,
+        "afterCovered": 30
+      },
+      {
+        "id": "hanon-41-12",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 9,
+        "after": 7,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-41-13",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 25,
+        "before": 11,
+        "after": 8,
+        "beforeCovered": 25,
+        "afterCovered": 25
+      },
+      {
+        "id": "hanon-41-14",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 19,
+        "before": 6,
+        "after": 7,
+        "beforeCovered": 19,
+        "afterCovered": 19
+      },
+      {
+        "id": "hanon-41-15",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 28,
+        "before": 4,
+        "after": 1,
+        "beforeCovered": 28,
+        "afterCovered": 28
+      },
+      {
+        "id": "hanon-41-16",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 19,
+        "before": 5,
+        "after": 12,
+        "beforeCovered": 19,
+        "afterCovered": 19
+      },
+      {
+        "id": "hanon-41-17",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 24,
+        "before": 3,
+        "after": 1,
+        "beforeCovered": 24,
+        "afterCovered": 24
+      },
+      {
+        "id": "hanon-41-18",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 19,
+        "before": 5,
+        "after": 12,
+        "beforeCovered": 19,
+        "afterCovered": 19
+      },
+      {
+        "id": "hanon-41-19",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 27,
+        "before": 4,
+        "after": 1,
+        "beforeCovered": 27,
+        "afterCovered": 27
+      },
+      {
+        "id": "hanon-41-20",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 18,
+        "before": 5,
+        "after": 11,
+        "beforeCovered": 18,
+        "afterCovered": 18
+      },
+      {
+        "id": "hanon-41-21",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 26,
+        "before": 9,
+        "after": 10,
+        "beforeCovered": 26,
+        "afterCovered": 26
+      },
+      {
+        "id": "hanon-41-22",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 26,
+        "before": 7,
+        "after": 9,
+        "beforeCovered": 26,
+        "afterCovered": 26
+      },
+      {
+        "id": "hanon-41-23",
+        "family": "arpeggios",
+        "source": "hanon",
+        "eligible": 23,
+        "before": 8,
+        "after": 9,
+        "beforeCovered": 23,
+        "afterCovered": 23
+      },
+      {
+        "id": "hanon-study-1-0",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 122,
+        "before": 122,
+        "after": 106,
+        "beforeCovered": 122,
+        "afterCovered": 122
+      },
+      {
+        "id": "hanon-study-2-1",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 157,
+        "before": 157,
+        "after": 102,
+        "beforeCovered": 157,
+        "afterCovered": 157
+      },
+      {
+        "id": "hanon-study-3-2",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 165,
+        "before": 165,
+        "after": 113,
+        "beforeCovered": 165,
+        "afterCovered": 165
+      },
+      {
+        "id": "hanon-study-4-3",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 87,
+        "before": 87,
+        "after": 83,
+        "beforeCovered": 87,
+        "afterCovered": 87
+      },
+      {
+        "id": "hanon-study-5-4",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 112,
+        "before": 112,
+        "after": 74,
+        "beforeCovered": 112,
+        "afterCovered": 112
+      },
+      {
+        "id": "hanon-study-6-5",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 114,
+        "before": 114,
+        "after": 88,
+        "beforeCovered": 114,
+        "afterCovered": 114
+      },
+      {
+        "id": "hanon-study-7-6",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 142,
+        "before": 77,
+        "after": 69,
+        "beforeCovered": 142,
+        "afterCovered": 142
+      },
+      {
+        "id": "hanon-study-8-7",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 149,
+        "before": 134,
+        "after": 97,
+        "beforeCovered": 149,
+        "afterCovered": 149
+      },
+      {
+        "id": "hanon-study-9-8",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 160,
+        "before": 115,
+        "after": 92,
+        "beforeCovered": 160,
+        "afterCovered": 160
+      },
+      {
+        "id": "hanon-study-10-9",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 136,
+        "before": 136,
+        "after": 98,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "hanon-study-11-10",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 152,
+        "before": 152,
+        "after": 100,
+        "beforeCovered": 152,
+        "afterCovered": 152
+      },
+      {
+        "id": "hanon-study-12-11",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 159,
+        "before": 159,
+        "after": 155,
+        "beforeCovered": 159,
+        "afterCovered": 159
+      },
+      {
+        "id": "hanon-study-13-12",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 202,
+        "before": 106,
+        "after": 87,
+        "beforeCovered": 202,
+        "afterCovered": 202
+      },
+      {
+        "id": "hanon-study-14-13",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 207,
+        "before": 111,
+        "after": 98,
+        "beforeCovered": 207,
+        "afterCovered": 207
+      },
+      {
+        "id": "hanon-study-15-14",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 252,
+        "before": 244,
+        "after": 121,
+        "beforeCovered": 252,
+        "afterCovered": 252
+      },
+      {
+        "id": "hanon-study-16-15",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 170,
+        "before": 158,
+        "after": 109,
+        "beforeCovered": 170,
+        "afterCovered": 170
+      },
+      {
+        "id": "hanon-study-17-16",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 248,
+        "before": 201,
+        "after": 188,
+        "beforeCovered": 248,
+        "afterCovered": 248
+      },
+      {
+        "id": "hanon-study-18-17",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 202,
+        "before": 115,
+        "after": 83,
+        "beforeCovered": 202,
+        "afterCovered": 202
+      },
+      {
+        "id": "hanon-study-19-18",
+        "family": "five-finger",
+        "source": "hanon",
+        "eligible": 201,
+        "before": 201,
+        "after": 127,
+        "beforeCovered": 201,
+        "afterCovered": 201
+      },
+      {
+        "id": "hanon-study-42-0",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 30,
+        "before": 8,
+        "after": 23,
+        "beforeCovered": 30,
+        "afterCovered": 30
+      },
+      {
+        "id": "hanon-study-42-1",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 12,
+        "after": 17,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-study-42-2",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 21,
+        "before": 9,
+        "after": 17,
+        "beforeCovered": 21,
+        "afterCovered": 21
+      },
+      {
+        "id": "hanon-study-42-3",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 9,
+        "after": 19,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-study-42-4",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 9,
+        "after": 18,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-study-42-5",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 21,
+        "before": 9,
+        "after": 17,
+        "beforeCovered": 21,
+        "afterCovered": 21
+      },
+      {
+        "id": "hanon-study-42-6",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 8,
+        "after": 18,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-study-42-7",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 4,
+        "before": 1,
+        "after": 4,
+        "beforeCovered": 4,
+        "afterCovered": 4
+      },
+      {
+        "id": "hanon-study-43-8",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 8,
+        "after": 18,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-study-43-9",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 12,
+        "after": 19,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-study-43-10",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 12,
+        "after": 19,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-study-43-11",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 8,
+        "after": 18,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-study-43-12",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 6,
+        "after": 17,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "hanon-study-43-13",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 21,
+        "before": 11,
+        "after": 18,
+        "beforeCovered": 21,
+        "afterCovered": 21
+      },
+      {
+        "id": "hanon-study-43-14",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 21,
+        "before": 11,
+        "after": 18,
+        "beforeCovered": 21,
+        "afterCovered": 21
+      },
+      {
+        "id": "hanon-study-44-16",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 70,
+        "before": 14,
+        "after": 13,
+        "beforeCovered": 70,
+        "afterCovered": 70
+      },
+      {
+        "id": "hanon-study-45-17",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 32,
+        "before": 8,
+        "after": 12,
+        "beforeCovered": 32,
+        "afterCovered": 32
+      },
+      {
+        "id": "hanon-study-45-18",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 28,
+        "before": 6,
+        "after": 2,
+        "beforeCovered": 28,
+        "afterCovered": 28
+      },
+      {
+        "id": "hanon-study-45-19",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 28,
+        "before": 6,
+        "after": 2,
+        "beforeCovered": 28,
+        "afterCovered": 28
+      },
+      {
+        "id": "hanon-study-45-20",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 32,
+        "before": 9,
+        "after": 12,
+        "beforeCovered": 32,
+        "afterCovered": 32
+      },
+      {
+        "id": "hanon-study-45-21",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 26,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 26,
+        "afterCovered": 26
+      },
+      {
+        "id": "hanon-study-45-22",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 28,
+        "before": 6,
+        "after": 4,
+        "beforeCovered": 28,
+        "afterCovered": 28
+      },
+      {
+        "id": "hanon-study-45-23",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 2,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 2,
+        "afterCovered": 2
+      },
+      {
+        "id": "hanon-study-46-24",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 24,
+        "before": 24,
+        "after": 24,
+        "beforeCovered": 24,
+        "afterCovered": 24
+      },
+      {
+        "id": "hanon-study-47-25",
+        "family": "technical",
+        "source": "hanon",
+        "eligible": 206,
+        "before": 36,
+        "after": 36,
+        "beforeCovered": 206,
+        "afterCovered": 206
+      },
+      {
+        "id": "beyer-abendlied",
+        "family": "repertoire",
+        "source": "hanon",
+        "eligible": 11,
+        "before": 9,
+        "after": 9,
+        "beforeCovered": 11,
+        "afterCovered": 11
+      },
+      {
+        "id": "beyer-kinderlied",
+        "family": "repertoire",
+        "source": "hanon",
+        "eligible": 3,
+        "before": 3,
+        "after": 3,
+        "beforeCovered": 3,
+        "afterCovered": 3
+      },
+      {
+        "id": "beyer-op101-no66",
+        "family": "repertoire",
+        "source": "hanon",
+        "eligible": 22,
+        "before": 19,
+        "after": 20,
+        "beforeCovered": 22,
+        "afterCovered": 22
+      },
+      {
+        "id": "turk-aller-anfang",
+        "family": "repertoire",
+        "source": "hanon",
+        "eligible": 20,
+        "before": 20,
+        "after": 16,
+        "beforeCovered": 20,
+        "afterCovered": 20
+      },
+      {
+        "id": "turk-bey-der-wiege",
+        "family": "repertoire",
+        "source": "hanon",
+        "eligible": 5,
+        "before": 4,
+        "after": 4,
+        "beforeCovered": 5,
+        "afterCovered": 5
+      },
+      {
+        "id": "turk-hans-ohne-sorgen",
+        "family": "repertoire",
+        "source": "hanon",
+        "eligible": 4,
+        "before": 3,
+        "after": 2,
+        "beforeCovered": 4,
+        "afterCovered": 4
+      },
+      {
+        "id": "turk-matt-und-krank",
+        "family": "repertoire",
+        "source": "hanon",
+        "eligible": 7,
+        "before": 6,
+        "after": 6,
+        "beforeCovered": 7,
+        "afterCovered": 7
+      },
+      {
+        "id": "turk-muntere-knabe",
+        "family": "repertoire",
+        "source": "hanon",
+        "eligible": 4,
+        "before": 3,
+        "after": 3,
+        "beforeCovered": 4,
+        "afterCovered": 4
+      },
+      {
+        "id": "beringer2-arpeggios-common_a_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 20,
+        "after": 40,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_a_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 14,
+        "after": 32,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_aflat_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 16,
+        "after": 27,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_b_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 18,
+        "after": 34,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_b_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 19,
+        "after": 34,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_bflat_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 18,
+        "after": 34,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_bflat_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 26,
+        "after": 34,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_c_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 14,
+        "after": 32,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_c_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 19,
+        "after": 45,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_csharp_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 19,
+        "after": 26,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_d_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 20,
+        "after": 40,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_d_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 14,
+        "after": 32,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_dflat_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 16,
+        "after": 27,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_e_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 20,
+        "after": 40,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_e_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 14,
+        "after": 32,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_eflat_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 16,
+        "after": 27,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_eflat_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 34,
+        "after": 30,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_f_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 14,
+        "after": 32,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_f_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 19,
+        "after": 45,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_fsharp_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 37,
+        "after": 34,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_fsharp_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 19,
+        "after": 26,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_g_major",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 14,
+        "after": 32,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_g_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 19,
+        "after": 45,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-common_gsharp_minor",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 78,
+        "before": 19,
+        "after": 26,
+        "beforeCovered": 78,
+        "afterCovered": 78
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_a",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 29,
+        "after": 62,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_aflat",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 29,
+        "after": 57,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_b",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 28,
+        "after": 59,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_bflat",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 29,
+        "after": 58,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_c",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 26,
+        "after": 67,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_d",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 21,
+        "after": 52,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_dflat",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 28,
+        "after": 58,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_e",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 32,
+        "after": 63,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_eflat",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 24,
+        "after": 61,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_f",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 33,
+        "after": 59,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_fsharp",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 27,
+        "after": 70,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dim7_g",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 25,
+        "after": 58,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_a",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 32,
+        "after": 71,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_aflat",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 28,
+        "after": 45,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_b",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 27,
+        "after": 50,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_bflat",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 26,
+        "after": 67,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_c",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 25,
+        "after": 68,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_d",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 31,
+        "after": 70,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_dflat",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 28,
+        "after": 45,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_e",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 43,
+        "after": 60,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_eflat",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 34,
+        "after": 54,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_f",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 26,
+        "after": 67,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_fsharp",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 18,
+        "after": 48,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-arpeggios-dom7_g",
+        "family": "beringer-arpeggios",
+        "source": "beringer",
+        "eligible": 136,
+        "before": 32,
+        "after": 71,
+        "beforeCovered": 136,
+        "afterCovered": 136
+      },
+      {
+        "id": "beringer2-broken_chords-a_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 36,
+        "after": 50,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-a_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 24,
+        "after": 51,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-aflat_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 46,
+        "after": 44,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-b_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 43,
+        "after": 54,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-b_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 39,
+        "after": 51,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-bflat_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 28,
+        "after": 48,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-bflat_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 50,
+        "after": 46,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-c_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 24,
+        "after": 51,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-c_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 32,
+        "after": 54,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-csharp_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 44,
+        "after": 46,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-d_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 36,
+        "after": 50,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-d_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 24,
+        "after": 51,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-dflat_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 46,
+        "after": 44,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-e_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 36,
+        "after": 50,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-e_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 24,
+        "after": 51,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-eflat_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 46,
+        "after": 44,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-eflat_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 44,
+        "after": 44,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-f_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 32,
+        "after": 54,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-f_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 32,
+        "after": 54,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-fsharp_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 50,
+        "after": 50,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-fsharp_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 44,
+        "after": 46,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-g_major",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 24,
+        "after": 51,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-g_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 32,
+        "after": 54,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-broken_chords-gsharp_minor",
+        "family": "beringer-broken-chords",
+        "source": "beringer",
+        "eligible": 64,
+        "before": 44,
+        "after": 46,
+        "beforeCovered": 64,
+        "afterCovered": 64
+      },
+      {
+        "id": "beringer2-scales-a_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 85,
+        "after": 95,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-a_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-a_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-aflat_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 74,
+        "after": 38,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-b_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 51,
+        "after": 92,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-b_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-b_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-bflat_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 173,
+        "before": 40,
+        "after": 34,
+        "beforeCovered": 173,
+        "afterCovered": 173
+      },
+      {
+        "id": "beringer2-scales-bflat_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-bflat_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-c_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 69,
+        "after": 98,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-c_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-c_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-chromatic_ascending",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-chromatic_descending",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-csharp_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-csharp_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-d_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 72,
+        "after": 104,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-d_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-d_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-dflat_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 43,
+        "after": 61,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-e_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 93,
+        "after": 113,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-e_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-e_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-eflat_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 53,
+        "after": 24,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-eflat_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-eflat_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-f_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 63,
+        "after": 103,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-f_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-f_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-fsharp_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 172,
+        "before": 54,
+        "after": 92,
+        "beforeCovered": 172,
+        "afterCovered": 172
+      },
+      {
+        "id": "beringer2-scales-fsharp_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-fsharp_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-g_major",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 174,
+        "before": 69,
+        "after": 97,
+        "beforeCovered": 174,
+        "afterCovered": 174
+      },
+      {
+        "id": "beringer2-scales-g_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-g_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-gsharp_minor_harmonic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      },
+      {
+        "id": "beringer2-scales-gsharp_minor_melodic",
+        "family": "beringer-scales",
+        "source": "beringer-scales",
+        "eligible": 0,
+        "before": 0,
+        "after": 0,
+        "beforeCovered": 0,
+        "afterCovered": 0
+      }
+    ],
+    "candidateRevision": "968e98aa"
+  },
+  "dataSha256": {
+    "piano-benchmark.json": "24ae0128bddd430959a2c2acf9f99b7cad4c94668e1d2582032c7dca9daf16ec",
+    "piano-beringer.json": "183ddc8fbe2d39cbb282a3c0b351480a115f5093e4c06799318a99e6bdaf1654",
+    "piano-beringer-scales.json": "29846aa3ce8d2719cdbd7d7fac19c245adb90ea4a8bb1888f0291719749b88f0"
+  }
+}

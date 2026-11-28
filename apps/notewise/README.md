@@ -29,7 +29,7 @@ Browser suites start their own built preview. `TEST_BASE_URL` targets an existin
 | Find on piano | Staff note or note name | Piano key; exact octave for staff prompts |
 | Read key signatures | Key signature, with Major key / Minor key prompt | Correctly spelled tonic letter plus optional accidental |
 
-Fresh profiles start with Read staff in C major. Name the note starts with all six strings, frets 0–5, and all twelve pitches. It has an All notes / Naturals only selector and does not filter by musical key. Other guitar modes start with low E string, frets 0–5. Navigation groups exercises under Piano, Guitar, Rhythm, and Music theory. Each exercise has its own bookmarkable route; Settings contains offline and privacy controls. Existing users retain Read staff and their previous range, key, and progress. All modes remember independent settings and learning history. Find-the-note progress identifies a string and pitch class; octave-equivalent prompts are deduplicated. Other guitar modes track individual string/fret locations. Changing settings starts a fresh session. At least one string remains selected. Empty key/string/fret combinations explain how to recover rather than generating invalid questions.
+Fresh profiles start with Read staff in C major. Name the note starts with all six strings, frets 0–5, and all twelve pitches. It has an All notes / Naturals only selector and does not filter by musical key. Other guitar modes start with low E string, frets 0–5. Navigation groups exercises under Piano, Guitar, and Music theory. Each exercise has its own bookmarkable route; Settings contains offline and privacy controls. Existing users retain Read staff and their previous range, key, and progress. All modes remember independent settings and learning history. Find-the-note progress identifies a string and pitch class; octave-equivalent prompts are deduplicated. Other guitar modes track individual string/fret locations. Changing settings starts a fresh session. At least one string remains selected. Empty key/string/fret combinations explain how to recover rather than generating invalid questions.
 
 Piano practice defaults to C4–B5 on a grand staff, with standard placement, octave markings off, and exact-octave grading. Existing saved piano profiles migrate to Treble to preserve their previous notation; ranges and sounding-note review history remain intact. Note-name prompts use a single C–B octave and grade pitch class. The stable, unlabeled HTML keyboard is continuous on desktop and splits into two rows at natural gaps on mobile, without scrolling. Range controls use a DoReGo-style octave-grid picker with arrow-key navigation and support C2–B6 without a two-octave restriction. Range endpoints are staff positions; the selected key signature supplies accidentals. Existing settings are preserved. The on-screen keyboard remains compact: extended ranges use C4–B5. A range notice explains MIDI-only notes, and each prompt outside the displayed keys is explicitly marked “MIDI keyboard required” with on-screen answers disabled. Narrower supported ranges retain their existing compact keyboard and enharmonic boundary keys.
 
@@ -92,9 +92,30 @@ To add a live exercise, add its catalog entry and typed factory, then implement 
 
 ## Guitar scale explorer
 
-**Guitar → Scales** (`/guitar/scales`) defaults to **CAGED**, with high E at the top, low E at the bottom, and frets increasing to the right. Practice options offers any of 12 tonics, major/natural minor, pentatonic and blues views, plus CAGED regions and a fret-range map; it docks beside the diagram on desktop and collapses above it on phones. In the fret-range map, gray fifth-fret notes have an exact same-pitch, same-octave alternative on the adjacent higher open string. G-string fret 5 and high-E fret 5 are never marked optional. An expandable note table provides sounding octaves and open-string alternatives.
+**Guitar → Scales** (`/guitar/scales`) defaults to **CAGED**, with high E at the top, low E at the bottom, and frets increasing to the right. Practice options offers any of 12 tonics, major/natural minor, pentatonic and blues views, plus CAGED regions and a fret-range map; it docks beside the diagram on desktop and collapses above it on phones. In the fret-range map, gray fifth-fret notes have an exact same-pitch, same-octave alternative on the adjacent higher open string. G-string fret 5 and high-E fret 5 are never marked optional. Sounding pitches remain available in each dot’s accessible title.
 
 This reference view has no grading or MIDI input. Its `guitar-scales` activity uses the shared activity host, durable storage, route catalog and control styles, independently of Music theory → Scales & degrees. Old local-preview `profiles.scales` preferences migrate into the new activity while retaining their original data. Optional `?key=F%23&scale=minor` URL parameters use the same settings validator. `npm run test:guitar-scales --workspace=notewise` checks navigation, all 24 keys, layout, reload, independent activity progress and MIDI isolation.
+
+**Link with → All five shapes** (`?link=all`) shows one continuous root-to-root
+route through the five lowest neighbouring CAGED positions. The toolbar offers four distinct routes, preferring alternatives with different
+shift strings, while retaining the same root-to-root scale pitches. Route choices
+persist with the activity and `?route=2` through `4` bookmarks. Played notes are highlighted; four numbered arrows show same-string hand shifts. **Both ways** is
+the default direction; **Up the neck** and **Down the neck**
+show one-way shifts. Down the neck uses the exact notes and fingerings in reverse
+order. The toolbar groups key navigation, relative scale, route/direction selectors,
+and chord/pair actions. The legend sits below the toolbar; keyboard
+help remains available with `?` without a visible shortcut link.
+The direction persists with the activity and in `?direction=up`/`down` links.
+Phone diagrams pan inside
+the canvas at readable dot size, without changing the selected key. The selection
+persists with the scale activity and is shared by the normal account records.
+Berklee and Maqamat retain their existing position views.
+
+The pure route owner is `packages/music-practice/src/caged-route.ts`; its unit
+witness covers all 72 Western key/scale combinations, pitch continuity, chart
+fingerings, all five regions, and reverse symmetry. The existing CI browser owner
+`tests/scale-fret-range.browser.ts` covers selection, bookmarks/reload, four shifts,
+reverse order, phone/desktop bounds, readable dots, and diagram arrows.
 
 ### Guitar maqamat
 

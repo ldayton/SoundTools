@@ -1,3 +1,4 @@
+import {sharedChorusFixture} from "../../../packages/music-practice/test-fixtures/hymns";
 import { canonicalHymnId } from "../../../packages/music-practice/src/hymn-identity";
 import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
@@ -109,14 +110,15 @@ try {
   };
   const lyricWords = () =>
     page.locator(".hymn-paper .abcjs-lyric").allTextContents();
-  await visit("jesus-loves-me");
+  const {hymn:chorusHymn,marker:chorusMarker,occurrences:chorusOccurrences}=sharedChorusFixture;
+  await visit(chorusHymn.slug);
   const checks = page.locator("#hymn-stanzas input[type=checkbox]");
-  assert.equal(await checks.count(), 7);
+  assert.equal(await checks.count(), chorusHymn.stanzas.length);
   assert.deepEqual(
     await checks.evaluateAll((es) =>
       es.map((e) => (e as HTMLInputElement).checked),
     ),
-    [true, false, false, false, false, false, false],
+    chorusHymn.stanzas.map((_,i)=>i===0),
   );
   const firstHeight = await page
     .locator(".hymn-paper svg")
@@ -125,8 +127,8 @@ try {
   await checks.nth(1).check();
   await checks.nth(2).check();
   assert.equal(
-    (await lyricWords()).filter((w) => w.trim().startsWith("Yes")).length,
-    3,
+    (await lyricWords()).filter((w) => w.trim().startsWith(chorusMarker)).length,
+    chorusOccurrences,
     "Shared chorus appears once",
   );
   assert(
@@ -138,8 +140,8 @@ try {
   );
   await checks.nth(0).uncheck();
   assert.equal(
-    (await lyricWords()).filter((w) => w.trim().startsWith("Yes")).length,
-    3,
+    (await lyricWords()).filter((w) => w.trim().startsWith(chorusMarker)).length,
+    chorusOccurrences,
     "Chorus remains when stanza one is hidden",
   );
   await expect(page.locator("#saved")).toHaveText("Saved on this device.");
@@ -149,7 +151,7 @@ try {
     await checks.evaluateAll((es) =>
       es.map((e) => (e as HTMLInputElement).checked),
     ),
-    [false, true, true, false, false, false, false],
+    chorusHymn.stanzas.map((_,i)=>i===1||i===2),
   );
   const score = page.locator(".sequence-score");
   await score.focus();
@@ -186,7 +188,7 @@ try {
     await checks.evaluateAll((es) =>
       es.map((e) => (e as HTMLInputElement).checked),
     ),
-    [false, false, false, false, false, false, false],
+    chorusHymn.stanzas.map(()=>false),
   );
   await visit("amazing-grace");
   assert.deepEqual(

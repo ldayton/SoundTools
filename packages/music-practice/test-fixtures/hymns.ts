@@ -203,8 +203,8 @@ export async function selectCapoPracticeHymn(){
  for(const hymn of hymns){
   const profile=chordEdition(hymn);if(!profile)continue;
   const score=arrangeHymn(hymn,"guitar-edition",0),accompaniment=arrangeHymn(hymn,"guitar-edition",0,0,"left");
-  const choices=recommendGuitarCapos({abc:score.abc,accompanimentAbc:accompaniment.abc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
-  const recommended=choices[0],alternate=choices.find(c=>c.fret!==recommended.fret&&!c.scoreSetting);if(!alternate)continue;
+  const choices=recommendGuitarCapos({abc:score.abc,accompanimentAbc:accompaniment.abc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position,bpm:profile.tempo});
+  const recommended=choices[0],alternate=choices.find(c=>c.fret!==recommended.fret);if(!alternate)continue;
   const notes=abcjs.parseOnly(score.abc)[0].setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"?[n]:[]));
   const firstTime=Math.min(...notes.map(n=>n.start));
   const first=notes.filter(n=>n.start<=firstTime+1e-7&&n.start+n.duration>firstTime+1e-7).map(n=>n.pitch+profile.capo);
@@ -225,8 +225,33 @@ export async function selectSingleCapoPracticeHymn(){
  for(const hymn of hymns){
   const profile=chordEdition(hymn);if(!profile)continue;
   const accompanimentAbc=arrangeHymn(hymn,"guitar-edition",0,0,"left").abc;
-  const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
+  const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position,bpm:profile.tempo});
   if(choices.length===1&&choices[0].fret>0)return {hymn,capo:choices[0].fret};
  }
  throw Error("Single-capo controls require a real score with one positive capo");
 }
+
+/** Real guitar edition with a proved higher-register layout, for octave controls. */
+export async function selectOctaveCapableGuitarHymn(){
+ const {recommendHymnGuitarCapos}=await import('../src/hymn-guitar-capos');
+ for(const hymn of hymns)if(hymnAvailableArrangements(hymn).some(a=>a.id==='guitar-edition')&&recommendHymnGuitarCapos(hymn,{transpose:12}).length)return hymn;
+ throw Error('Octave controls require a physically proved higher guitar register');
+}
+
+/** Three distinct verses sharing a real chorus, independently of song identity. */
+export const sharedChorusFixture = (() => {
+  for(const hymn of hymns){
+    if(hymn.stanzas.length<3)continue;
+    const verses=hymn.stanzas.slice(0,3);
+    for(const section of hymn.lyricSections){
+      const words=verses[0].syllables.slice(section.start,section.end);
+      if(words.length<8 || !verses.slice(1).every(v=>JSON.stringify(v.syllables.slice(section.start,section.end))===JSON.stringify(words)))continue;
+      const marker=words[0]?.match(/[\p{L}\p{N}]+/u)?.[0];if(!marker)continue;
+      const occurrences=verses[0].syllables.filter(w=>w.startsWith(marker)).length;
+      if(!occurrences || !verses.every(v=>v.syllables.filter(w=>w.startsWith(marker)).length===occurrences))continue;
+      if(new Set(verses.map(v=>JSON.stringify(v.syllables))).size!==3)continue;
+      return {hymn,marker,occurrences};
+    }
+  }
+  throw Error('The stanza contract requires three distinct verses with a shared chorus; do not change product music to create a fixture.');
+})();

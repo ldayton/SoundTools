@@ -267,7 +267,13 @@ try {
     await staffTable
       .getByRole("checkbox", { name: `Show ${label}`, exact: true })
       .uncheck();
+  await expect(page.locator(".chords-only-score").first()).toBeVisible();
+  await expect(page.locator(".abcjs-chord").first()).toBeVisible();
+  const showChords=staffTable.getByRole("checkbox",{name:"Show Chords",exact:true});
+  await showChords.uncheck();
   await expect(page.locator(".hymn-paper svg:visible")).toHaveCount(0);
+  await showChords.check();
+  await expect(page.locator(".chords-only-score").first()).toBeVisible();
   for (const label of labels)
     await expect(
       staffTable.getByRole("checkbox", { name: `Play ${label}`, exact: true }),

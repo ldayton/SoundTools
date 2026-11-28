@@ -78,6 +78,33 @@ const { launchBrowser, newPage, captureFailure, closeBrowser } = require("./ci/b
       reads,
       "Clock updates must not invalidate practice, title or volume subscriptions",
     );
+    // Both the compact toolbar and inline volume control use the same mute behavior.
+    await page.getByRole("button", { name: "Toolbar volume", exact: true }).click();
+    await page.getByRole("button", { name: "Mute toolbar volume", exact: true }).click();
+    assert.equal(await page.locator("#toolbar-volume-value").textContent(), "0");
+    await page.keyboard.press("Escape");
+    await page.locator("#test-toolbar-volume").waitFor({ state: "hidden" });
+    await page.getByRole("button", { name: "Toolbar volume", exact: true }).click();
+    await page.getByRole("button", { name: "Unmute toolbar volume", exact: true }).click();
+    assert.equal(await page.locator("#toolbar-volume-value").textContent(), "37", "Closing the popover retains the pre-mute level");
+    await page.keyboard.press("Escape");
+    await page.locator("#external-volume").click();
+    await page.getByRole("button", { name: "Toolbar volume", exact: true }).click();
+    await page.getByRole("button", { name: "Mute toolbar volume", exact: true }).click();
+    await page.getByRole("button", { name: "Unmute toolbar volume", exact: true }).click();
+    assert.equal(await page.locator("#toolbar-volume-value").textContent(), "65", "Mute follows externally restored levels");
+    await page.locator("#test-toolbar-volume").press("Home");
+    await page.getByRole("button", { name: "Unmute toolbar volume", exact: true }).click();
+    assert.equal(await page.locator("#toolbar-volume-value").textContent(), "65", "Manual zero does not erase the last audible level");
+    await page.keyboard.press("Escape");
+    const inline = page.locator("#inline-volume-fixture");
+    await inline.getByRole("button", { name: "Mute", exact: true }).click();
+    assert.equal(await inline.getByRole("slider").getAttribute("aria-valuenow"), "0");
+    await inline.getByRole("button", { name: "Unmute", exact: true }).click();
+    assert.equal(await inline.getByRole("slider").getAttribute("aria-valuenow"), "68");
+    await inline.getByRole("button", { name: "Mute", exact: true }).click();
+    await inline.getByRole("slider").press("ArrowRight");
+    assert.equal(await inline.getByRole("button", { name: "Mute", exact: true }).getAttribute("aria-pressed"), "false", "Raising the slider restores sound");
     assert.deepEqual(errors, []);
     assert.deepEqual(await page.evaluate(() => {
       const root = document.createElement('div');

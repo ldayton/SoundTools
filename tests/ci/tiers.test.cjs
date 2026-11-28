@@ -20,7 +20,7 @@ test('CI and Nightly are the only tiers, with explicit event and publication pol
   assert.equal(tiers.nightly.publishes, false);
   const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
   assert.doesNotMatch(workflow, /CI_FULL|inputs\.full/);
-  assert.equal((workflow.match(/needs\.changes\.outputs\.tier == 'ci'/g) || []).length, 4);
+  assert.equal((workflow.match(/needs\.changes\.outputs\.tier == 'ci'/g) || []).length, Object.keys(require('../../scripts/ci/apps.cjs').apps).length);
 });
 
 test('local CI and Nightly graphs use the central browser policy and retain their tier', async () => {
@@ -39,7 +39,7 @@ test('local CI and Nightly graphs use the central browser policy and retain thei
 test('bounded CI builds all apps with one shared preparation and retains isolation locks', () => {
   const path = require('node:path');
   const { fastGraph } = require('../../scripts/ci/fast-local.cjs');
-  const apps = ['dorego', 'notewise', 'songalong', 'soundglow'];
+  const apps = ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya'];
   const tasks = fastGraph({ apps, accounts: true }, path.resolve(__dirname, '../..'));
   assert.equal(tiers.ci.localBudgetMs, 60000);
   assert.equal(tasks.filter(task => task.id === 'shared:diagnostics').length, 1);
@@ -51,7 +51,16 @@ test('bounded CI builds all apps with one shared preparation and retains isolati
     assert(build.needs.includes('shared:diagnostics'));
     assert(tasks.some(task => task.id === `${app}:ci:core:chromium:smoke`));
   }
-  assert(tasks.find(task => task.id === 'dorego:ci:core:chromium:0').locks.includes('realtime-audio'));
+  for(const app of ['songalong','dorego','tagaluya']) {
+    const units=tasks.find(task=>task.id===`${app}:units`),build=tasks.find(task=>task.id===`${app}:build`);
+    assert(units.needs.includes('shared:diagnostics'));
+    assert(!build.needs.includes(units.id), 'Read-only source tests must not delay the independent build');
+    assert(!units.locks.some(lock=>build.locks.includes(lock)), 'Read-only units do not own the app output');
+    assert(tasks.filter(task=>task.id.startsWith(`${app}:ci:`)).every(task=>task.needs.includes(build.id)), 'Browsers still require a fresh build');
+  }
+  assert(tasks.find(task => task.args.includes('test:desktop') && task.args.includes('--workspace=dorego')).locks.includes('realtime-audio'));
+  assert(tasks.find(task => task.args.includes('tests/voice-feedback.e2e.ts')).locks.includes('port:4709'));
+  assert(!tasks.find(task => task.args.includes('tests/voice-feedback.e2e.ts')).locks.includes('realtime-audio'));
   assert(!tasks.some(task => /accounts-.*:backend|:editions:/.test(task.id)));
   assert.throws(() => plan('songalong', 'ci', 'chromium', 'editions'), /Nightly/);
 });
@@ -59,7 +68,7 @@ test('bounded CI builds all apps with one shared preparation and retains isolati
 // Guard the current executable model, without freezing historical aliases.
 test('Nightly owns CI execution files and schedules each file once per engine', () => {
   const { executions, duplicates } = require('../../scripts/ci/coverage.cjs');
-  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) {
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya']) {
     const all = tiers.nightly.browsers.flatMap(browser => {
       const files = executions(app, 'nightly', browser);
       assert.deepEqual(duplicates(files), {}, `${app}/${browser}: repeated test execution`);
@@ -72,7 +81,7 @@ test('Nightly owns CI execution files and schedules each file once per engine', 
 test('the standalone diagnostics SDK browser contract has one owner per engine', () => {
   const { executions } = require('../../scripts/ci/coverage.cjs');
   for (const browser of tiers.nightly.browsers) {
-    const files = ['dorego', 'notewise', 'songalong', 'soundglow'].flatMap(app => executions(app, 'nightly', browser));
+    const files = ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya'].flatMap(app => executions(app, 'nightly', browser));
     assert.equal(files.filter(file => file === 'packages/browser-diagnostics/test-browser.cjs').length, 1);
   }
 });

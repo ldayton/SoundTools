@@ -210,6 +210,9 @@ try {
                     encoded += String.fromCharCode(
                       ...pcm.subarray(i, i + 16384),
                     );
+                if (variant === "B-after" && style === "funk" &&
+                    take.events.some((e: any) => e.instrument === "funk-scratch"))
+                  throw Error("Approved Funk uses pitched guitar, not the legacy scratch layer");
                 const stems: Record<string, { rms: number; peak: number }> = {};
                 if (
                   variant === "B-after" &&
@@ -217,7 +220,7 @@ try {
                   mode === "active"
                 )
                   for (const instrument of style === "funk"
-                    ? ["funk-guitar", "funk-scratch", "funk-bass"]
+                    ? ["funk-guitar", "funk-bass"]
                     : ["soul-keys", "soul-guitar", "soul-bass"]) {
                     const c = new OfflineAudioContext(
                       2,
@@ -307,9 +310,7 @@ try {
           if (variant === "B-after")
             assert.equal(
               metrics.phrasing,
-              style === "funk"
-                ? "funk-pocket-sixteenths-v2"
-                : "soul-mellow-conversation-v2",
+              "approved-ensemble-v1",
             );
           for (const [instrument, stem] of Object.entries(metrics.stems)) {
             assert.ok(

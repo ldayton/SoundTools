@@ -2,6 +2,8 @@ import { createSequence, transitionSequence } from './sequence';
 import {audioFailureDetails, invalidateAudioProbe} from './live-audio';
 import { adjacentExercise } from './exercise-navigation';
 import { bindMediaSession } from '@ldayton/ui/media-session';
+import { VoiceRibbon } from './voice-ribbon';
+import { syncVoiceFeedback, shutdownVoiceFeedback, resetVoiceFeedback } from './voice-feedback';
 import { configurePlaybackSession } from './audio-session';
 import { bindExerciseUrl } from './exercise-url';
 import { ExerciseControls } from './maqamat-controls';
@@ -17,7 +19,7 @@ import {
 import { SettingsPage } from './settings-page';
 import { createElement } from 'react';
 import { createViewState } from '@ldayton/ui/view-state';
-import { Builder, ExerciseSelection, type BuilderSnapshot, type SpecPatch } from './builder';
+import { PracticeRange, Builder, ExerciseSelection, type BuilderSnapshot, type SpecPatch } from './builder';
 import { editSpec, MIN_NOTE, MAX_NOTE } from './exercise-settings';
 import { mountAppShell } from './app-shell';
 import { diagnostics, diagnosticsContext } from './diagnostics';
@@ -131,6 +133,7 @@ mountAppShell($('#app'), {
     ++playRequest;
     reference.shutdown();
     player.shutdown();
+    shutdownVoiceFeedback();
     cancelAnimationFrame(raf);
   },
   selection: (selected: () => void, active: boolean) =>
@@ -148,13 +151,8 @@ mountAppShell($('#app'), {
   volumeControl: createElement(PracticeVolume, { model: practiceModel, volume: changeVolume }),
   toolbar: createElement(PracticeToolbar, {
     model: practiceModel,
-    playback: playbackModel,
-    play: () => {
-      void togglePlay();
-    },
-    restart: restartSequence,
+    range: createElement(PracticeRange, { model: builderModel, change: (patch) => refresh(patch) }),
     tempo: changeTempo,
-    moveRound,
     volume: changeVolume,
   }),
   pause: () => {
@@ -170,12 +168,18 @@ mountAppShell($('#app'), {
     model: practiceModel,
     playback: playbackModel,
     piano: pianoModel,
+    feedback: createElement(VoiceRibbon, { playback: playbackModel, getExercise: () => exercise }),
     controls: createElement(ExerciseControls, {
       model: builderModel,
       change: (patch) => refresh(patch),
     }),
     audition: (midi) => reference.press(midi),
     repeatRound: repeatCurrentRound,
+    play: () => {
+      void togglePlay();
+    },
+    restart: restartSequence,
+    moveRound,
   }),
   settingsView: createElement(SettingsPage, { onAudioChannelsChange: changeAudioChannels }),
 });
@@ -237,6 +241,7 @@ function restartSequence() {
   update(true);
 }
 function stop(reset = true) {
+  if (reset) resetVoiceFeedback();
   ++playRequest;
   reference.stopAll();
   if (reset) player.reset();
@@ -309,6 +314,7 @@ function updateSystemMedia(force = false) {
   );
 }
 function update(force = false) {
+  syncVoiceFeedback(exercise, position, mode === 'playing' && preferences.state.selected === 'warmup' && !document.hidden);
   updateSystemMedia(force);
   diagnosticsContext(spec, mode, pianoWarming, pianoFailed);
   const duration = secondsAt(exercise.totalBeats, spec.bpm);
@@ -437,11 +443,15 @@ function repeatCurrentRound() {
   if (pianoWarming || pianoFailed || renderFailed) return;
   const at = mode === 'playing' ? player.position : position;
   const result = transitionSequence(sequence, { type: 'repeat', position: at });
+  sequence = result.state;
+  spec = sequence.settings;
+  exercise = sequence.timeline;
   diagnostics.event('playback.repeat_round');
   seekTo(result.position, true, result.restBeats);
 }
 function seekTo(seconds: number, running = mode === 'playing' || mode === 'starting', restBeats = 0) {
   if (pianoWarming || renderFailed || !Number.isFinite(seconds)) return;
+  resetVoiceFeedback();
   const at = Math.max(0, Math.min(secondsAt(exercise.totalBeats, spec.bpm), seconds));
   ++playRequest;
   reference.stopAll();

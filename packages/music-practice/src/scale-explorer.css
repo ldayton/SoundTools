@@ -1,21 +1,39 @@
+/* Group the scale identity and shape; keep the relative-key action secondary. */
 .scale-heading {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  text-align: left;
 }
+.scale-heading-text { min-width: 0; }
 .scale-heading h2 {
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1.2;
   margin: 0;
   letter-spacing: -0.5px;
 }
-.scale-relative {
-  margin-top: 4px;
-  text-align: center;
+.scale-relative { flex: 0 0 auto; max-width: 42%; }
+.scale-toolbar .scale-relative-switch {
+  min-height: 36px;
+  max-width: 100%;
+  height: auto;
+  padding: 8px 11px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--mantine-color-violet-1, #e6e0f4);
+  background: var(--mantine-color-violet-0, #fcfaff);
+  border-radius: 7px;
 }
-.scale-key-navigation {
-  margin: 4px 0 12px;
-}
-.scale-pattern-caption {
-  flex: 1;
+.scale-toolbar .scale-relative-switch .mantine-Button-label { white-space: normal; line-height: 1.25; }
+.scale-key-navigation { margin: 4px 0 12px; }
+.scale-heading .scale-pattern-caption {
+  margin-top: 6px;
+  color: #626872;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
 }
 .scale-diagram {
   margin: auto;
@@ -89,56 +107,9 @@
   border-radius: 50%;
   background: #40527b;
 }
-.scale-note-list {
-  margin-top: 8px;
-  padding-top: 4px;
-  font-size: 12px;
-}
-.scale-note-list
-  :is(
-    .scale-notes,
-    .scale-help,
-    .scale-footnote,
-    .scale-optional-legend,
-    .scale-relative-explanation,
-    .scale-source
-  ) {
-  text-align: left;
-  font-size: 12px;
-  color: #626771;
-  margin: 10px 0;
-  line-height: 1.5;
-}
-.scale-source a {
-  color: inherit;
-  text-underline-offset: 3px;
-}
-.scale-optional-legend[hidden] {
-  display: none;
-}
-.scale-note-list table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 12px;
-  text-align: left;
-}
-.scale-note-list caption {
-  text-align: left;
-  padding-bottom: 8px;
-  font-weight: 600;
-}
-.scale-note-list th,
-.scale-note-list td {
-  padding: 8px 4px;
-  border-bottom: 1px solid #ececee;
-  vertical-align: top;
-}
-.scale-note-list th:first-child {
-  min-width: 64px;
-}
 @media (max-width: 600px) {
   .scale-heading h2 {
-    font-size: 23px;
+    font-size: 26px;
   }
 }
 
@@ -234,3 +205,60 @@
 .scale-omitted-tone { pointer-events: none; }
 .scale-omitted-tone circle { fill: white; stroke: #8b94a5; stroke-width: 2; stroke-dasharray: 3 3; }
 .scale-link-legend .scale-omitted-swatch { background: white; border: 2px dashed #8b94a5; box-sizing: border-box; }
+
+@media (max-width: 360px) {
+  .scale-heading { gap: 8px; }
+  .scale-heading h2 { font-size: 23px; }
+  .scale-toolbar .scale-relative-switch { padding-inline: 8px; font-size: 12px; }
+}
+
+/* The phone scale view is a full-width practice canvas. */
+@media (max-width: 760px) {
+  #practice-content:has(.scale-card) {
+    background: var(--mantine-color-body);
+    padding-inline: 0;
+    padding-bottom: 0;
+  }
+  #exercise-content:has(.scale-card) > .practice-title { padding-inline: 12px; }
+  .scale-card.practice-surface {
+    border: 0;
+    border-radius: 0;
+    padding: 12px;
+    min-height: calc(100dvh - var(--app-shell-header-offset, 72px) - 56px);
+  }
+  #practice-content:has(#exercise-content:not([hidden]) .practice-workspace-content > div:not([hidden]) .scale-card) {
+    touch-action: pinch-zoom;
+  }
+  .scale-card .scale-diagram {
+    width: 100%;
+    overflow: hidden;
+    touch-action: pinch-zoom;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .scale-card .scale-diagram svg { width: 100%; max-width: 100%; }
+  .scale-options:focus { outline: none; }
+  .scale-options { user-select: none; -webkit-user-select: none; }
+}
+
+.scale-route-shift-number { fill:#a4510d; font-size:16px; font-weight:600; paint-order:stroke; stroke:white; stroke-width:4px; }
+.scale-whole-route { margin:12px 0; text-align:left; }
+.scale-whole-route-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+
+/* The long route keeps a readable dot size and pans inside its own canvas. */
+.scale-card:has(.scale-whole-route) { min-width:0; }
+.scale-card .scale-diagram:has(.scale-whole-route-board) { width:100%; overflow-x:auto; touch-action:pan-x pinch-zoom; }
+.scale-card .scale-diagram:has(.scale-whole-route-board) svg { width:max(100%, calc(var(--scale-board-units) * .8px)); max-width:none; }
+@media (max-width:760px) {
+  #practice-content:has(#exercise-content:not([hidden]) .practice-workspace-content > div:not([hidden]) .scale-whole-route-board) { touch-action:auto; }
+  .scale-card .scale-diagram:has(.scale-whole-route-board) { touch-action:pan-x pan-y pinch-zoom; }
+}
+
+.scale-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:10px 0; }
+.scale-toolbar:focus { outline:none; }
+.scale-toolbar .scale-key-navigation { margin:0; }
+.scale-toolbar .scale-relative { max-width:none; }
+.scale-toolbar .scale-whole-route { display:flex; flex:1 1 340px; flex-wrap:wrap; align-items:center; gap:8px 20px; min-width:0; margin:0; }
+.scale-toolbar .scale-whole-route-heading { justify-content:flex-start; flex-wrap:nowrap; }
+.scale-toolbar .scale-link-actions { padding-inline-start:0; border:0; }
+.scale-card .scale-link-legend { justify-content:center; gap:10px 18px; margin:10px 0; }

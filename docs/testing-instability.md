@@ -463,3 +463,525 @@ local validations on other branches (`1795625823111-1af19aff` and
 single cause or establish that any guitar change is free of cost. Preserve the
 first timing report; a later passing run alone does not resolve budget fragility.
 No command, assertion or budget was removed or relaxed for the audition.
+
+## Score layout horizontal framing (25 November 2026)
+
+[Hosted failure](https://github.com/ldayton/SoundTools/actions/runs/45658306343/job/139361265583)
+failed the independent space-quality assertion at 1119px on Linux. First evidence
+is retained locally in `work/layout-audit/hosted-failure`. A Linux browser probe
+reproduced a 1.28px excess frame: the final ink was inside the original page, but
+adding eight more horizontal units unnecessarily expanded it. Horizontal framing
+now reserves one unit for stroke edges; the existing engraving padding supplies
+whitespace. Vertical padding and genuinely overflowing ink remain unchanged.
+The same Linux probe reports zero overflow after the correction. Both macOS
+browser visual corpora match the existing approved references, without updates.
+The failure message now retains the complete measured geometry.
+
+The first framing-fix CI attempt ran no tests because another worktree held the
+coordinator lock. The subsequent run at `d4d6bf5` retained in
+`work/ci-results/1795625896530-07d1a01f` again hit the budget (62.15 seconds
+including cleanup), cancelling DoReGo desktop after 33.7 seconds. Its sequence
+witness is now a separately required CI/Nightly command on its own declared port.
+It observes scheduled source identities/times and UI state, with no PCM sampling
+or latency benchmark; desktop retains the realtime lock for actual audio checks.
+All assertions remain and the source-continuity witness has exactly one owner.
+
+## Local CI budget interruption (25 November 2026)
+
+Scale-heading release `8747c4b` first run retained at
+`/Users/lily/source/SoundTools-scale-heading-release/work/ci-results/1795625823111-1af19aff`:
+62.22 seconds including bootstrap/cleanup exceeded the 60-second budget.
+DoReGo desktop and SongAlong instrument-toolbar lanes were cancelled by the
+coordinator; no assertion had failed before cancellation. SongAlong's subsequent
+"page closed" error occurred during cancellation, at its phone startup wait.
+Builds, unit checks and completed browser lanes passed. Host sampling also showed
+Spotlight indexing using 181% CPU; this is evidence of concurrent load, not an
+established cause. A full diagnostic rerun keeps the same commands, assertions,
+locks and budget. A passing rerun does not resolve the timing investigation.
+
+The [next hosted run](https://github.com/ldayton/SoundTools/actions/runs/45663034284/job/139377885779)
+still found two pixels of scrolling at 1119px. Its retained trace (downloaded to
+`work/layout-audit/hosted-second-browser` in the Hebrew/export worktree) shows
+abcjs's final staff length exceeded the requested width; reducing framing padding
+alone was insufficient. The shared adapter now reconciles actual engraved staff
+extents with the probe's minimum and replans before presentation. Per-system
+staff extents matter: abcjs repeats the widest viewBox on every system, so that
+outer box cannot be used as each system's own minimum. The measurement cache is
+cloned before refinement, and indivisible overflow remains explicit. The full
+component property witness passes against a real Linux x64 browser through a
+Playwright connection, including the original width and unchanged audio/scale.
+
+## Repeat release rebase budget interruption (25 November 2026)
+
+Repeat-options commit `0f3c091` first rebased validation is retained at
+`/Users/lily/source/SoundTools-dorego-repeat-controls/work/ci-results/1795626427275-59db22e5`.
+The standard affected CI selected DoReGo plus pending NoteWise/SongAlong releases
+and exceeded the 60-second budget at 62.20 seconds including cleanup. DoReGo
+desktop and SongAlong instrument-toolbar were cancelled; no assertion failed
+before cancellation. Completed checks passed. Spotlight indexing and concurrent
+host activity were observed; these observations do not establish a cause.
+
+The Repeat suite now uses its completed-round case to verify changing the rest
+to zero, rather than waiting through an additional unchanged two-second rest.
+The same suite's initial cold-start Repeat still owns the explicit eight-beat
+rest timing assertion; Pause cancellation and the sequence-boundary witness
+remain required. No checks, assertions, resource locks or budget were removed.
+A subsequent complete CI run must pass on the committed revision; a passing run
+does not by itself resolve the shared timing investigation.
+
+The subsequent run at `769ef63`, retained at
+`/Users/lily/source/SoundTools-dorego-repeat-controls/work/ci-results/1795626769559-2a233a17`,
+also reached the budget (62.19 seconds including cleanup). DoReGo logged all
+behavior cases as passed before process teardown was cancelled. SongAlong was
+still waiting at the bar-number assertion when cancelled. The release branch
+was then rebased onto upstream `822e5f0`, which fixes optional bar-number behavior;
+its independently recorded full local CI passed. These observations retain the
+failure evidence without treating either cancelled run as a pass.
+
+## Score export CI budget (25 November 2026)
+
+The first full export validation retained in
+`/Users/lily/source/SoundTools-hebrew-fairest/work/ci-results/1795627157570-60633870`
+exceeded the budget (62.17 seconds including cleanup). All completed checks passed,
+including the new PDF export witness (15.8 seconds). Instrument-toolbar was
+cancelled during its score-view checks. Its score size, independent stave/chord
+visibility, reload persistence and chord-preview scheduling assertions now move
+intact to required `score-view.browser.ts` on a separate reviewed port. Instrument
+controls, real organ/choir checks and account migration remain in toolbar.
+All owners remain required in CI and both Nightly engines; no assertion, budget
+or lock was relaxed.
+The feedback fix's first full applicable CI run at `295b6554`, retained at
+`/Users/lily/source/SoundTools-layout-framing-release/work/ci-results/1795627688680-0467b6ec`,
+hit the 60-second coordinator limit (62.17 seconds with cleanup). Completed
+checks passed; instrument-toolbar was cancelled after 32.2 seconds. Its score-size,
+stave/chord visibility, view reload and chord-preview assertions are now an
+independently required `score-view.browser.ts` command on reviewed port 4628.
+The toolbar still owns instruments, organ/choir, migrations and bar-number state.
+All assertions remain required in CI and both Nightly engines.
+
+## PDF preparation readiness (25 November 2026)
+
+[First hosted failure](https://github.com/ldayton/SoundTools/actions/runs/45699224187)
+kept the Mobile PDF button disabled beyond the existing five-second assertion.
+The artifact is retained locally under `work/layout-audit/printing-hosted-failure`.
+The product waited for both PDF sizes before publishing either result and rebuilt
+both on every reopening. Each size now becomes usable independently, with an
+explicit browser-task yield between sizes; prepared files are reused for the
+same score snapshot and invalidated by score/view changes. The browser witness
+also changes bar numbers and compares embedded score-image hashes, independently
+of PDF creation timestamps, to reject stale cached exports. No timeout, retry or
+assertion was relaxed.
+
+
+## Mobile toolbar CI budget (25 November 2026)
+
+The first release validation at `078bc212` exceeded the 60-second budget
+(62.17 seconds including bootstrap and cleanup). Evidence is retained at
+`/Users/lily/source/SoundTools-mobile-options/work/ci-results/1795640136108-f2543f44`.
+No assertion failed before cancellation: the coordinator interrupted the toolbar
+lane during options reopening. Its closed-page error followed cancellation.
+The expanded phone chooser interactions made the existing combined toolbar
+scenario too long for this lane. Desktop geometry, sample scheduling and guest
+migration remain owned by `instrument-toolbar.browser.ts`; phone geometry,
+chooser combinations, saved selections and unified options are now owned by
+`mobile-toolbar.browser.ts`. Both run the shared scenario with disjoint widths,
+remain required in CI and Nightly, and retain their assertions and independent
+port locks. No budget, timeout or retry policy changed.
+
+### 2026-11-25 — engraving references and isolated existing Linux piano drift
+
+The ledger/TAB ink change intentionally fails the prior guitar images on both
+platforms and engines. Retained comparisons are under
+`work/browser-results/score-layout-chromium-JcxyVm`,
+`score-layout-webkit-Ch8dGP`, `score-layout-chromium-Jk7yC7` and
+`score-layout-webkit-sc53w7`. Reviewed broken-string TAB references replace those
+images without changing comparison thresholds. Linux Chromium also retained an
+older piano-desktop break plan `[2,5]`; the current measured-staff refinement
+produces `[1,4]`. `work/layout-audit/ink-layout-isolation.mts` bundles the same
+fixture with the ink normalization replaced by a no-op: both runs produce
+`[1,4]`, establishing that this is pre-existing reference drift, not the ledger
+change. The reviewed new image has unchanged dimensions and passes independent
+spacing/overflow/music contracts. Other piano/lyric references remain unchanged.
+
+## Export-header floating-point bounds (25 November 2026)
+
+[First hosted failure](https://github.com/ldayton/SoundTools/actions/runs/45700198741)
+was `score-export.browser.ts`'s one-pixel header-ink boundary, not a toolbar
+assertion. Artifact `failure-songalong-ci-chromium-core-1-of-1-attempt1`
+retains the trace and exported PDFs. The trace's metadata evaluation measured
+the italic supplemental credit at x=-1.0000211px on desktop and
+x=-1.0000343px on mobile. Both differ from the accepted -1px overhang by
+less than 0.00004px. The comparison now permits a 0.001px numerical epsilon
+around the same one-pixel boundary; title centering, credit alignment,
+separation, wrapping and all PDF assertions remain required and unchanged.
+No product typography, test retry, sleep or timeout changed.
+
+
+### 2026-11-25 — engraving validation budget cancellation
+
+The first full local run for `1be7eee` exceeded the 60-second total budget:
+`work/ci-results/1795641495980-e7298136` retained 55.2 seconds in the graph and
+62.15 seconds including setup/cleanup. The DoReGo desktop lane was cancelled
+while checking its final mobile drone case; its Playwright connection error
+followed coordinator cancellation, with no preceding assertion failure. All
+completed lanes passed. This remains budget evidence, not a passing run. A new
+required validation follows merging the independently committed export-bound
+fix from main; any passing result does not establish that this budget variance
+has been fixed. No coverage, resource lock, timeout or assertion was relaxed.
+
+
+## Source-guided layout review (26 November 2026)
+
+The first expanded edition checks found stale mobile instrument selectors after
+main's phone chooser change, not a music/layout failure. First evidence:
+`work/browser-results/amazing-grace-editions.browser.ts-chromium-2895f2e4` and
+`fairest-lord-jesus-editions.browser.ts-chromium-83e0aba6` (the latter includes the
+closed chooser in its accessibility snapshot). All affected edition assertions
+now open the chooser through the existing shared helper. Shared vocal/edition
+fixtures do the same and close it before score interaction. Instrument counts,
+voice state, music, clipping and fingering assertions remain in place.
+
+The first short-lyric property incorrectly compared with the *no-lyrics collision
+minimum*. Even a short syllable needs clearance at that minimum. Retained probe:
+`work/layout-audit/probe-underlay.mts`. The corrected contract compares natural
+spacing with at most one staff space of word/barline allowance; long lyrics must
+still increase minimum width, all underlays preserve audio, and sparse pointed
+Hebrew must pass independent geometry checks. This is a corrected test premise,
+not a retry or a relaxed product requirement.
+
+The expected piano/Hebrew visual differences are retained in
+`work/browser-results/score-layout-chromium-ZVthBH` and the final OS/browser
+candidate directories recorded in each changed reference's review provenance.
+Reviewed references retain the same pixel comparator and acceptance limits.
+
+The first complete edition groups retained additional failures at
+`work/ci-results/1795645739193-a564109c` (Chromium) and
+`1795645823757-b6daf8e3` (WebKit). Their first failing owners were fingerstyle,
+I'll Fly Away and In Christ Alone. Different line breaks exposed real shared
+adapter problems: abcjs's empty opening repeat token offset the printed final
+measure to 14 instead of 13; simultaneous notation voices could contribute
+identical TAB fermatas/position marks. The assertions remain unchanged. Generic
+wrapped-repeat and multi-voice TAB fixtures now reproduce the defects; fixes
+live in the shared score-markings/layout boundary and TAB presentation adapter.
+
+## Local tempo-edit recurrence (25 November 2026)
+
+The guitar phrase-planner checkout reproduced the open DoReGo Chromium tempo
+case on `62eb5963`. First local failure:
+`SoundTools-phrase-fingerings/work/ci-results/1795641647024-dbbcf136/logs/dorego_ci_core_chromium_0.log`.
+The bounded event history shows focus at `65 BPM`, an input event containing
+`240`, then Enter about 9 ms later already containing `65 BPM`. The final input,
+ARIA and persisted owner were all 65, with transport playing and busy false.
+The draft was lost before Enter; the responsible state update is not established.
+
+The subsequent full CI run on `3b533c3` passed with no DoReGo source or test
+changes (`work/ci-results/1795642589532-b9f3889e` in that checkout). This is an
+unexplained passing rerun, not a tempo fix. Keep the desktop check required and
+investigate the owner/render update between input and keydown. No retry, delay,
+timeout increase or assertion relaxation was added.
+
+
+The merge with main consolidates its coincident-fermata guard (`0cffae8e`) with
+the shared destination-ink de-duplication used for TAB positions. Glyph width and
+height remain part of identity, preserving genuinely distinct symbols at one anchor.
+
+
+The first full CI on `157247f3` failed two existing signature contracts in
+`apps/songalong/tests/hymn-ottava.test.ts`; evidence:
+`work/ci-results/1795647091688-840dd567/logs/songalong_units.log`. The new inline
+state tracking also consumed key/clef events attached after a system's final note
+by abcjs, incorrectly suppressing a genuine boundary change at the next opening.
+Tracking now requires following music in that same system. Existing boundary
+assertions and new inline-change assertions are both retained unchanged.
+
+## Hebrew lyric release CI budget (26 November 2026)
+
+The first full local CI on `161213e5` exceeded the 60-second budget
+(62.18 seconds including cancellation/cleanup). Evidence:
+`SoundTools-jesus-hebrew-release/work/ci-results/1795680137532-545e769b`.
+The coordinator cancelled `songalong:ci:core:chromium:1` (guitar) at 30.4 seconds;
+its retained error reports the browser closing during an assertion, not an
+established assertion failure. Dependency installation took 7.49 seconds.
+
+One bounded diagnostic rerun of the same commit, with no source, test, coverage,
+timeout or runner changes, passed in 57.46 seconds. Evidence:
+`SoundTools-jesus-hebrew-release/work/ci-results/1795680225674-7b301fde`.
+The guitar command completed in 29.5 seconds. This demonstrates sensitivity to
+setup/execution timing near the budget, not a performance fix or proof of its
+cause. All checks remain required and the 60-second limit is unchanged.
+
+### 2026-11-26 DoReGo voice ribbon: local disk exhaustion
+
+Local CI for `12057cf8` failed during build output writes with `ENOSPC`, before
+the required browser checks. First logs: `work/ci-results/1795687605532-fb97bcb5/`.
+The coordinator could not write `local.json` after exhausting storage. This is
+an infrastructure failure, not a passing or complete run. Cleared reproducible
+node_modules installations from five old worktrees, preserving source and audio
+comparison artifacts. Rerun the standard full applicable CI on the final commit.
+
+The next full run (`04fd4f53`, `work/ci-results/1795687683861-03211656/`)
+reached the 60-second budget and cancelled the DoReGo desktop and SongAlong
+guitar commands without a preceding assertion failure. Separated the new
+voice-feedback scenario into a required CI/Nightly lane on port 4709. It tests
+real-WASM input/render/lifecycle outcomes, not hardware latency or measured PCM,
+so it needs no exclusive realtime-audio lock. Existing desktop/drone coverage
+stays in its original lane; no assertions were removed.
+
+The first split-lane audit (`c258590e`,
+`work/ci-results/1795687826256-f20f6677/`) finished all app checks within
+59.49 seconds but failed two stale policy expectations: Nightly's explicit
+extra browser-file list and the desktop audio-lock assertion tied to index 0.
+Updated both consumers for the added lane; desktop retains its audio lock and
+the new lane must retain port 4709 without claiming realtime-audio.
+
+The corrected policy run (`85a4b152`,
+`work/ci-results/1795687905608-c84fcd5a/`) passed DoReGo and shared checks,
+but exhausted the budget during the existing SongAlong guitar registry loop
+(34.1 seconds for the combined control-and-sustain lane). Split those existing
+assertions by ownership: `guitar.browser.ts` retains desktop/phone controls;
+`guitar-sustain.browser.ts` retains every registry entry's real scheduling
+durations and editorial-mark checks. Both are required in CI and Nightly.
+No product music, timing assertions or coverage were changed.
+
+Hosted run 45799723222, DoReGo job 139839750381, failed before application
+checks in browser provisioning: the second Playwright dependency-install
+attempt could not acquire `/var/lib/dpkg/lock-frontend` (held by apt-get 3293).
+First job log retained under `work/hosted-dorego.log`; shared and the other
+three app validations passed. GitHub's job-retry API returned HTTP 403
+(admin rights required for this connection), so a documentation-only follow-up
+triggers fresh-run validation of the unchanged feature code. This is an
+infrastructure retry, not a retry of an application assertion.
+
+The documentation-only retry's pending-release selection omitted the already
+promoted NoteWise app and hit the local budget during DoReGo's final drone
+cases (`work/ci-results/1795688755457-5529dc6b/`, no earlier assertion failure).
+Use the standard `npm run ci -- --base origin/main --all` to validate the exact
+retry commit with the broader all-app graph, previously measured at 54.85s.
+No checks or resource locks are bypassed; the partial-plan timing remains an
+investigation item rather than a passing run.
+
+Hosted run 45801668107 passed all validation, but release job 139848488699
+reproduced the apt contention while downloading 21 MB of fonts: the first
+180-second npx attempt left apt-get 2649 running, and the second attempt
+failed immediately on its frontend lock. Added apt's bounded 120-second lock
+acquisition wait on disposable Linux runners, inside the unchanged 180-second
+provisioning deadline. The new shell-boundary test uses fake sudo/npx and
+checks the emitted apt configuration and unchanged browser-install arguments.
+Retained first release log: `work/hosted-dorego-release.log`. No application
+assertions, test budgets, package mirrors or signing settings were changed.
+
+## Native swipe distance contract (28 November 2026)
+
+[First hosted failure](https://github.com/ldayton/SoundTools/actions/runs/46128050878)
+retains the `instrument-features.browser.ts` log, screenshot and trace. The
+150-pixel touch gesture scrolled 135 pixels on Linux; the test incorrectly
+required reaching the 303-pixel content limit, relying on macOS momentum.
+This is an overspecified platform contract, not a product scrolling failure.
+The required witness still verifies real native movement and no accidental
+selection, then explicitly positions the score for its independent double-tap
+selection check. The separate deterministic witness retains full-range access
+and handle alignment assertions. No sleeps, retries or timeout changes were added.
+
+## Frozen piano research archive validation (28 November 2026)
+
+Before backing up the unchanged research commit `ae420530`, the standard
+16-worker local CI run exceeded the 60-second budget at 62.20 seconds.
+The DoReGo build took 31.0 seconds; its desktop check was cancelled after
+16.9 seconds. Retained evidence: `1795860813888-ee848b80`. Completed
+commands passed; the cancelled run is not a validation pass.
+
+After inspecting the build log, process resource usage, dependency timing and
+the coordinator's supported worker setting, the same full suite was run with
+`npm run ci -- --base origin/main --workers 24` on the host reporting 24
+available cores. All 31 required tasks passed at the same commit in 55.90
+seconds, with the DoReGo build taking 17.0 seconds. Evidence:
+`1795860975083-5f8807aa`. Both full runs and command logs are retained in the
+private `piano-fingering-2026-11-28` archive, alongside the research snapshot.
+
+No archived code, test selection, assertion, timeout, resource lock or budget
+was changed. The capacity change and observed build-time variation are
+recorded; this passing run does not establish that the historical runner's
+default performance variability is fixed. This note does not authorize skipping
+future checks or adding assertion retries. Only documentation is carried onto
+main; the research implementation remains archived.
+
+## Native scroll settlement before programmatic positioning (28 November 2026)
+
+The first native-paging local CI run retained evidence at
+`1795861357979-e2e26c7d`; `instrument-features.browser.ts` observed native
+horizontal movement, then expected its subsequent programmatic scroll to stay
+at 287 pixels while receiving 0. The test positioned the selection witness
+before waiting for the preceding native gesture's momentum to finish. It now
+registers `scrollend` before injecting touch and waits for that observable
+boundary before setting the independent selection position. Movement, full-range
+positioning and double-tap selection assertions remain required, with unchanged
+timeouts and no assertion retries. The focused command passes with this wait.
+
+That full run also exceeded the end-to-end budget at 62.16 seconds; the DoReGo
+build took 22.6 seconds and its desktop witness was cancelled. It is not a pass.
+The next full validation uses the standard coordinator's supported 24-worker
+setting on this 24-core host, retaining all required tasks, locks and the
+60-second budget, as in the preceding archived-research validation.
+
+The 24-worker run (`1795861486993-f44cc346`) passed the repaired native-scroll
+witness and all completed commands, but again hit the budget at 62.17 seconds;
+DoReGo's build completed 35.2 seconds into the task graph and left too little
+time for its desktop witness. Increasing parallel browser work also increased
+shared-music execution from 26.8 to 35.7 seconds. The next measurement returns
+to 16 coordinator slots and uses the existing `CI_UNIT_WORKERS=2` option: the
+same shared-music files execute in two isolated Node workers, reserving less
+capacity and reducing CPU contention while builds start. No coverage or resource
+locks change. Neither cancelled run is considered a validation pass.
+
+The two-Node-worker measurement (`1795861589415-e1d2732b`) also exceeded the
+budget at 62.21 seconds; shared-music and DoReGo desktop were cancelled. Reducing
+workers was insufficient. Inspection of DoReGo's build log found the identical
+TypeScript project checked once by `build` and again by `build:pages`. The CI
+build now retains `build` as the type-check owner and invokes a separate pages
+bundle script after it succeeds. Standalone `build:pages` still type-checks.
+Both Vite configurations, fresh outputs, preflight and SHA/digest validation
+remain required. The build-policy unit witness retains the standalone and paired
+script contracts. This is duplicate-check consolidation, not displaced coverage.
+
+## Standalone-install metadata validation (28 November 2026)
+
+The first full local validation for the Tagalujah installation fix used the
+supported three-worker shared-unit option with 16 coordinator slots. Evidence:
+`1795864168087-23be51b6`. Browser checks, including native paging and the new
+manifest/icon assertions, completed successfully. The shared-music group was
+cancelled after 43.2 seconds when total execution exceeded the 60-second budget
+(62.17 seconds including cleanup). Its pending-file messages follow cancellation;
+this is not a passing unit run. The next validation returns to the standard four
+shared-unit workers used by the preceding 59.92-second passing release. All files,
+locks, assertions and the budget remain unchanged.
+
+The standard-worker run (`1795864251938-2ccf20b5`) completed shared-music in
+29.0 seconds but exceeded the budget at 62.22 seconds. DoReGo desktop waited
+8.8 seconds after its build; SongAlong export waited 22.2 seconds. Both were
+cancelled at the deadline without a passing result. Their resource declarations
+now use the same priority 50 as the other long required browser witnesses;
+DoReGo's equivalent Nightly desktop command retains the same priority. Existing
+scheduler policy tests cover propagation. Coverage, concurrency identities,
+ports/audio locks and the 60-second budget are unchanged; the next measurement
+uses `npm run ci -- --base origin/main --all --workers 16` on the clean commit.
+
+## Nightly contract repair — 28 November 2026
+
+The [27 November Nightly](https://github.com/ldayton/SoundTools/actions/runs/46000859884)
+is the retained first-failure owner. Its logs, screenshots and traces remain in
+that run's `timings-*` and `failure-*` artifacts. No check is disabled or retried.
+
+- Breathing audio fault injection selected the last-created AudioContext, which
+  can belong to another instrument. The probe now targets the context that
+  actually emitted the breathing tick. Chromium and WebKit observe interruption,
+  rejected resume and subsequent recovery against that real signal.
+- The approved backing arrangement can hold its cadence across a seek without
+  another late-bar attack. The loop witness requires fresh next-cycle attacks at
+  the independently calculated seam, retaining its real PCM continuity checks.
+  A diagnostic scheduler that stops at the seam is rejected with no fresh events.
+  Roots/country browser assertions now require the published approved-ensemble
+  version, while their articulation, sample, tempo and memory checks remain.
+- Generic chorus controls now select three distinct verses with shared chorus
+  data through the common capability fixtures, rather than assuming seven verses
+  in a named product song. Continuation systems follow the existing opening-only
+  signature contract. Chord visibility is tested independently of staff visibility:
+  hiding every staff retains the enabled chord chart; hiding Chords too empties it.
+- The mobile layout witness uses the shared controls/options helpers rather than
+  a removed Show controls button, preserving the numeric-edit/reload checks.
+- WebKit edition provisioning failed twice because the runner's optional Microsoft
+  apt feed returned HTTP 403. Browser provisioning now limits apt to the existing
+  signed Ubuntu source file for that step and restores normal source policy on
+  success or failure. A shell fixture verifies vendor files and signing settings
+  are unchanged; existing bounded provisioning retries remain unchanged.
+
+The earlier catalog/scale-layout failures no longer reproduce in the initial
+current-main diagnostic witnesses. They remain required in the complete Nightly
+validation; those diagnostic passes alone do not establish an all-platform fix.
+
+The first full local diagnostic at `84e9fc9a` retained evidence in
+`work/ci-results/1795862759768-35b15fb4`: 166 command groups passed and five
+failed on the remaining approved-ensemble or TAB-only fingerings expectations.
+The unrelated final Soundglow timing group was deliberately cancelled after
+capturing all non-timing results; **this diagnostic run is not a Nightly pass**.
+The follow-up updates every affected actual-player version assertion in the
+remaining genre chain, preserves raw/reference arranger expectations, and checks
+TAB-only hints can be toggled without changing frets. The provisioning lock
+fixture uses an explicit temporary apt root so real Linux host sources cannot
+change what its fake `sudo tee` captures. Complete hosted Nightly remains required.
+
+### Tempo edit recurrence during Nightly repair (28 November 2026)
+
+Pre-push CI on `1c804a31` failed its required DoReGo desktop owner in
+`work/ci-results/1795864532859-7876e45f/logs/dorego_ci_core_chromium_1.log`:
+the input event carried 240, but Enter 11 ms later saw 65 BPM, with persisted
+and ARIA values both 65. This matches the unresolved 25 November case above.
+The run completed in 59.87 seconds; this was an assertion failure, not budget
+exhaustion. The first failure is retained, with no changed assertion or retry.
+
+A diagnostic desktop run wrapped the native value setter and passed; a second
+wrapped the input's React value setter, recorded the value tracker and applied
+6x CPU throttling only during the edit. It also passed, recording the expected
+240 BPM formatter writes and commit. Logs are
+`work/nightly-investigation/tempo-setter-diagnostic.log` and
+`work/nightly-investigation/tempo-own-setter-diagnostic.log`. Focused attempts
+to reproduce retained suffix/caret state in the shared control also passed.
+Those diagnostic changes were removed. None establishes a fix or identifies
+the original resetting write. The tempo investigation remains open; subsequent
+passing validation must not be reported as a tempo regression fix.
+
+### Downstream approved-score checks
+
+The complete genre chain progressed beyond its first legacy metadata failures
+and exposed two more old-generator assumptions. The Soul/Folk witness capped
+Folk at 128 bass notes, while the approved 64-bar score contains 160 (Soul 116).
+It now requires those exact counts and the approved phrasing identity, retaining
+memory, palette, loading, metronome and layout assertions. Gospel required a
+seven-beat organ event from the replaced generator. Its player witness now
+requires the approved 204 organ notes and the exact sustained opening triad
+(major/minor, duration 3.3); the independent 7.5-second organ render still proves
+sustain, drawbar/rotary response and stopping. No music data changed.
+First follow-up failures: `work/nightly-investigation/genres-followup.log` and
+`work/nightly-investigation/genres-approved-followup.log`.
+
+The updated TAB-hint scenario also exposed the tablet's distinct breakpoints:
+options are in a drawer at 768 px while the fingering control remains in the
+main toolbar. Before editing it, dismiss the previous display-options drawer
+then use the toolbar helper, which opens options only on phone layouts.
+Retained first failures: `work/nightly-investigation/fingerstyle-followup-chromium.log`
+and `work/nightly-investigation/fingerstyle-options-chromium.log`.
+
+The next Gospel UI assertion expected a `minor-` phrase ID from the legacy
+phrase library; approved phrases instead identify genre, mode and form phase.
+The witness now requires `approved-gospel-active-0` and independently checks the
+actual pitched events use D, F, G and B-flat after selecting G minor pentatonic.
+Its pause/resume, transposition, device and saved-mixer assertions remain.
+The first obsolete-name failure is retained in
+`work/nightly-investigation/genres-organ-followup.log`; a diagnostic initially
+expected all five scale classes, then confirmed the approved voicing omits C
+(`work/nightly-investigation/gospel-phrases-approved-followup.log`).
+
+Funk's player-render witness also requested an isolated legacy `funk-scratch`
+voice that is absent from the approved ensemble. It now explicitly verifies
+that legacy layer is absent and retains separate audible/finite/contributing
+renders for the approved pitched guitar and bass. The legacy scratch generator
+remains covered by `backing-pocket-styles.test.ts` and
+`backing-reggae-funk.test.ts`; no score or audio threshold changed.
+First failed stem: `apps/notewise/work/browser-results/pocket-styles.browser.ts-chromium-60c5d33b`.
+
+The Roots audio witness rendered Blues stems over beats 48–64, now the approved
+bass feature, and consequently measured a silent lead. It now renders the same
+16-beat duration from beat 32, including the authored guitar answer at 38–40.
+All per-stem audibility, contribution, finite PCM and mix thresholds remain.
+The first failure is `work/nightly-investigation/roots-approved-followup.log`.
+
+## Hymnbook branding validation queue (28 November 2026)
+
+The first full local CI run for Tagalujah's approved branding retained evidence
+`1795865638449-8be079b3`. Completed checks passed, but total execution exceeded
+the budget at 62.16 seconds, cancelling `guitar-sustain.browser.ts` after 13.2
+seconds. The native sustain witness had queued for 24.2 seconds after its build;
+its closed-page messages follow cancellation. It is not a passing run. The
+reviewed resource declaration now gives this existing long witness priority 50,
+matching the other long browser checks. Its scheduler-policy assertion verifies
+propagation. All coverage, locks, assertions and budgets remain unchanged. The
+next validation measures `npm run ci -- --base origin/main --all --workers 16`.

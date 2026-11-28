@@ -19,3 +19,10 @@ test('build provenance requires the same app, revision, profile and exact bytes'
     assert.throws(() => verifyBuild(data, options), /changed/);
   } finally { fs.rmSync(directory, { recursive: true }); }
 });
+
+test('DoReGo variants retain a shared type check and two distinct bundles', () => {
+  const scripts = require('../../apps/dorego/package.json').scripts;
+  assert.match(scripts.build, /^tsc --noEmit && vite build$/);
+  assert.match(scripts['build:pages'], /^tsc --noEmit && npm run build:pages:bundle$/);
+  assert.equal(scripts['build:pages:bundle'], 'vite build --mode pages --outDir dist-pages');
+});

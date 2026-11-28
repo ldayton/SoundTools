@@ -21,6 +21,7 @@ export type ScaleOptionsSnapshot = {
   firstFret: number;
   lastFret: number;
   linked: LinkedScaleShape;
+  wholeRoute: boolean;
 };
 export const scaleOptionsState = createViewState<ScaleOptionsSnapshot>;
 export type ScaleOptionsState = ReturnType<typeof scaleOptionsState>;
@@ -34,7 +35,7 @@ export function ScaleOptions({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
     <Stack
-      className="soundtools-ui"
+      className="soundtools-ui scale-options"
       role="group"
       aria-label="Scale controls"
       tabIndex={-1}
@@ -100,7 +101,7 @@ export function ScaleOptions({
             change({ hilaShape: Number(e.currentTarget.value) as BerkleeShape })
           }
         />
-      ) : (
+      ) : !state.wholeRoute && (
         <NativeSelect
           id="scale-pattern"
           label="Pattern"
@@ -117,7 +118,7 @@ export function ScaleOptions({
           }
         />
       )}
-      {!isMaqam(state.quality) && state.shapeSet === "standard" && state.pattern === "map" && (
+      {!isMaqam(state.quality) && state.shapeSet === "standard" && state.pattern === "map" && !state.wholeRoute && (
         <SimpleGrid cols={2}>
           <NativeSelect
             label="First fret"
@@ -147,19 +148,20 @@ export function ScaleOptions({
         <NativeSelect
           id="scale-linked-pattern"
           label="Link with"
-          value={state.linked}
-          disabled={state.shapeSet === "standard" && state.pattern === "map"}
+          value={state.wholeRoute ? 'all' : state.linked}
           data={[
             { value: "none", label: "Single shape" },
+            ...(state.shapeSet==='standard'?[{value:'all',label:'All five shapes'}]:[]),
             ...(state.shapeSet === "hila"
               ? BERKLEE_SHAPES.filter(value=>value!==state.hilaShape).map(value=>({value:String(value),label:`Shape ${value}`}))
-              : CAGED_SHAPES.filter((value) => value !== state.pattern).map(
+              : CAGED_SHAPES.filter((value) => value !== state.pattern && state.pattern !== 'map').map(
               (value) => ({ value, label: scaleShapeLabel(value, state.quality) }),
             )),
           ]}
           onChange={(e) =>
             change({
-              linked: e.currentTarget.value as ScaleOptionsSnapshot["linked"],
+              wholeRoute:e.currentTarget.value==='all',
+              linked: e.currentTarget.value==='all'?'none':e.currentTarget.value as ScaleOptionsSnapshot["linked"],
             })
           }
         />
@@ -168,13 +170,13 @@ export function ScaleOptions({
         id="scale-dot-labels"
         label="Dots"
         value={
-          !isMaqam(state.quality) && state.shapeSet === "standard" && state.pattern === "map" &&
+          !state.wholeRoute && !isMaqam(state.quality) && state.shapeSet === "standard" && state.pattern === "map" &&
           state.labels === "fingers"
             ? "notes"
             : state.labels
         }
         data={[
-          ...(state.shapeSet === "hila" || state.pattern !== "map" || isMaqam(state.quality)
+          ...(state.wholeRoute || state.shapeSet === "hila" || state.pattern !== "map" || isMaqam(state.quality)
             ? [{ value: "fingers", label: "Finger numbers" }]
             : []),
           { value: "none", label: "Unlabelled dots" },

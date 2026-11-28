@@ -1,4 +1,4 @@
-import type { InstrumentHymn } from "./instrument-hymn";
+import { instrumentHymnAbc, type InstrumentHymn } from "./instrument-hymn";
 import type { BeginnerInstrument } from "./beginner-score";
 export const jesusEdition: InstrumentHymn = {
   title: "Jesus Loves Me",
@@ -86,24 +86,29 @@ export const jesusEdition: InstrumentHymn = {
     { bar: 8, label: "Refrain" },
   ],
 };
+/** Raised melody over an invariant root/fifth thumb pulse. No fills or syncopated bass. */
+export const jesusGuitarEdition: InstrumentHymn = {
+  ...jesusEdition, guitarKey: "G", guitarTranspose: 4, capo: 8, tempo: 80,
+  changes: jesusEdition.changes.map(bar => bar.map(([at, chord]) => [at, ({C:"G",F:"C",G7:"D7"} as Record<string,string>)[chord]])),
+  // Keep the separate singing accompaniment at its original concert pitches.
+  strum: {G:"[G,B,DGB]",C:"[CEGc]",D7:"[D,^F,A,D^Fc]"},
+  guitarBars: Object.fromEntries(jesusEdition.changes.map((changes, bar) => [bar,
+    [0,1,2,3].map(beat => {
+      const chord=[...changes].reverse().find(([at]) => at<=beat*16)![1];
+      return [({C:["G,","D"],F:["C","G,"],G7:["D","A,"]} as Record<string,string[]>)[chord][beat%2],16];
+    })])),
+};
+export function jesusInstrumentAbc(source: string, instrument: BeginnerInstrument, part: "right" | "left" | "both" = "both") {
+  const abc=instrumentHymnAbc(source,instrument === "guitar" ? jesusGuitarEdition : jesusEdition,instrument,part);
+  return instrument === "guitar" ? abc.replace(/^(\[V:S2\])/gm,"$1 !p! ") : abc;
+}
 export function jesusPosition(pitch: number, chord: boolean, transpose = 0) {
   const positions: Record<number, [number, number]> = {
-    41: [5, 1],
-    43: [5, 3],
-    47: [4, 2],
-    48: [4, 3],
-    50: [3, 0],
-    52: [3, 2],
-    53: [3, 3],
-    55: [2, 0],
-    57: [2, 2],
-    59: [1, 0],
-    60: [1, 1],
-    64: [0, 0],
-    65: [0, 1],
+    43:[5,3],45:[4,0],48:[4,3],50:[3,0],55:[2,0],57:[2,2],
+    59:[1,0],60:[1,1],62:[1,3],64:[0,0],67:[0,3],
   };
-  const p = positions[pitch - transpose];
-  return p ? { str: p[0], num: p[1] + transpose } : undefined;
+  const p=positions[pitch-transpose];
+  return p ? {str:p[0],num:p[1]+transpose} : undefined;
 }
 export function jesusFingers(
   instrument: BeginnerInstrument,
@@ -113,16 +118,7 @@ export function jesusFingers(
   force = false,
 ): (number | null)[] {
   if (instrument === "guitar")
-    return pitches.map((actual) => {
-      const p = actual - 3;
-      return (
-        (
-          (voice === 1
-            ? { 41: 1, 43: 3, 47: 2, 48: 3, 53: 3 }
-            : { 48: 4, 52: 2, 57: 2, 60: 1 }) as Record<number, number>
-        )[p] ?? null
-      );
-    });
+    return pitches.map(actual => ({ 43: 3, 48: 3, 57: 1, 60: 1, 62: 4, 67: 4 } as Record<number, number>)[actual - 8] ?? null);
   if (voice === 1) return pitches.map((_, i) => [5, 3, 1][i] ?? null);
   const high = [2, 3, 9, 13].includes(bar),
     f: Record<number, number> = high

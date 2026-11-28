@@ -1,5 +1,5 @@
 import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
-import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
+import { openHymnInstrumentChoices, selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from 'node:assert/strict';
 import { expect } from '@playwright/test';
 import { launchBrowser, newPage, captureFailure, closeBrowser } from '../../../scripts/ci/browser-harness.cjs';
@@ -43,7 +43,7 @@ try {
   const tabText=(await page.locator('[data-name=tabNumber]').allTextContents()).join('');
   assert(!tabText.includes('?'),tabText);
   assert(tabText.includes('53535'),tabText);
-  await openHymnControls(page);
+  await dismissPracticeDrawer(page);await openHymnControls(page);
   await page.getByRole('checkbox',{name:'Show fingerings',exact:true}).check();
   await expect(page.locator('.beginner-fingering').first()).toBeVisible();
   await expect(page.locator('.beginner-picking').first()).toBeVisible();
@@ -51,7 +51,8 @@ try {
   await assertEngraving(page);
   await openPracticeOptions(page);
   await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);
-  await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]')).toHaveAttribute('data-instrument', 'guitar');
+  await openHymnInstrumentChoices(page);
   await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeDisabled();
   assert.equal(await page.getByRole('group',{name:'Instruments and voice',exact:true}).locator('svg').count(),3);
@@ -61,7 +62,13 @@ try {
   await selectScoreDisplay(page,'tab');
   await expect(page.locator('[data-name=tabNumber]').first()).toBeVisible();
   assert(await page.locator('.tab-rhythm-stem').count());
+  await expect(page.locator('.beginner-fingering').first()).toBeVisible();
+  await dismissPracticeDrawer(page);await openHymnControls(page);
+  const tabFingerings=page.getByRole('checkbox',{name:'Show fingerings',exact:true});
+  await expect(tabFingerings).toBeEnabled();await tabFingerings.uncheck();
   await expect(page.locator('.beginner-fingering')).toHaveCount(0);
+  await tabFingerings.check();await dismissPracticeDrawer(page);
+  await expect(page.locator('.beginner-fingering').first()).toBeVisible();
   await expect(page.locator('.abcjs-bar.abcjs-v3')).toHaveCount(0);
   assert.equal(await page.locator('.fingerstyle-tab-clef').count(), await page.locator('.hymn-paper svg').count());
   await expect(page.locator('.abcjs-tempo')).toHaveCount(0);
@@ -145,7 +152,7 @@ try {
    await expect(page.locator('.hymn-count')).toHaveText('1 / 97');
    await page.reload();await openPracticeOptions(page);
    await expect(page.locator('#hymn-hands')).toHaveValue('left');
-   await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
+   await expect(page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]')).toHaveAttribute('data-instrument', 'guitar');
    await expectScoreDisplay(page,'both');
    await selectHymnInstrument(page, 'piano');
    await expect(page.locator('#hymn-hands')).toHaveValue('left');

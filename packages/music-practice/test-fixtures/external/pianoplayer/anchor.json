@@ -1,0 +1,56 @@
+{
+  "revision": "6fb0e2114d7b21f75c0be5208172e1243a57323e",
+  "sourceTest": "test_hand_respects_existing_fingering_anchor",
+  "hand": "right",
+  "notes": [
+    {
+      "midi": 60,
+      "duration": 0.25
+    },
+    {
+      "midi": 61,
+      "duration": 0.25,
+      "finger": 5
+    },
+    {
+      "midi": 62,
+      "duration": 0.25
+    },
+    {
+      "midi": 63,
+      "duration": 0.25
+    },
+    {
+      "midi": 64,
+      "duration": 0.25
+    },
+    {
+      "midi": 65,
+      "duration": 0.25
+    },
+    {
+      "midi": 66,
+      "duration": 0.25
+    },
+    {
+      "midi": 67,
+      "duration": 0.25
+    },
+    {
+      "midi": 68,
+      "duration": 0.25
+    },
+    {
+      "midi": 69,
+      "duration": 0.25
+    },
+    {
+      "midi": 70,
+      "duration": 0.25
+    },
+    {
+      "midi": 71,
+      "duration": 0.25
+    }
+  ]
+}

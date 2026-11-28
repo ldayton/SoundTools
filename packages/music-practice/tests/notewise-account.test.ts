@@ -19,8 +19,9 @@ test("NoteWise settings, active exercise and checkpoints round trip without loca
   state.progress.roundLength = 24;
   state.progress.profiles.piano.low = "D4";
   state.progress.stats[card] = stats();
-  state.activities.rhythm = { version: 1, level: "pulse" };
+  state.activities.patterns = { version: 2, notes: [60,62], position: 1 };
   state.activities["backing-track"] = { version: 1, metronomeEnabled: true };
+  state.activities["guitar-scales"] = {version:1,settings:{tonic:7,quality:"major",wholeRoute:true,routeDirection:"down",routeVariant:2}};
   state.activities.audio = { version: 1, volume: 0.3 };
   state.activities["backing-mixer:folk"] = {
     version: 1,
@@ -38,7 +39,8 @@ test("NoteWise settings, active exercise and checkpoints round trip without loca
   assert.equal(restored.progress.roundLength, 24);
   assert.equal(restored.progress.profiles.piano.low, "D4");
   assert.deepEqual(restored.progress.stats[card], state.progress.stats[card]);
-  assert.deepEqual(restored.activities.rhythm, state.activities.rhythm);
+  assert.deepEqual(restored.activities.patterns, state.activities.patterns);
+  assert.deepEqual(restored.activities["guitar-scales"],state.activities["guitar-scales"]);
   assert.deepEqual(
     restored.activities["backing-track"],
     state.activities["backing-track"],
@@ -113,4 +115,21 @@ test("future schemas and corrupt practice contributions are rejected", () => {
       "activity:backing-mixer:future-genre": { version: 1, levels: {} },
     }),
   );
+});
+
+test("retired rhythm cloud records fall back to staff without losing other settings or re-uploading checkpoints", () => {
+  const state=migrateLegacy({});state.activities.patterns={version:2,notes:[60,62]};
+  state.activities.rhythm={version:1,level:"pulse"};
+  const records=new NotewiseAccountRecords().read(state);
+  assert.equal(records["activity:rhythm"],undefined);
+  records.current={mode:"rhythm",roundLength:24};
+  records["activity:rhythm"]={version:99,broken:true};
+  const restored=restoreNotewiseRecords(records);
+  assert.equal(restored.progress.mode,"staff");
+  assert.equal(restored.progress.roundLength,24);
+  assert.deepEqual(restored.activities.patterns,state.activities.patterns);
+  assert.equal(restored.activities.rhythm,undefined);
+  const writer=new NotewiseAccountRecords();writer.accept(records,restored);
+  assert.equal(writer.read(restored,"device")["activity:rhythm"],undefined);
+  assert.throws(()=>restoreNotewiseRecords({...records,"activity:future-exercise":{version:1}}));
 });

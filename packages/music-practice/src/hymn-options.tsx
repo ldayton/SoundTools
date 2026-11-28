@@ -1,3 +1,6 @@
+import {hymnScoreFeatures} from "./hymn-score-features";
+import {ScoreExportButton} from "./score-export-button";
+import type {ScoreExportSource} from "./score-export";
 import {guitarStaffShown,toggleGuitarStaff} from "./hymn-playback-staves";
 import { hymnHasVoice } from "./hymn-instruments";
 import {chordEdition} from "./chord-editions";
@@ -62,14 +65,20 @@ const countIns = [
 ];
 
 export function HymnOptions({
+  exportScore,
+  legacy,
   model,
   change,
 }: {
   model: HymnOptionsState;
+  legacy?: ReactNode;
+  exportScore(): ScoreExportSource | undefined;
   change(patch: HymnOptionsChange): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, { getInitialValueInEffect: false });
   const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
+  const features=hymnScoreFeatures(state.arrangement,state.scoreDisplay);
   const profile=editions ? chordEdition({id:state.hymn}) : undefined;
   const selectedKey=state.key === state.originalKey ? "original" : state.key;
   const keys = [
@@ -86,6 +95,10 @@ export function HymnOptions({
   }));
   return (
     <Stack className="soundtools-ui" gap="md">
+      {mobile && <Group justify="space-between" wrap="nowrap">
+        <Text size="sm">Tempo</Text>
+        <HymnModeAndTempo model={model} change={change} />
+      </Group>}
       {state.mode === "playback" && (
         <Group component="section" aria-label="Playback" justify="space-between" wrap="nowrap" gap={6}>
           <Text component="label" htmlFor="hymn-count-in" size="sm" style={{whiteSpace:"nowrap",flexShrink:0}}>Count-in</Text>
@@ -126,7 +139,7 @@ export function HymnOptions({
       )}
       <OptionsSection title="Key & range">
         <Stack gap="xs">
-          {state.arrangement !== "guitar-edition" && <SimpleGrid cols={2} spacing="xs">
+          <SimpleGrid cols={2} spacing="xs">
             {(["low", "high"] as const).map((bound) => (
               <HymnPitchField
                 key={bound}
@@ -135,7 +148,7 @@ export function HymnOptions({
                 onChange={(value) => change({ [bound]: value })}
               />
             ))}
-          </SimpleGrid>}
+          </SimpleGrid>
           <Select
             id="hymn-key"
             name="hymn-key"
@@ -173,7 +186,7 @@ export function HymnOptions({
             data={state.capoChoices.map(choice=>({value:String(choice.fret),label:`${choice.fret ? `Capo ${choice.fret}` : "No capo"} · ${choice.shapeKey.replaceAll("#","♯").replaceAll("b","♭")} shapes${choice.recommended ? " (recommended)" : ""}`}))}
             onChange={event=>change({capo:Number(event.currentTarget.value)})}
           />}
-          {state.arrangement !== "guitar-edition" && <Group gap="xs" grow>
+          <Group gap="xs" grow>
             <Button
               id="hymn-octave-down"
               variant="default"
@@ -196,7 +209,7 @@ export function HymnOptions({
             >
               ↑ Octave
             </Button>
-          </Group>}
+          </Group>
         </Stack>
       </OptionsSection>
       {<OptionsSection title="Staves">
@@ -207,10 +220,10 @@ export function HymnOptions({
             {(["hiddenStaves","mutedStaves"] as const).map((field,index)=><Table.Td key={field}>
               <Checkbox aria-label={`${index===0 ? "Show" : "Play"} ${staff.label}`}
                 disabled={index===1 && (staff.playable===false || state.mode!=="playback")}
-                title={index===1 && staff.playable===false ? "Playback follows Treble" : undefined}
-                checked={index===0 && staff.display ? guitarStaffShown(state.scoreDisplay,state.hiddenStaves,staff.display) : staff.playable===false ? false : !state[field].includes(staff.index)}
+                title={index===1 && staff.playable===false ? "Playback follows the instrument staff" : undefined}
+                checked={index===0 && staff.display ? guitarStaffShown(state.scoreDisplay,state.hiddenStaves,staff.display,features.guitarStaff) : staff.playable===false ? false : !state[field].includes(staff.index)}
                 onChange={event=>change(index===0 && staff.display
-                  ? {viewHands:"both",...toggleGuitarStaff(state.scoreDisplay,state.hiddenStaves,staff.display,event.currentTarget.checked,state.chordSymbolsAvailable)}
+                  ? {viewHands:"both",...toggleGuitarStaff(state.scoreDisplay,state.hiddenStaves,staff.display,event.currentTarget.checked,state.chordSymbolsAvailable,features.guitarStaff)}
                   : {viewHands:"both",hiddenStaves:state.hiddenStaves,mutedStaves:state.mutedStaves,
                     [field]:event.currentTarget.checked ? state[field].filter(n=>n!==staff.index) : [...state[field],staff.index]})}/>
             </Table.Td>)}
@@ -257,11 +270,18 @@ export function HymnOptions({
           </Stack>
         </OptionsSection>
       )}
+      <OptionsSection title="View options">
+        {mobile && <>
+          <Group justify="space-between" wrap="nowrap"><Text size="sm">Staff size</Text><HymnStaffSize model={model} change={change} /></Group>
+          <Group justify="space-between" wrap="nowrap"><Text size="sm">Staff spacing</Text><HymnStaffSpacing model={model} change={change} /></Group>
+          <HymnFingerings model={model} change={change} />
+        </>}
+        <Checkbox label="Bar numbers" checked={state.barNumbers} onChange={event=>change({barNumbers:event.currentTarget.checked})} />
+      </OptionsSection>
+      {mobile && legacy}
+      <ScoreExportButton source={exportScore} />
       {editions ? (
         <>
-          <OptionsSection title="View options">
-            <Checkbox label="Bar numbers" checked={state.barNumbers} onChange={event=>change({barNumbers:event.currentTarget.checked})} />
-          </OptionsSection>
           {state.mode === "wait" && (
             <OptionsSection title="Practice">
               {state.arrangement === "guitar-edition" && !profile ? <Text size="sm">Practise the chord accompaniment.</Text> : <NativeSelect
@@ -575,10 +595,8 @@ export function HymnFingerings({
   const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
     getInitialValueInEffect: false,
   });
-  if (state.arrangement === "guitar-chords" || state.arrangement === "guitar-edition" && ["tab", "chords"].includes(state.scoreDisplay)) return null;
-  const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
-  const reviewed = state.arrangement === "guitar-edition" || (state.key === "original" || state.key === state.originalKey) &&
-    (state.arrangement === "piano" || state.octave === 0);
+
+  const features=hymnScoreFeatures(state.arrangement,state.scoreDisplay);
   const checkbox = (
     <Checkbox
       id="hymn-fingerings"
@@ -587,12 +605,8 @@ export function HymnFingerings({
       label={mobile ? undefined : "Show fingerings"}
       size={mobile ? "sm" : "xs"}
       checked={state.fingerings}
-      title={editions && !reviewed ? "Fingerings are provided for the original key and guitar position." : undefined}
-      disabled={editions ? !reviewed :
-        state.arrangement !== "melody" &&
-        state.arrangement !== "bass" &&
-        !isGuitarArrangement(state.arrangement)
-      }
+      title={features.fingeringReason}
+      disabled={!features.fingerings}
       onChange={(event) => change({ fingerings: event.currentTarget.checked })}
     />
   );

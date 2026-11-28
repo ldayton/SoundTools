@@ -237,9 +237,9 @@ test("two-bar pattern checkpoints survive shared storage validation without allo
     decodeState(state).activities.patterns,
     state.activities.patterns,
   );
-  state.activities.rhythm = { version: 2 };
+  state.activities.unknown = { version: 2 };
   assert.throws(() => decodeState(state), /Unsupported activity version/);
-  delete state.activities.rhythm;
+  delete state.activities.unknown;
   state.activities.patterns = { version: 3 };
   assert.throws(() => decodeState(state), /Unsupported activity version/);
 });
@@ -250,7 +250,7 @@ test("stale windows preserve other activities, settings and both answers to the 
   const a = await DurableStore.open(adapter, initial, "a");
   const b = await DurableStore.open(adapter, initial, "b");
   a.state.activities["guitar-scales"] = { version: 1, settings: { tonic: 2 } };
-  b.state.activities.rhythm = { version: 1, bars: [1, 2] };
+  b.state.activities.patterns = { version: 1, bars: [1, 2] };
   a.state.progress.roundLengths!.piano = 24;
   b.state.progress.roundLengths!.staff = 6;
   const id = "staff:C4:0";
@@ -283,11 +283,11 @@ test("stale windows preserve other activities, settings and both answers to the 
     due: 200,
   });
   // A stale, unrelated save must not roll back B's newer checkpoint.
-  b.state.activities.rhythm = { version: 1, bars: [3, 4] };
+  b.state.activities.patterns = { version: 1, bars: [3, 4] };
   await b.save();
   a.state.progress.mode = "piano";
   await a.save();
-  assert.deepEqual(adapter.value!.state.activities.rhythm, {
+  assert.deepEqual(adapter.value!.state.activities.patterns, {
     version: 1,
     bars: [3, 4],
   });
@@ -375,4 +375,20 @@ test("guest windows merge independent options on one song and retain atomic pitc
   (local.activities.sight as any).preferences.one.key="G";
   Object.assign((latest.activities.sight as any).preferences.one,{octave:1,capo:3});
   assert.deepEqual((mergeWindowState(base,local,latest).activities.sight as any).preferences.one,{bpm:111,countIn:1,key:"G",octave:0,capo:2});
+});
+
+test("retired rhythm local saves are discarded while the remaining progress survives", () => {
+  const state=migrateLegacy({});
+  (state.progress as any).mode="rhythm";
+  state.progress.profiles.staff.low="G3";
+  state.activities.rhythm={version:99};state.activities.patterns={version:2,notes:[60,62]};
+  state.legacy.rhythm={version:1};state.legacy.original={rhythm:"old",patterns:"kept"};
+  const result=decodeState(state);
+  assert.equal(result.progress.mode,"staff");
+  assert.equal(result.progress.profiles.staff.low,"G3");
+  assert.deepEqual(result.activities.patterns,state.activities.patterns);
+  assert.equal(result.activities.rhythm,undefined);assert.equal(result.legacy.rhythm,undefined);
+  assert.deepEqual(result.legacy.original,{patterns:"kept"});
+  assert.deepEqual(state.activities.rhythm,{version:99},"Decoder never mutates saved input");
+  assert.equal(migrateLegacy({rhythm:"malformed old checkpoint"}).legacy.rhythm,undefined);
 });

@@ -42,10 +42,12 @@ function observedPorts(entries) {
 function declaration(app, command, args) {
   const catalog = require('./resources.json'), id = key(app, command, args), entry = catalog[id];
   if (!entry) throw Error(`Missing resource declaration: ${id}`);
+  if(entry.slots!==undefined&&(!Number.isInteger(entry.slots)||entry.slots<1))throw Error(`Invalid resource slots: ${id}`);
+  if(entry.priority!==undefined&&!Number.isFinite(entry.priority))throw Error(`Invalid resource priority: ${id}`);
   const coverage = leaves(command, args);
   const ports = observedPorts(coverage);
   if (ports.some(port => !entry.ports.includes(port))) throw Error(`New port in ${id}: update scripts/ci/resources.json after auditing isolation`);
   if (JSON.stringify(entry.coverage) !== JSON.stringify(coverage)) throw Error(`Coverage changed in ${id}: review and update its resource declaration`);
-  return { coverage, locks: [...entry.ports.map(port => `port:${port}`), ...entry.locks], kind: entry.kind, ...(entry.partition ? { partition: entry.partition } : {}), ...(entry.visual ? { visual: entry.visual } : {}) };
+  return { coverage, ...(entry.slots!==undefined?{slots:entry.slots}:{}), ...(entry.priority!==undefined?{priority:entry.priority}:{}), locks: [...entry.ports.map(port => `port:${port}`), ...entry.locks], kind: entry.kind, ...(entry.partition ? { partition: entry.partition } : {}), ...(entry.visual ? { visual: entry.visual } : {}) };
 }
 module.exports = { key, leaves, sources, observedPorts, declaration };

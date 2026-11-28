@@ -39,7 +39,7 @@ const server = createServer(async (req, res) => {
         output,
         path === "/" ||
           path === "/settings" ||
-          /^\/(piano|guitar|rhythm|theory)(\/[a-z0-9-]+)*\/?$/.test(path)
+          /^\/(piano|guitar|theory|services)(\/[a-z0-9-]+)*\/?$/.test(path)
           ? "index.html"
           : path.slice(1),
       ),
@@ -47,7 +47,7 @@ const server = createServer(async (req, res) => {
     res.setHeader(
       "Content-Type",
       mime[extname(path)] ||
-        (/^\/(piano|guitar|rhythm|theory)(\/[a-z0-9-]+)*\/?$/.test(path) ||
+        (/^\/(piano|guitar|theory|services)(\/[a-z0-9-]+)*\/?$/.test(path) ||
         path === "/" ||
         path === "/settings"
           ? "text/html"
@@ -82,7 +82,7 @@ try {
   await page.goto(
     `http://127.0.0.1:${(server.address() as { port: number }).port}/`,
   );
-  await page.locator(app === "songalong" ? ".hymn-paper svg" : '[data-letter="E"]:enabled').first().waitFor();
+  await page.locator(app === "tagaluya" ? ".tagaluya-reader" : app === "songalong" ? ".hymn-paper svg" : '[data-letter="E"]:enabled').first().waitFor();
   await page.locator("a[data-settings]").click();
   const checkbox = page.getByRole("checkbox", {
     name: "Share diagnostic information",

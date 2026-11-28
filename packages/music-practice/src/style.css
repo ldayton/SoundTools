@@ -325,8 +325,7 @@
   display: block;
 }
 .hymn-paper .sight-current,
-.pattern-paper .sight-current,
-.rhythm-paper .sight-current {
+.pattern-paper .sight-current {
   fill: #b0653e;
   stroke: #b0653e;
 }
@@ -334,40 +333,6 @@
   background: #b7a7d3;
 }
 
-.rhythm-beats {
-  display: flex;
-  gap: 12px;
-  margin: 20px 0;
-  justify-content: center;
-}
-.rhythm-beats span {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: 50%;
-  color: var(--mantine-color-dimmed);
-  font-variant-numeric: tabular-nums;
-}
-.rhythm-beats .is-beat {
-  background: var(--mantine-primary-color-light);
-  color: var(--mantine-primary-color-light-color);
-  border-color: var(--mantine-primary-color-filled);
-}
-.rhythm-beats [data-beat="1"].is-beat {
-  background: var(--mantine-primary-color-light-hover);
-  border-width: 2px;
-  font-weight: 750;
-}
-.rhythm-paper .rhythm-hit {
-  fill: #49805b;
-  stroke: #49805b;
-}
-.rhythm-paper .rhythm-missed {
-  fill: #b0653e;
-  stroke: #b0653e;
-}
 
 .hymn-no-key {
   margin: 0;

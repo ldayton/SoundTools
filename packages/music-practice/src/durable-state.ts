@@ -42,7 +42,15 @@ export function decodeState(raw: unknown): DurableState {
     typeof s.legacy !== "object"
   )
     throw Error("Invalid saved state; existing data has been preserved.");
-  for (const [id, activity] of Object.entries(s.activities)) {
+  const decoded=structuredClone(s);
+  // Retired checkpoints must not block recovery of the remaining activities.
+  if(APP.id === "notewise") {
+    delete decoded.activities.rhythm;
+    delete decoded.legacy.rhythm;
+    const original=decoded.legacy.original;
+    if(original && typeof original === "object")delete (original as Record<string,unknown>).rhythm;
+  }
+  for (const [id, activity] of Object.entries(decoded.activities)) {
     if (!activity || typeof activity !== "object" || !("version" in activity))
       throw Error(
         "Invalid activity checkpoint; saved data has been preserved.",
@@ -55,7 +63,6 @@ export function decodeState(raw: unknown): DurableState {
         "Unsupported activity version; update this app before continuing.",
       );
   }
-  const decoded=structuredClone(s);
   if(APP.id === "songalong") {
     if(decoded.activities.sight)decoded.activities.sight=migrateHymnIdentity(decoded.activities.sight);
     if(decoded.legacy.sight)decoded.legacy.sight=migrateHymnIdentity(decoded.legacy.sight);
@@ -83,8 +90,10 @@ export function migrateLegacy(
         "Unsupported legacy version; update this app before continuing.",
       );
   }
-  const legacy: Record<string, unknown> = { original: structuredClone(raw) };
-  for (const id of ["sight", "patterns", "rhythm"])
+  const original=structuredClone(raw);
+  delete original.rhythm;
+  const legacy: Record<string, unknown> = { original };
+  for (const id of ["sight", "patterns"])
     try {
       legacy[id] = JSON.parse(raw[id] || "null");
     } catch {

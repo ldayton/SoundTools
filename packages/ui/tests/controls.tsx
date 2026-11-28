@@ -14,6 +14,8 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
+import { ToolbarSlider } from "../toolbar-slider";
+import { VolumeControl } from "../volume-control";
 import { ToolbarNumber } from "../toolbar-number";
 import { SoundToolsProvider } from "../provider";
 import { RenderErrorBoundary } from "../render-error-boundary";
@@ -80,6 +82,8 @@ declare global {
 }
 
 function Controls() {
+  const [toolbarVolume, setToolbarVolume] = useState(37);
+  const [inlineVolume, setInlineVolume] = useState(68);
   const [mobileDialog, setMobileDialog] = useState(false);
   const [pitch, setPitch] = useState(0);
   const [pitchOpen, setPitchOpen] = useState(false);
@@ -198,20 +202,24 @@ function Controls() {
             size="xs"
           />
         </Modal>
-        <PracticeToolbar
-          model={instrumented}
-          playback={playback}
-          play={() => {}}
-          restart={() => {}}
-          tempo={() => {}}
-          volume={() => {}}
-          moveRound={() => {}}
-        />
+        <div id="toolbar-volume-fixture">
+          <ToolbarSlider id="test-toolbar-volume" label="Toolbar volume" value={toolbarVolume} min={0} max={100} onChange={setToolbarVolume} withMute icon={<span aria-hidden="true">♫</span>} />
+          <Button id="external-volume" onClick={() => setToolbarVolume(65)}>Change volume externally</Button>
+          <output id="toolbar-volume-value">{toolbarVolume}</output>
+        </div>
+        <div id="inline-volume-fixture">
+          <VolumeControl id="test-inline-volume" value={inlineVolume} onChange={setInlineVolume} />
+        </div>
+        <PracticeToolbar model={instrumented} range={null} tempo={() => {}} volume={() => {}} />
         <PracticeView
           model={instrumented}
           playback={playback}
           piano={piano}
           audition={() => () => {}}
+          play={() => {}}
+          restart={() => {}}
+          moveRound={() => {}}
+          repeatRound={() => {}}
         />
       </Stack>
     </SoundToolsProvider>

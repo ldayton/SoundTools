@@ -1,11 +1,9 @@
 import { ToolbarVolume } from "./sidebar-controls";
-import { ToolbarDisclosure } from "@ldayton/ui/toolbar-disclosure";
 import { ControlIcon } from "@ldayton/ui/control-icon";
-import { useEffect, useSyncExternalStore, type ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import { Button, Checkbox, Group, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
 import { useMediaQuery } from "@mantine/hooks";
-import { hymnToolbarState } from "./hymn-toolbar-state";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { PracticePianoToggle } from "./piano-presentation";
 export const hymnControlsState = createViewState<{
@@ -50,13 +48,6 @@ export function HymnControls({
   const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
     getInitialValueInEffect: false,
   });
-  const toolbar = useSyncExternalStore(
-    hymnToolbarState.subscribe,
-    hymnToolbarState.getSnapshot,
-  );
-  useEffect(() => {
-    if (!mobile) hymnToolbarState.set({ expanded: false });
-  }, [mobile]);
   const transport = (
     <Group gap={4} wrap="nowrap" role="group" aria-label="Transport">
       <Button
@@ -108,29 +99,7 @@ export function HymnControls({
       )}
     </Group>
   );
-  const legacy = (
-    <>
-      <Button
-        className="hymn-restore-legacy"
-        variant="default"
-        hidden={!state.restore}
-        disabled={state.disabled}
-        onClick={restore}
-      >
-        {state.restore}
-      </Button>
-      <Button
-        className="hymn-prev"
-        variant="default"
-        aria-label="Previous section"
-        hidden={!state.previous}
-        disabled={state.disabled}
-        onClick={previous}
-      >
-        ← Previous
-      </Button>
-    </>
-  );
+  const legacy = <HymnLegacyControls model={model} restore={restore} previous={previous} />;
   const piano = (
     <PracticePianoToggle
       panelId={panelId}
@@ -143,51 +112,12 @@ export function HymnControls({
     return (
       <div className="soundtools-ui hymn-controls">
         <div className="hymn-toolbar hymn-toolbar-mobile">
-          <div className="hymn-toolbar-volume">
-            <ToolbarVolume />
-          </div>
-          <div
-            className="hymn-toolbar-playback"
-            role="group"
-            aria-label="Playback controls"
-          >
-            {transport}
-          </div>
-          {instrument}
-          <ToolbarDisclosure
-            className="hymn-controls-toggle"
-            opened={toolbar.expanded}
-            controls="hymn-mobile-controls"
-            onChange={(expanded) => hymnToolbarState.set({ expanded })}
-          />
-          <div
-            id="hymn-mobile-controls"
-            className="hymn-mobile-controls"
-            role="region"
-            aria-label="Playback and display controls"
-            hidden={!toolbar.expanded}
-          >
-            {settings}
-            <Group
-              className="hymn-toolbar-field"
-              justify="space-between"
-              wrap="nowrap"
-            >
-              <Text size="sm">Staff size</Text>
-              {staffSize}
-            </Group>
-            <Group
-              className="hymn-toolbar-field"
-              justify="space-between"
-              wrap="nowrap"
-            >
-              <Text size="sm">Staff spacing</Text>
-              {staffSpacing}
-            </Group>
-            <Group className="hymn-toolbar-field" mih={44}>
-              {fingerings}
-            </Group>
-            {legacy}
+          <div className="hymn-mobile-primary" role="group" aria-label="Playback and sound">
+            <div className="hymn-toolbar-playback" role="group" aria-label="Playback controls">
+              {transport}
+            </div>
+            {instrument}
+            <div className="hymn-toolbar-volume"><ToolbarVolume /></div>
           </div>
         </div>
       </div>
@@ -273,4 +203,31 @@ export function HymnPassageControls({
       </Text>
     </Group>
   );
+}
+
+export function HymnLegacyControls({model,restore,previous}:{model:HymnControlsState;restore():void;previous():void}) {
+ const state=useSyncExternalStore(model.subscribe,model.getSnapshot);
+ return (
+    <>
+      <Button
+        className="hymn-restore-legacy"
+        variant="default"
+        hidden={!state.restore}
+        disabled={state.disabled}
+        onClick={restore}
+      >
+        {state.restore}
+      </Button>
+      <Button
+        className="hymn-prev"
+        variant="default"
+        aria-label="Previous section"
+        hidden={!state.previous}
+        disabled={state.disabled}
+        onClick={previous}
+      >
+        ← Previous
+      </Button>
+    </>
+ );
 }

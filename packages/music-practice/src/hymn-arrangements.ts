@@ -1,3 +1,4 @@
+import { usesChristPicking } from "./christ-picked-accompaniment";
 import {guitarVoiceAbc} from "./guitar-voice";
 import type {CapoChoice} from "./guitar-capo";
 import { voicePianoAbc } from "./voice-piano";
@@ -225,10 +226,16 @@ function serialize(bars: Bar[], melody = false) {
 }
 /** One source bass pitch at a time. Repeated pitches become held notes, not extra attacks. */
 /** Build an instrument edition or extract its authoritative source melody. */
-export function guitarVocalAccompaniment(hymn:Hymn, sectionBars=0, section=0, endingBar?:number) {
-  if(instrumentEdition(hymn)?.editionKey !== "in-christ-alone")
+export function guitarVocalAccompaniment(hymn:Hymn, sectionBars=0, section=0, endingBar?:number, picked=true) {
+  const edition=instrumentEdition(hymn);
+  if(edition?.vocalAccompaniment){
+    const harmony=edition.vocalAccompaniment(arrangeHymn(hymn,"melody",0).abc);
+    const score=arrangeHymn({...hymn,id:`${hymn.id}:guitar-accompaniment`,harmony},"original",sectionBars,section,"both",endingBar);
+    return {...score,abc:engraveEdition(score.abc,true,"written","left")};
+  }
+  if(edition?.editionKey !== "in-christ-alone")
     return arrangeHymn(hymn,"guitar-edition",sectionBars,section,"left",endingBar);
-  const score=arrangeHymn({...hymn,id:`${hymn.id}:guitar-accompaniment`,key:"C",harmony:teacherInstrumentAbc(hymn,"guitar","left",true)},"original",sectionBars,section,"both",endingBar);
+  const score=arrangeHymn({...hymn,id:`${hymn.id}:guitar-accompaniment`,key:"C",harmony:teacherInstrumentAbc(hymn,"guitar","left",true,picked)},"original",sectionBars,section,"both",endingBar);
   return {...score,abc:engraveEdition(score.abc,true,"written","left")};
 }
 export function arrangeHymn(
@@ -249,8 +256,9 @@ export function arrangeHymn(
   if(arrangement === "guitar-vocal"){
     const profile=chordEdition(hymn);if(!profile || !edition?.original)throw Error("Guitar + Voice is unavailable");
     const vocal=arrangeHymn(hymn,"original",sectionBars,section,"both",endingBar);
-    const melody=selectEditionVoice(vocal.abc,"right"),accompaniment=guitarVocalAccompaniment(hymn,sectionBars,section,endingBar).abc;
-    const harmony=guitarVoiceAbc(melody,accompaniment,profile.capo,guitarTranspose,capoChoice);
+    const picked=usesChristPicking(edition.editionKey,guitarTranspose,capoChoice?.fret);
+    const melody=selectEditionVoice(vocal.abc,"right"),accompaniment=guitarVocalAccompaniment(hymn,sectionBars,section,endingBar,picked).abc;
+    const harmony=guitarVoiceAbc(melody,accompaniment,profile.capo,guitarTranspose,picked ? undefined : capoChoice);
     return {...vocal,abc:selectEditionVoice(harmony,hands)};
   }
   if (arrangement === "original" && edition?.editionKey === "in-christ-alone")

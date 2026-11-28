@@ -116,6 +116,7 @@ try {
         );
       rows.push({
         style,
+        phrasing: take.phrasing,
         bytes,
         keys: take.events.filter((e: any) => e.part === "keys").length,
         guitar: take.events.filter((e: any) => e.part === "guitar").length,
@@ -136,7 +137,9 @@ try {
   }, moduleUrl);
   for (const row of result.rows) {
     assert.ok(row.bytes < 256 * 1024 * 1024);
-    assert.ok(row.bass <= (row.style === "soul" ? 192 : 128));
+    assert.equal(row.phrasing, "approved-ensemble-v1");
+    assert.equal(row.bass, row.style === "soul" ? 116 : 160,
+      "The approved 64-bar arrangements retain their authored bass motion");
     assert.equal(row.keys > 0, row.style === "soul");
     assert.ok(row.guitar > 0);
   }

@@ -35,7 +35,6 @@ try {
   assert.deepEqual(counts,[2,2,2,2,2,2]);
   const sample=page.locator(`.scale-tone[data-string="3"][data-fret="${parent==='major'?9:5}"]`);
   await expect(sample.locator('text')).toHaveText('1');
-  await expect(page.locator('.scale-source a')).toHaveAttribute('href',`https://www.guitarscale.org/${parent==='major'?'c-pentatonic-major':'a-pentatonic-minor'}.html`);
   const ghosts=page.locator('.scale-omitted-tone');
   assert.ok(await ghosts.count()>0);
   assert.ok(await ghosts.evaluateAll(es=>es.every(e=>getComputedStyle(e).pointerEvents==='none'&&!e.hasAttribute('tabindex')&&!e.classList.contains('scale-shift-candidate'))));

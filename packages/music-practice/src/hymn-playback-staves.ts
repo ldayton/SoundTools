@@ -5,6 +5,10 @@ export type PlaybackStaff = {
   clef: string;
   tracks: number[];
 };
+/** Stable source identity shared by visibility, TAB and both hand planners. */
+export function sourceStaffIndex(staff:object,index:number){
+  return (staff as {originalStaffIndex?:number}).originalStaffIndex??index;
+}
 /** Audio tracks follow real voices, not clefs: one printed staff can own many tracks. */
 export function playbackStaves(tune: TuneObject): PlaybackStaff[] {
   type Staff = {
@@ -106,17 +110,17 @@ export function hidePlaybackStaves(
 }
 
 type GuitarDisplay = "notation" | "tab" | "both" | "chords";
-export function guitarStaffShown(display: GuitarDisplay, hidden: readonly number[], staff: "notation" | "tab") {
-  return !hidden.includes(0) && (display === "both" || display === staff);
+export function guitarStaffShown(display: GuitarDisplay, hidden: readonly number[], staff: "notation" | "tab",staffIndex=0) {
+  return !hidden.includes(staffIndex) && (display === "both" || display === staff);
 }
 /** Tab is another view of the same music, so visibility reuses the existing display setting. */
-export function toggleGuitarStaff(display: GuitarDisplay, hidden: readonly number[], staff: "notation" | "tab", shown: boolean, hasChords = true) {
-  const notation = staff === "notation" ? shown : guitarStaffShown(display, hidden, "notation");
-  const tab = staff === "tab" ? shown : guitarStaffShown(display, hidden, "tab");
-  if(!notation && !tab && !hasChords)return {scoreDisplay:display,hiddenStaves:[0]};
+export function toggleGuitarStaff(display: GuitarDisplay, hidden: readonly number[], staff: "notation" | "tab", shown: boolean, hasChords = true,staffIndex=0) {
+  const notation = staff === "notation" ? shown : guitarStaffShown(display, hidden, "notation",staffIndex);
+  const tab = staff === "tab" ? shown : guitarStaffShown(display, hidden, "tab",staffIndex);
+  if(!notation && !tab && !hasChords)return {scoreDisplay:display,hiddenStaves:[...new Set([...hidden,staffIndex])].sort((a,b)=>a-b)};
   return {
     scoreDisplay: notation && tab ? "both" as const : notation ? "notation" as const : tab ? "tab" as const : "chords" as const,
-    hiddenStaves: [],
+    hiddenStaves: hidden.filter(index=>index!==staffIndex),
   };
 }
 export function abcHasChordSymbols(abc: string) {

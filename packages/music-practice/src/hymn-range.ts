@@ -31,6 +31,7 @@ export function hymnRangeLabel(
   };
   return `${label(range.low)}–${label(range.high)}`;
 }
+export type HymnRangeChoices={choices:{key:HymnKey;semitones:number;octave:number|undefined;octaves:number[];fits:boolean;range:string}[];preferred:HymnKey|undefined};
 /** Key order is by sounding register, not alphabetical key name. */
 export function hymnRangeKeys(
   source: string,
@@ -38,7 +39,7 @@ export function hymnRangeKeys(
   low: number | null,
   high: number | null,
   instrumentTranspose?: { min: number; max: number },
-) {
+):HymnRangeChoices {
   const choices = (["original", ...HYMN_KEYS] as HymnKey[]).map((key) => {
     try {
       const { semitones } = hymnTransposition(source, key);

@@ -12,6 +12,7 @@ const path = require('node:path');
    ['apps/soundglow/dist', 'favicon.svg', '#080b10'],
    ['apps/notewise/public', 'icon.svg', '#f5f1e7'],
    ['apps/songalong/public', 'icon.svg', '#f0f5f3'],
+   ['apps/tagaluya/public', 'icon.svg', '#f7f0e5'],
   ]) {
    if (process.argv[2] && !directory.includes('/' + process.argv[2] + '/')) continue;
    const folder = path.resolve(__dirname, '..', directory);

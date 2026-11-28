@@ -20,6 +20,8 @@ export function ResponsivePitchField({
   columns = 12,
   optional = false,
   mobileWheel = false,
+  mobileColumns,
+  compactRange,
   wheelId = `${id}-wheel`,
 }: {
   id: string;
@@ -31,6 +33,9 @@ export function ResponsivePitchField({
   columns?: 7 | 12;
   optional?: boolean;
   mobileWheel?: boolean;
+  /** Wrap the note grid into touch-sized rows instead of using a wheel. */
+  mobileColumns?: 4 | 6;
+  compactRange?: { low: number; high: number };
   wheelId?: string;
 }) {
   const [opened, setOpened] = useState(false);
@@ -116,6 +121,8 @@ export function ResponsivePitchField({
           value={value}
           choices={choices}
           columns={columns}
+          rowColumns={narrow ? mobileColumns : undefined}
+          compactRange={compactRange}
           optional={optional}
           opened={opened}
           onOpenedChange={setOpened}

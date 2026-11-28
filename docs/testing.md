@@ -250,7 +250,7 @@ use filesystem copy-on-write where supported, with private workspace links.
 
 `CI_WORKERS` or `--workers` controls outer scheduling (CI: up to 16 locally; Nightly: up to six;
 GitHub: two; range 1–32). `CI_UNIT_WORKERS` bounds the shared music unit-file
-pool (default eight in local CI, four in Nightly, two on GitHub; range 1–8). Worker slots are weighted
+pool (default six in local CI, four in Nightly, two on GitHub; range 1–8). Worker slots are weighted
 scheduling budgets, not a promise to pin every subprocess to a CPU. Compare worker counts against the same CI inventory. A serial CI baseline
 may exceed the hard deadline and is then a failure, not a performance result. Do not raise concurrency just because a machine has many logical CPUs:
 compare throughput, per-command latency and failures first.
@@ -278,7 +278,10 @@ runs ready tasks within worker and exclusive-resource limits. Backend startup,
 builds and account integration have explicit critical-path priorities; eligible
 prerequisites reserve capacity rather than starving behind smaller UI commands. Both GitHub's
 `check-app.cjs` and the local coordinator use these modules. `fast-local.cjs`
-assembles the bounded local CI graph; `local.cjs` retains Nightly isolation. Shared checks use
+assembles the bounded local CI graph; DoReGo and SongAlong source-only unit tests and their
+independent app builds overlap after shared preparation. All remain required,
+and browser checks still depend on the fresh build. Other app unit/build locks
+retain their existing ownership. `local.cjs` retains Nightly isolation. Shared checks use
 `run-shared.cjs`. GitHub computes all matrices in the existing changes job and
 starts app setup alongside shared validation; every release still requires shared
 checks, its complete app matrix, and applicable Nightly Accounts checks (CI retains account unit/contracts).
@@ -561,6 +564,44 @@ for measurement limits, candidate review and retained comparison artifacts.
 
 The [sequence contract](dorego-sequences.md) centralizes option timing for every
 exercise. `sequence.test.ts` is included by DoReGo's existing CI unit glob. The
-existing required desktop suite calls `sequence.browser.ts` for source continuity,
+independently required `sequence.e2e.ts` command calls `sequence.browser.ts` for source continuity,
 future-round chords/rest, delayed sample preparation, paused edits and deferred
 count-in. The exercise matrix stays in pure units rather than repeated browsers.
+
+## Score print and PDF exports
+
+`score-export.test.ts` owns complete-system pagination, ordering, page bounds and
+oversized-system handling. The independently required SongAlong
+`score-export.browser.ts` command runs in CI and both Nightly engines. Using the
+shared generic hymn fixture, it checks bar-number defaults/reload persistence, the actual desktop print window, opening-only
+signatures, both PDF page dimensions and parseable file contents, native file-share
+payloads and the browser download fallback. Browser outputs retain the printable
+sheet screenshot, mobile size chooser and both PDF files, separately by engine.
+The platform share sheet itself remains an OS surface, not a headless browser assertion.
+
+The bar-number view-preference witness moved intact from instrument-toolbar into
+the independent export/view-options command; its default, on/off and reload
+assertions have one CI/Nightly owner. Toolbar still owns instrument controls,
+preferences/migrations and responsive staff-spacing controls.
+
+`score-view.browser.ts` separately owns score size, independent stave/chord
+visibility, view-option reload and chord-preview scheduling. Those assertions
+were extracted intact from instrument-toolbar so independent required commands
+can overlap; they are not executed twice.
+
+### Instrument-view feature parity
+
+`instrument-features.test.ts` and the required `instrument-features.browser.ts`
+cover every ID in `instrumentEditionIds`, using the real two-bar sources across
+all supported instrument/Voice combinations. The browser command owns four
+isolated render workers, declared in `resources.json`. It verifies instrument-only
+fingerings, full accompaniment TAB, hidden-Voice source identity, score framing,
+and exact source pitches/timing (including the existing swing transformation).
+A separate synthetic Voice/keyboard opening checks actual phone page bounds,
+including named-staff space, key signatures, chord labels and fingerings; it
+rejects overflow that would still fit inside an oversized SVG. The same owner
+checks passage binding preserves local scroll, aligned handles after scrolling,
+and native Chromium touch panning without accidental passage selection.
+`score-view.browser.ts` owns desktop/phone controls, independent visibility,
+reload persistence and chord interaction. `fingerings.browser.ts` owns piano
+key changes. Existing musical edition goldens remain the music regression owner.

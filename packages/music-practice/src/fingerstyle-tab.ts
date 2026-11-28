@@ -7,19 +7,31 @@ export {bluesPosition as fingerstylePosition} from "./fingerstyle-blues";
 type TabNumber = { num: number | string; str: number; note: { pitch: number; pitchAltered: number } };
 type TabResult = { notes?: TabNumber[]; graces?: TabNumber[] };
 type Semantics = { clefTranspose?: number; notesToNumber(notes: unknown[], graces: unknown): TabResult };
-type TabLine = { staffGroup: { staffs: { isTabStaff?: boolean; top: number }[] } };
+type TabChild={abcelem:{el_type:string};type?:string;isClef?:boolean};
+type TabLine = { staffGroup: { staffs: { isTabStaff?: boolean; top: number }[];voices:{staff?:{isTabStaff?:boolean};children:TabChild[]}[] } };
 type Plugin = { init(...args: unknown[]): void; render(renderer: unknown, line: TabLine, staffIndex: number): void; semantics: Semantics };
-type PluginEntry = { classz: new () => Plugin };
+type PluginEntry = { classz?: new () => Plugin };
 
 /** Keep the original edition's string choices while abcjs lays out the tab. */
 export function preserveFingerstyleTab(tune: TuneObject, transpose: number,positionFor:(pitch:number,chord:boolean,transpose:number,group?:readonly number[])=>{str:number;num:number}|undefined=fingerstylePosition) {
   const entries = (tune as TuneObject & { tablatures?: (PluginEntry | null)[] }).tablatures;
   for (const entry of entries || []) {
-    if (!entry) continue;
+    if (!entry?.classz) continue;
     const Original = entry.classz;
     entry.classz = class extends Original {
       render(renderer: unknown, line: TabLine, staffIndex: number) {
-        super.render(renderer, line, staffIndex);
+        // abcjs's TAB adapter assumes a clef header at every native voice's
+        // opening. With omitted continuation headers it otherwise inserts the
+        // preceding staff's first *note* as a signature, duplicating sung ink
+        // and contaminating the guitar's accidental state. A structural no-op
+        // header satisfies that boundary only while TAB is being constructed;
+        // it is never measured, painted or added to the musical source.
+        const guarded=line.staffGroup.voices.filter(voice=>!voice.staff?.isTabStaff&&voice.children[0]?.abcelem.el_type!=='clef').map(voice=>{
+          const header:TabChild={abcelem:{el_type:'clef'},type:'tab-source-boundary'};
+          voice.children.unshift(header);return {voice,header};
+        });
+        try {super.render(renderer, line, staffIndex);}
+        finally {for(const {voice,header} of guarded){const index=voice.children.indexOf(header);if(index>=0)voice.children.splice(index,1);}}
         // The plugin includes the source's lower extent in both staff offsets.
         // Reserve seven pitch steps after that extent, without counting it twice.
         for (const staff of line.staffGroup.staffs)
@@ -53,19 +65,19 @@ export function preserveFingerstyleTab(tune: TuneObject, transpose: number,posit
 }
 
 /** Use one modern TAB sign per staff; abcjs duplicates it for the bass voice. */
-export function normalizeFingerstyleTab(paper: HTMLElement,singleVoice=false) {
+export function normalizeFingerstyleTab(paper: HTMLElement,singleVoice=false,voiceBase=0) {
   const ns = "http://www.w3.org/2000/svg";
   for (const svg of paper.querySelectorAll("svg")) {
     const staff = [...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-staff")]
-      .sort((a, b) => a.getBBox().y - b.getBBox().y)[1];
+      .sort((a, b) => a.getBBox().y - b.getBBox().y).at(-1);
     if (!staff) continue;
     svg.querySelectorAll('[data-name^="tab."]').forEach(node => node.remove());
     // The second voice duplicates bars, with its opening repeat at the clef.
-    svg.querySelectorAll(singleVoice ? '.abcjs-bar.abcjs-v1' : '.abcjs-bar.abcjs-v2,.abcjs-bar.abcjs-v3').forEach(node => node.remove());
+    svg.querySelectorAll(singleVoice ? `.abcjs-bar.abcjs-v${voiceBase+1}` : `.abcjs-bar.abcjs-v${voiceBase+2},.abcjs-bar.abcjs-v${voiceBase+3}`).forEach(node => node.remove());
     const box = staff.getBBox();
     const bars = document.createElementNS(ns, "g");
     bars.classList.add("fingerstyle-tab-bars");
-    for (const source of svg.querySelectorAll('.abcjs-bar.abcjs-v0')) {
+    for (const source of svg.querySelectorAll(`.abcjs-bar.abcjs-v${voiceBase}`)) {
       const dots = [...source.querySelectorAll<SVGGraphicsElement>('[data-name="dots.dot"]')];
       for (const path of source.querySelectorAll<SVGGraphicsElement>('[data-name="bar"]')) {
         const ink = path.getBBox();
@@ -161,13 +173,26 @@ export function showOnlyTab(paper: HTMLElement,lyricPadding=58) {
       chord.setAttribute('transform',`translate(0 ${tabBox.y-48-ink.y})`);
       svg.append(chord);
     }
+    // One TAB symbol represents a shared event across notation voices.
+    // abcjs can emit the same annotation in both voices at a system boundary.
+    svg.querySelectorAll('.guitar-position,.guitar-fermata').forEach(node=>node.remove());
+    const projected=new Set<string>();
+    const duplicate=(source:SVGGraphicsElement,kind:string)=>{
+      const ink=source.getBBox(),text=source.textContent||source.getAttribute('data-name')||'';
+      // Match destination ink, including size: a genuinely different glyph
+      // at the same anchor must not disappear. Millipixels ignore rounding.
+      const key=kind+':'+text+':'+[ink.x,ink.width,ink.height].map(n=>Math.round(n*1000)).join(':');
+      if(projected.has(key))return true;
+      projected.add(key);return false;
+    };
     for(const position of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-annotation')) {
-      if(!isGuitarPositionMark(position.textContent||''))continue;
+      if(!isGuitarPositionMark(position.textContent||'')||duplicate(position,'position'))continue;
       const copy=position.cloneNode(true) as SVGGraphicsElement,ink=position.getBBox();
       copy.classList.add('guitar-position');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-76-ink.y})`);svg.append(copy);
     }
     for(const source of svg.querySelectorAll<SVGGraphicsElement>('[data-name="scripts.ufermata"]')){
+      if(duplicate(source,'fermata'))continue;
       const copy=source.cloneNode(true) as SVGGraphicsElement,ink=source.getBBox();
       copy.classList.add('guitar-fermata');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-14-ink.y-ink.height})`);svg.append(copy);

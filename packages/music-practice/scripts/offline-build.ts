@@ -7,7 +7,8 @@ import { startupHTML, workerSource } from "@ldayton/browser-offline";
 import { offlineWorker, MAX_OFFLINE_FILES } from "./offline-worker";
 export function offlineBuild(
   release: string,
-  app: "notewise" | "songalong",
+  app: string,
+  routeRoots?: string[],
 ): Plugin {
   let base = "/";
   return {
@@ -86,7 +87,7 @@ export function offlineBuild(
         this.emitFile({
           type: "asset",
           fileName: "sw.js",
-          source: offlineWorker({ base, pack, inventory, app }),
+          source: offlineWorker({ base, pack, inventory, app, routeRoots }),
         });
       },
     },

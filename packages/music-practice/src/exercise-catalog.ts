@@ -77,15 +77,6 @@ export const EXERCISES = [
     kind: "live",
   },
   {
-    mode: "rhythm",
-    title: "Rhythm reading",
-    area: "Rhythm",
-    icon: "rhythm",
-    path: "/rhythm/reading",
-    rootId: "rhythm-practice",
-    kind: "live",
-  },
-  {
     mode: "scales",
     title: "Scales & degrees",
     area: "Music theory",

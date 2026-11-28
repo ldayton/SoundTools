@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '../..');
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function inventory(app, pack) {
   if (!apps[app]) throw Error('Unknown preflight app');
-  const limits = manifestLimits[app === 'notewise' || app === 'songalong' ? 'practice' : app];
+  const limits = manifestLimits[apps[app].offlineGroup || (app === 'notewise' || app === 'songalong' ? 'practice' : app)];
   if (!Array.isArray(pack.files) || !pack.files.length || pack.files.length > limits.files || (pack.optional || []).length > limits.optional) throw Error('Offline inventory exceeds worker limits');
   const base = pack.base || (app === 'dorego' ? Object.keys(pack.hashes || {}).find(url => url.endsWith('/')) : '/');
   if (!/^\/(?:[a-zA-Z0-9_-]+\/)*$/.test(base || '')) throw Error('Invalid offline inventory base');

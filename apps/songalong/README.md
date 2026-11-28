@@ -68,11 +68,11 @@ pattern accompanies the chords-only display. Notation, tab, combined notation/ta
 and the chord chart all represent the same Guitar arrangement; changing display
 does not change the practice part. Fermatas remain visible in tab and chord view.
 
-Jesus Loves Me offers Piano in E-flat and Guitar using C shapes with capo 3.
+Jesus Loves Me offers Piano in E-flat and a beginner Guitar edition with the melody an octave higher over regular quarter-note root/fifth bass. Guitar uses G shapes with capo 8 in E-flat, or capo 7 in D major, at a default 80 BPM. No accompaniment fills or offbeat bass attacks are added.
 Piano preserves the imported melody register, with left-hand triads spanning
-no more than a fifth. Guitar sounds the melody one octave below Piano and stays
-within frets 0–3, using G bass where a low C melody occupies the fifth string.
-Its rootless G7 shell leaves the melody clear. All 49 attacks, three verses and
+no more than a fifth. Guitar stays within frets 0–3 relative to the capo, with
+the melody on the upper strings and the thumb alternating on every beat.
+All 49 melody attacks, three verses and
 the shared refrain retain the 16-bar form. Verse and refrain landmarks, explicit
 capo instructions, independent display/practice options, full-shape chord
 accompaniment and a chords-only lyric chart use the same two editions.
@@ -227,6 +227,14 @@ Original voices: https://doi.org/10.5281/zenodo.1442513
 
 ## Teacher-based In Christ Alone instrumental editions
 
+The capo-2 C-shape **Guitar + Voice** accompaniment uses a four-quarter-note
+picking cycle per held chord: bass plus strings 3–1, open fourth string,
+strings 3–1, open fourth string. The cycle restarts at chord changes, continues
+across barlines and stops early for shorter chords. Open strings are relative
+to the capo. The sung melody and instrumental ending stay intact; alternate
+capo shapes retain their existing accompaniment. After building SongAlong,
+generate guitar-only and vocal-guide WAV previews with `npx tsx apps/songalong/scripts/render-christ-picked.mts`.
+
 `in-christ-alone` retains its original Voice + Piano score and now also offers
 Piano and Guitar editions. Both follow the printed vocal melody, including rests
 and dotted rhythms, and carry the organ’s upper line through the instrumental
@@ -249,8 +257,15 @@ Exact music and physical string choices are covered by
 switching and saved choices are covered by the corresponding Nightly browser test.
 
 Playback highlights current notes in green while running; a translucent position
-band appears when paused or ready. Reviewed guitar scores list Tablature as a
-separate Show control, with Play disabled because the Treble staff owns its audio.
+band appears when paused or ready. Guitar scores, including Guitar + Voice,
+list Tablature as a separate Show control. Its Play control is disabled because
+TAB shares the guitar staff's audio. Voice visibility remains independent of the
+guitar notation/TAB choices. Guitar fingerings work in notation and TAB-only
+views; keyboard fingerings also work alongside Voice and are replanned for key
+changes. Vocal notes are excluded from both instrument hand planners. Pure chord
+charts keep their lyrics and diagrams; the visible fingering control explains
+that note fingerings require notation or TAB. Guitar range and octave controls
+use actual melody/bass playability, independently of the reference capo height.
 Chord symbols have an independent per-song Show preference, retained in URLs,
 local/offline saves and account records. Both visibility controls preserve notes
 and playback timing. Guitar capo/sounding key appear on the score; shape details
@@ -265,3 +280,19 @@ It separates a pure layout plan from abcjs measurement/rendering and owns displa
 spacing, breaks, physical SVG size, wrapper size and overflow. Songs provide
 musical content and constraints rather than viewport-specific layout rules.
 See the component document for its contracts, current limits and test owners.
+
+### Print and PDF
+
+The button below View options opens a score-only system print dialog on desktop.
+On mobile, Save PDF offers Mobile and Desktop page sizes, then shares an actual
+PDF file through the OS share sheet where available (including Save to Files on
+iPhone). Other browsers download the same PDF. Files are prepared before the
+size button is enabled so the native share call retains the user's gesture.
+
+Both exports use a snapshot of the full arrangement and the same shared renderer
+as the interactive score, retaining the current key/capo, visible staves, chord
+symbols, fingerings, bar-number preference and selected stanzas. Practice passage
+limits and playback state are independent. Pagination keeps systems intact. Print
+uses vector SVGs; generated PDFs rasterize each system at 384 dpi to preserve
+browser-shaped Hebrew and niqqud without relying on a PDF library's RTL shaping.
+The PDF library is loaded only when a PDF is requested.

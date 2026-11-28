@@ -35,7 +35,7 @@ test('cancellation marks pending tasks and stops scheduling new work', async () 
   assert(results.every(r => r.status === 'cancelled'));
 });
 test('all existing CI commands have reviewed coverage and resource declarations', () => {
-  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) for (const lane of ['ci', 'nightly']) for (const group of app === 'songalong' && lane === 'nightly' ? ['core', 'editions'] : ['core']) {
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya']) for (const lane of ['ci', 'nightly']) for (const group of app === 'songalong' && lane === 'nightly' ? ['core', 'editions'] : ['core']) {
     for (const [command, args] of plan(app, lane, 'chromium', group)) {
       const entry = declaration(app, command, args);
       assert(entry.coverage.length);
@@ -46,7 +46,7 @@ test('all existing CI commands have reviewed coverage and resource declarations'
   assert.throws(() => declaration('songalong', 'node', ['new-unreviewed-test.cjs']), /Missing resource/);
   assert.deepEqual(commandTasks('songalong', 'nightly', 'chromium', undefined, { group: 'editions' }).map(t => t.args.at(-1)), editionFiles());
   assert.equal(browserSuites.length, 9);
-  assert.equal(commandTasks('dorego', 'nightly', 'chromium').filter(t => t.args.some(arg => /tests\/.*\.e2e\.ts$/.test(arg))).length, 9);
+  assert.deepEqual(commandTasks('dorego', 'nightly', 'chromium').flatMap(t => t.args.filter(arg => /tests\/.*\.e2e\.ts$/.test(arg))).sort(), [...browserSuites.map(suite => `tests/${suite}.e2e.ts`), 'tests/sequence.e2e.ts', 'tests/voice-feedback.e2e.ts'].sort());
   assert.equal(setupTasks('songalong').filter(t => t.id.endsWith(':build')).length, 1);
 });
 test('performance comparison refuses changed coverage, commits or failed runs', () => {
@@ -114,7 +114,7 @@ test('snapshot copies keep workspace links and writes inside the private checkou
 test('GitHub overlaps independent setup while releases still require shared validation', () => {
   const root = path.resolve(__dirname, '../..');
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) {
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya']) {
     const section = workflow.split(`\n  ${app}:`)[1].split('\n  ')[0];
     // Check the actual selected app block, not a dependency appearing elsewhere.
     assert.match(workflow, new RegExp(`\\n  ${app}:\\n    needs: \\[changes\\]`));
@@ -180,7 +180,7 @@ test('local pre-push selection uses CI pending-release recovery, not just change
 test('parallel Vite servers and catalog partitions own distinct writable dependency caches', () => {
   const path = require('node:path');
   const cwd = path.resolve(__dirname, '../..');
-  const tasks = ['dorego', 'notewise', 'songalong', 'soundglow'].flatMap(app =>
+  const tasks = ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya'].flatMap(app =>
     ['chromium', 'webkit'].flatMap(browser => commandTasks(app, 'nightly', browser, cwd)));
   const caches = tasks.map(task => task.env.CI_VITE_CACHE_DIR);
   assert.equal(new Set(caches).size, tasks.length);
@@ -188,4 +188,12 @@ test('parallel Vite servers and catalog partitions own distinct writable depende
   const catalogs = tasks.filter(task => task.partition);
   assert.equal(catalogs.length, 6);
   assert.equal(new Set(catalogs.map(task => task.env.CI_VITE_CACHE_DIR)).size, 6);
+});
+
+test('reviewed multi-browser capacity and long-check priority reach the scheduler',()=>{
+  assert.equal(declaration('songalong','npm',['exec','--workspace=songalong','--','tsx','tests/instrument-features.browser.ts']).slots,4);
+  assert.equal(declaration('songalong','npm',['exec','--workspace=songalong','--','tsx','tests/score-view.browser.ts']).priority,50);
+  assert.equal(declaration('songalong','npm',['exec','--workspace=songalong','--','tsx','tests/score-export.browser.ts']).priority,50);
+  assert.equal(declaration('songalong','npm',['exec','--workspace=songalong','--','tsx','tests/guitar-sustain.browser.ts']).priority,50);
+  assert.equal(declaration('dorego','npm',['run','test:desktop','--workspace=dorego']).priority,50);
 });

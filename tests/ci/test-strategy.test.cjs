@@ -84,3 +84,11 @@ test('score layout visual corpus is required in Nightly and bounded component pr
   assert(!expanded('songalong','ci').some(command=>command.includes('score-layout.browser.ts')));
   assert(expanded('songalong','ci').some(command=>command.includes('score-layout-contract.browser.ts')));
 });
+
+
+test('complete piano benchmark runs once in Nightly; CI owns bounded shared units',()=>{
+ const command='tests/piano-benchmark.corpus.ts';
+ assert(!plan('songalong','ci','chromium').some(([,args])=>args.includes(command)));
+ assert.equal(plan('songalong','nightly','chromium').filter(([,args])=>args.includes(command)).length,1);
+ assert(!plan('songalong','nightly','webkit').some(([,args])=>args.includes(command)));
+});

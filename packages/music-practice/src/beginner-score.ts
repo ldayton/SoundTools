@@ -1,9 +1,12 @@
+import {sourceStaffIndex} from "./hymn-playback-staves";
+import {anchorScoreInk} from './score-layout/vertical';
+import { planGuitarPhrase, type GuitarPhraseNote, type GuitarFingeringProfile } from "./guitar-phrase-fingering";
 import type { AbsoluteElement, TuneObject, VoiceItem } from "abcjs";
 import { fingerstylePosition } from "./fingerstyle-tab";
 export type BeginnerInstrument = "piano" | "guitar";
 const ns = "http://www.w3.org/2000/svg";
 type Note = Extract<VoiceItem, {el_type:"note"}> & {abselem?: AbsoluteElement};
-type Entry = {note:Note; bar:number; voice:number; staffIndex:number; pitches:number[]; beat:number};
+type Entry = {note:Note; bar:number; voice:number; voiceKey:string; staffIndex:number; pitches:number[]; time:number; beat:number};
 
 export {bluesFingers as beginnerFingers} from "./fingerstyle-blues";
 import {bluesFingers as beginnerFingers} from "./fingerstyle-blues";
@@ -50,15 +53,18 @@ export function normalizeBeginnerLandmarks(paper:HTMLElement,tune:TuneObject,fro
   }
 }
 
-function entries(tune: TuneObject, from: number): Entry[] {
-  const states = new Map<number,{bar:number;beat:number;notes:boolean;held:Map<number,number>}>();
+function entries(tune: TuneObject, from: number,staffIndexes?:readonly number[]): Entry[] {
+  const states = new Map<string,{bar:number;beat:number;time:number;notes:boolean;held:Map<number,number>}>();
   const result: Entry[]=[];
   for (const line of tune.lines) for (const [si,staff] of (line.staff || []).entries()) {
     if (String(staff.clef?.type) === "TAB") continue;
+    const originalStaffIndex=sourceStaffIndex(staff,si);
+    if(staffIndexes&&!staffIndexes.includes(originalStaffIndex))continue;
     for (const [vi,voice] of (staff.voices || []).entries()) {
-      const id=((staff as typeof staff & {originalStaffIndex?:number}).originalStaffIndex ?? si)+vi;
-      const state=states.get(id) || {bar:from,beat:0,notes:false,held:new Map<number,number>()};
-      states.set(id,state);
+      const id=(staffIndexes?staffIndexes.indexOf(originalStaffIndex):originalStaffIndex)+vi;
+      const voiceKey=`${originalStaffIndex}:${vi}`;
+      const state=states.get(voiceKey) || {bar:from,beat:0,time:0,notes:false,held:new Map<number,number>()};
+      states.set(voiceKey,state);
       for (const item of voice) {
         if (item.el_type === 'bar') {
           if (state.notes) {state.bar++;state.beat=0;state.notes=false;}
@@ -71,8 +77,8 @@ function entries(tune: TuneObject, from: number): Entry[] {
           if(midi===undefined) return [];
           state.held.set(p.pitch,midi);return [midi];
         });
-        result.push({note:item,bar:state.bar,voice:id,staffIndex:si,pitches,beat:state.beat});
-        state.beat+=item.duration*4;state.notes=true;
+        result.push({note:item,bar:state.bar,voice:id,voiceKey,staffIndex:si,pitches,time:state.time,beat:state.beat});
+        state.time+=item.duration*4;state.beat+=item.duration*4;state.notes=true;
       }
     }
   }
@@ -108,10 +114,35 @@ function line(parent:SVGElement,x1:number,y1:number,x2:number,y2:number,cls:stri
   node.classList.add(cls);parent.append(node);return node;
 }
 
+type GuitarPositionFor=(pitch:number,chord:boolean,transpose:number,group?:readonly number[])=>{str:number;num:number}|undefined;
+/** Shared score adapter: keep every voice sounding while the hand is planned. */
+export function planScoreGuitarFingerings(tune:TuneObject,from=0,transpose=0,positionFor:GuitarPositionFor=fingerstylePosition,profile:GuitarFingeringProfile={},staffIndexes?:readonly number[]){
+  let unsupported=false;
+  const music=entries(tune,from,staffIndexes),events:GuitarPhraseNote[]=[],ids=new Map<Note,string[]>(),previous=new Map<string,string>();
+  for(const entry of music){
+    const {note,pitches,time,voiceKey}=entry;
+    ids.set(note,pitches.map((pitch,index)=>{
+      const position=positionFor(pitch,pitches.length>1,transpose,pitches);
+      if(!position){unsupported=true;return "";}
+      const id=`${voiceKey}:${time}:${index}`,key=`${voiceKey}:${pitch}`;
+      const tieFrom=note.pitches?.[index]?.endTie ? previous.get(key) : undefined;
+      events.push({id,start:time,duration:note.duration*4,string:position.str+1,fret:position.num,...(tieFrom?{tieFrom}:{})});
+      previous.set(key,id);return id;
+    }));
+  }
+  const plan=unsupported ? null : planGuitarPhrase(events,profile);
+  const planned=new Map(plan?.notes.map(note=>[note.id,note.finger]));
+  return {plan,ids,planned};
+}
+
 /** Add only the starting patterns and changes; repeated finger numbers are omitted. */
-export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstrument,from:number,transpose:number,tabOnly:boolean,fingersFor=beginnerFingers,pickingMarks=true,compactChordFingerings=false) {
-  const seen=new Set<string>(),picking=new Map<string,number>();
-  for(const {note,bar,voice,staffIndex,pitches} of entries(tune,from)) {
+export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstrument,from:number,transpose:number,tabOnly:boolean,fingersFor=beginnerFingers,pickingMarks=true,compactChordFingerings=false, positionFor:GuitarPositionFor=fingerstylePosition,planningTune=tune,capo=0,staffIndexes?:readonly number[]) {
+  const music=entries(tune,from,staffIndexes);
+  const guitar=instrument === 'guitar' ? planScoreGuitarFingerings(planningTune,from,transpose,positionFor,{capo},staffIndexes) : undefined;
+  const planned=guitar?.planned || new Map<string,number>();
+  const ids=new Map(music.map(entry=>[entry.note,entry.pitches.map((_,index)=>`${entry.voiceKey}:${entry.time}:${index}`)]));
+  const seen=new Set<string>(),lastFinger=new Map<string,number>(),picking=new Map<string,number>();
+  for(const {note,bar,voice,voiceKey,staffIndex,pitches} of music) {
     if(!pitches.length || note.pitches?.every(p=>p.endTie)) continue;
     const absolute=note.abselem as (AbsoluteElement & {cloned?:AbsoluteElement}) | undefined;
     const group=absolute?.elemset[0] as SVGGraphicsElement | undefined;
@@ -122,7 +153,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
     if(!target) continue;
     const targetBox=bounds(target,svg);if(!targetBox) continue;
     const original=pitches.map(p=>p-transpose);
-    const fingers=fingersFor(instrument,bar,voice,original);
+    const fingers=instrument === 'guitar' ? (ids.get(note)||[]).map(id=>planned.get(id) || 0) : fingersFor(instrument,bar,voice,original);
     const headBoxes=pitches.map((_,i)=>bounds(heads[i] || group,svg));
     const accidentals=[...group.querySelectorAll<SVGGraphicsElement>('.abcjs-accidental,[data-name^="accidentals."]')]
       .flatMap(e=>{const box=bounds(e,svg);return box?[box.x]:[];});
@@ -134,10 +165,14 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
     }
     const section=compactChordFingerings && (instrument === "guitar" || voice === 1) ? 0 : bar<8 ? 0 : bar;
     fingers.forEach((finger,index)=>{
-      if (tabOnly) return;
+
       if(!finger) return;
       const key=`${section}:${voice}:${original[index]}:${finger}`;
-      if(seen.has(key)) return;seen.add(key);
+      if(instrument === 'guitar'){
+        const contact=`${voice}:${original[index]}`;
+        if(lastFinger.get(contact)===finger)return;
+        lastFinger.set(contact,finger);
+      }else {if(seen.has(key)) return;seen.add(key);}
       const head = heads[index] || group;
       const box = bounds(head, svg); if (!box) return;
       let x = fingerX, y = fingerY[index];
@@ -155,14 +190,24 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
         x = box.x + box.width / 2;
         y = voice === 0 ? box.y + box.height + 16 : box.y - 8;
       }
-      const mark=text(svg,x,y,String(finger),'beginner-fingering',14);
+      if(tabOnly){
+        const tabNumber=target.querySelectorAll<SVGGraphicsElement>('.abcjs-tab-number')[index];
+        const ink=bounds(tabNumber||target,svg);if(!ink)return;
+        x=ink.x+ink.width+5;y=ink.y+ink.height/2+4;
+      }
+      const mark=text(svg,x,y,String(finger),'beginner-fingering',tabOnly?10:14);
       if (instrument === "guitar" && pitches.length === 1)
         mark.setAttribute("text-anchor", "middle");
       mark.setAttribute('font-family','sans-serif');
       mark.setAttribute('font-weight','700');
       mark.setAttribute('fill','#164e63');
-      mark.dataset.instrument=instrument;mark.dataset.voice=String(voice);
+      anchorScoreInk(mark,tabOnly?target:group);
+      mark.dataset.instrument=instrument;mark.dataset.voice=String(voice);mark.dataset.staff=voiceKey.split(':')[0];
       mark.dataset.pitch=String(original[index]);mark.dataset.finger=String(finger);
+      if(instrument === 'guitar'){
+        const event=guitar?.plan?.notes.find(n=>n.id===ids.get(note)?.[index]);
+        if(event){mark.dataset.string=String(event.string);mark.dataset.fret=String(event.fret);mark.dataset.beat=String(event.start);}
+      }
       mark.setAttribute('aria-label',`${instrument==='piano' ? voice===0?'Right hand':'Left hand' : 'Fretting hand'}: finger ${finger}`);
     });
     if(pickingMarks && instrument==='guitar' && pitches.length === 1) {
@@ -178,6 +223,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
           if(tab) y=voice===0 ? tab.y-34 : tab.y+tab.height+38;
         }
         const mark=text(svg,box.x+box.width/2,y,letter,'beginner-picking',10);
+        anchorScoreInk(mark,tabOnly?target:group);
         mark.setAttribute('text-anchor','middle');
         mark.setAttribute('aria-label',`Picking hand: ${letter==='p'?'thumb':letter==='i'?'index':'middle'} finger`);
         if(voice===0 && count===0 && !tabOnly) {
@@ -191,7 +237,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
             ring.setAttribute('fill','white');ring.setAttribute('stroke','currentColor');ring.setAttribute('stroke-width','0.8');
             circle.append(ring);
             const number=text(circle,x,y+3,String(position.str+1),'beginner-string-number',9);
-            number.setAttribute('text-anchor','middle');number.setAttribute('stroke','none');svg.append(circle);
+            number.setAttribute('text-anchor','middle');number.setAttribute('stroke','none');anchorScoreInk(circle,group);svg.append(circle);
           }
         }
       }
@@ -200,21 +246,21 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
 }
 
 /** Rhythmic tablature: independent melody/bass stems, eighth beams, rests and ties. */
-export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number,positionFor:(pitch:number,chord:boolean,transpose:number,group?:readonly number[])=>{str:number;num:number}|undefined=fingerstylePosition,rhythms=true,bassRests=false) {
+export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number,positionFor:(pitch:number,chord:boolean,transpose:number,group?:readonly number[])=>{str:number;num:number}|undefined=fingerstylePosition,rhythms=true,bassRests=false,staffIndexes?:readonly number[]) {
   const beam=new Map<number,{x:number;y:number;svg:SVGSVGElement;levels:number}[]>();
   const ties=new Map<string,{x:number;y:number;svg:SVGSVGElement}>();
-  for(const {note,voice,pitches} of entries(tune,from)) {
+  for(const {note,voice,pitches} of entries(tune,from,staffIndexes)) {
     const absolute=note.abselem as (AbsoluteElement & {cloned?:AbsoluteElement}) | undefined;
     const source=absolute?.elemset[0] as SVGGraphicsElement | undefined;
     const svg=source?.ownerSVGElement;if(!source || !svg) continue;
-    const staff=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-staff')].sort((a,b)=>a.getBBox().y-b.getBBox().y)[1];
+    const staff=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-staff')].sort((a,b)=>a.getBBox().y-b.getBBox().y).at(-1);
     if(!staff) continue;
     const box=bounds(staff,svg),sourceBox=bounds(source,svg);if(!box || !sourceBox) continue;
     const top=box.y,bottom=box.y+box.height,step=box.height/5;
     if(rhythms && voice===0 && !svg.querySelector('.tab-rhythm-meter') && svg===paper.querySelector('svg')) {
       const meter=document.createElementNS(ns,'g');meter.classList.add('tab-rhythm-meter');
       text(meter,box.x+38,top+23,String(tune.getMeterFraction().num),'tab-rhythm-time',16);
-      text(meter,box.x+38,top+43,String(tune.getMeterFraction().den),'tab-rhythm-time',16);svg.append(meter);
+      text(meter,box.x+38,top+43,String(tune.getMeterFraction().den),'tab-rhythm-time',16);anchorScoreInk(meter,staff);svg.append(meter);
     }
     const up=voice===0,lane=up ? top-25 : bottom+25;
     const tabSource=absolute?.cloned?.elemset?.[0] as SVGGraphicsElement|undefined;
@@ -229,7 +275,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
         const matrix=root.inverse().multiply(transform);
         const dy=lane-3-(sourceBox.y+sourceBox.height/2);
         rest.setAttribute('transform',`matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f+dy})`);
-        rest.classList.add('tab-rhythm-rest');svg.append(rest);
+        rest.classList.add('tab-rhythm-rest');anchorScoreInk(rest,staff);svg.append(rest);
       }
       continue;
     }
@@ -242,7 +288,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
     const base = dotted ? duration/1.5 : duration;
     const rhythm=document.createElementNS(ns,'g');rhythm.classList.add('tab-rhythm');
     rhythm.dataset.duration=String(duration);rhythm.dataset.voice=String(voice);
-    svg.append(rhythm);
+    anchorScoreInk(rhythm,staff);svg.append(rhythm);
     if(rhythms && duration < 1) {
       line(rhythm,x,anchor,x,lane,'tab-rhythm-stem');
       if(base===0.5) line(rhythm,x+3,anchor,x+3,lane,'tab-rhythm-half');
@@ -293,7 +339,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
           continuation.setAttribute('paint-order', 'stroke');
           continuation.setAttribute('stroke', 'white');
           continuation.setAttribute('stroke-width', '3');
-          svg.append(continuation);
+          anchorScoreInk(continuation,staff);svg.append(continuation);
         }
         const previous=ties.get(key);
         const path=document.createElementNS(ns,'path');
@@ -315,8 +361,8 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
   // Reserve room for both rhythmic voices, including the lowest bass stems.
   for(const svg of paper.querySelectorAll('svg')) {
     const staves=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-staff')].sort((a,b)=>a.getBBox().y-b.getBBox().y);
-    if(staves.length!==2) continue;
-    const tab=bounds(staves[1],svg);if(!tab) continue;
+    if(staves.length<2) continue;
+    const tab=bounds(staves.at(-1)!,svg);if(!tab) continue;
     const v=svg.viewBox.baseVal;
     const bottom=Math.max(v.y+v.height,tab.y+tab.height+42);
     svg.setAttribute('viewBox',`${v.x} ${v.y} ${v.width} ${bottom-v.y}`);
@@ -324,9 +370,9 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
 }
 
 /** Adjacent staff noteheads may stagger; simultaneous tab frets must stay aligned. */
-export function alignSimultaneousTab(tune:TuneObject,from:number) {
+export function alignSimultaneousTab(tune:TuneObject,from:number,staffIndexes?:readonly number[]) {
  const onsets=new Map<string,number>();
- for(const {note,bar,beat,voice} of entries(tune,from)) {
+ for(const {note,bar,beat,voice} of entries(tune,from,staffIndexes)) {
   const absolute=note.abselem as (AbsoluteElement & {cloned?:AbsoluteElement})|undefined;
   const number=absolute?.cloned?.elemset?.[0] as SVGGraphicsElement|undefined;
   const svg=number?.ownerSVGElement;if(!number||!svg)continue;

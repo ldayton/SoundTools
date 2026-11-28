@@ -219,12 +219,9 @@ try {
                   for (const instrument of style === "rock"
                     ? ["rock-guitar", "rock-muted", "rock-bass"]
                     : ["blues-rhythm", "blues-lead", "blues-bass"]) {
-                    const stemFrom =
-                      instrument === "rock-guitar"
-                        ? 64
-                        : style === "blues"
-                          ? 48
-                          : 32;
+                    // Approved Blues answers at beats 38–40, inside the
+                    // guitar-led phrase, rather than the later bass feature.
+                    const stemFrom = instrument === "rock-guitar" ? 64 : 32;
                     const stemBeats = style === "blues" ? 16 : 8;
                     const c = new OfflineAudioContext(
                       2,
@@ -306,9 +303,7 @@ try {
           if (variant === "B-after")
             assert.equal(
               metrics.phrasing,
-              style === "rock"
-                ? "roots-rock-dynamics-v3"
-                : "blues-shuffle-answers-v3",
+              "approved-ensemble-v1",
             );
           for (const [instrument, stem] of Object.entries(metrics.stems)) {
             assert.ok(

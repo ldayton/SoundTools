@@ -234,3 +234,11 @@ test("staff Show/Play selections survive score switches, reloads and independent
   loaded={...loaded,...mergeHymnSettings(loaded,{arrangement:"guitar-vocal"})};
   assert.deepEqual(loaded.hiddenStaves,[0]);assert.deepEqual(loaded.mutedStaves,[1]);
 });
+
+test("guitar display controls preserve independent Voice visibility",async()=>{
+ const {guitarStaffShown,toggleGuitarStaff}=await import('../../../packages/music-practice/src/hymn-playback-staves');
+ assert.equal(guitarStaffShown('both',[0],'tab',1),true);
+ assert.deepEqual(toggleGuitarStaff('both',[0],'notation',false,true,1),{scoreDisplay:'tab',hiddenStaves:[0]});
+ assert.deepEqual(toggleGuitarStaff('tab',[0],'tab',false,true,1),{scoreDisplay:'chords',hiddenStaves:[0]});
+ assert.deepEqual(toggleGuitarStaff('tab',[0],'tab',false,false,1),{scoreDisplay:'tab',hiddenStaves:[0,1]});
+});

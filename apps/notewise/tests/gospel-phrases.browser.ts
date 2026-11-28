@@ -109,7 +109,7 @@ try {
           cycle: p.cycle,
         };
       });
-      assert.equal(before.phrasing, "gospel-phrases-v1");
+      assert.equal(before.phrasing, "approved-ensemble-v1");
       assert.equal(before.ids.length, 8);
       assert.equal(new Set(before.ids).size, 2);
       assert.ok(
@@ -169,10 +169,12 @@ try {
           t.plan.tonic,
           t.quality,
           t.phrasing,
-          t.phraseIds[0].startsWith("minor-"),
+          t.phraseIds[0],
+          [...new Set(t.events.filter((e: any) => ["guitar", "bass", "keys"].includes(e.part))
+            .map((e: any) => e.note % 12))].sort((a: any, b: any) => a - b),
         ];
       }),
-      [7, "minor", "gospel-phrases-v1", true],
+      [7, "minor", "approved-ensemble-v1", "approved-gospel-active-0", [2, 5, 7, 10]],
     );
     await panel
       .getByRole("button", { name: "Pause backing track", exact: true })

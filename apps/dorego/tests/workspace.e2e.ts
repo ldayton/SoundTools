@@ -77,6 +77,10 @@ try {
   assert.equal(await page.getByRole('button', { name: 'Help', exact: true }).count(), 0);
   await page.locator('#low-spin').click();
   const pitchPicker = page.getByRole('dialog', { name: 'Choose lowest note' });
+  assert.equal(await pitchPicker.locator('button[data-value]').count(), 36);
+  assert.equal(await pitchPicker.locator('button[data-value]').first().getAttribute('data-value'), '48');
+  assert.equal(await pitchPicker.locator('button[data-value]').last().getAttribute('data-value'), '83');
+  await pitchPicker.getByRole('button', { name: 'Extended range', exact: true }).click();
   assert.equal(await pitchPicker.locator('button[data-value]').count(), 60);
   assert.equal(
     await pitchPicker.locator('button[data-value]').first().getAttribute('data-value'),
@@ -95,12 +99,14 @@ try {
   assert.equal(await page.getByRole('link', { name: 'Warm-up', exact: true }).count(), 0);
   const header = page.locator('.mantine-AppShell-header');
   const play = page.locator('#play');
-  assert.ok(await header.locator('#play').count());
+  assert.equal(await header.locator('#play, #restart, #previous-round, #next-round, #repeat-round').count(), 0);
+  assert.equal(await header.locator('#low-spin, #high-spin').count(), 2);
+  assert.equal(await page.getByRole('group', { name: 'Playback controls', exact: true }).locator('button').count(), 5);
   assert.equal(
     await page.getByRole('slider', { name: 'Playback position', exact: true }).count(),
     0
   );
-  assert.match(await header.locator('#elapsed').innerText(), /0:00 \/ \d+:\d+/);
+  assert.match(await page.locator('.practice-progress #elapsed').innerText(), /0:00 \/ \d+:\d+/);
   assert.equal(await page.locator('[role=radio]').count(), 0);
   await page.locator('#direction-down').click();
   assert.equal(await page.locator('#direction-down').getAttribute('aria-pressed'), 'true');
@@ -120,16 +126,15 @@ try {
   assert.equal(await page.locator('#next-round').isDisabled(), true);
   await page.locator('#previous-round').click();
   await page.locator('#restart').click();
-  const before = await play.boundingBox();
   for (const name of [
-    'Collapse navigation',
-    'Collapse practice options',
-    'Open navigation',
-    'Expand practice options',
+    'Collapse navigation', 'Collapse practice options', 'Open navigation', 'Expand practice options',
   ]) {
     await page.getByRole('button', { name, exact: true }).click();
-    const after = await play.boundingBox();
-    assert.ok(Math.abs(after!.x - before!.x) < 2, `${name} moves transport`);
+    await page.waitForFunction(() => {
+      const controls = document.querySelector('.dorego-transport')!.getBoundingClientRect();
+      const card = document.querySelector('#practice-card')!.getBoundingClientRect();
+      return Math.abs(controls.x + controls.width / 2 - card.x - card.width / 2) < 2;
+    });
   }
   assert.ok(
     (await page.locator('.note-pad').count()) === 5,

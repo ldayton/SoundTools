@@ -885,3 +885,14 @@ that run's `timings-*` and `failure-*` artifacts. No check is disabled or retrie
 The earlier catalog/scale-layout failures no longer reproduce in the initial
 current-main diagnostic witnesses. They remain required in the complete Nightly
 validation; those diagnostic passes alone do not establish an all-platform fix.
+
+The first full local diagnostic at `84e9fc9a` retained evidence in
+`work/ci-results/1795862759768-35b15fb4`: 166 command groups passed and five
+failed on the remaining approved-ensemble or TAB-only fingerings expectations.
+The unrelated final Soundglow timing group was deliberately cancelled after
+capturing all non-timing results; **this diagnostic run is not a Nightly pass**.
+The follow-up updates every affected actual-player version assertion in the
+remaining genre chain, preserves raw/reference arranger expectations, and checks
+TAB-only hints can be toggled without changing frets. The provisioning lock
+fixture uses an explicit temporary apt root so real Linux host sources cannot
+change what its fake `sudo tee` captures. Complete hosted Nightly remains required.

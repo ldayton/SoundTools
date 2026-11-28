@@ -109,7 +109,7 @@ try {
           cycle: p.cycle,
         };
       });
-      assert.equal(before.phrasing, "gospel-phrases-v1");
+      assert.equal(before.phrasing, "approved-ensemble-v1");
       assert.equal(before.ids.length, 8);
       assert.equal(new Set(before.ids).size, 2);
       assert.ok(
@@ -172,7 +172,7 @@ try {
           t.phraseIds[0].startsWith("minor-"),
         ];
       }),
-      [7, "minor", "gospel-phrases-v1", true],
+      [7, "minor", "approved-ensemble-v1", true],
     );
     await panel
       .getByRole("button", { name: "Pause backing track", exact: true })

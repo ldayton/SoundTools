@@ -16,7 +16,7 @@ test('Linux browser provisioning waits for the existing apt lock within its dead
     fs.writeFileSync(sudo, '#!/bin/sh\nif [ "$1" = "tee" ]; then cat > "$LOCK_CAPTURE"; else exit 0; fi\n', {mode:0o755});
     fs.writeFileSync(npx, '#!/bin/sh\nprintf "%s\\n" "$@" > "$INSTALL_CAPTURE"\n', {mode:0o755});
     const lock = path.join(directory, 'lock'), install = path.join(directory, 'install');
-    execFileSync('bash', ['scripts/install-ci-browser.sh', 'chromium'], {env:{...process.env, RUNNER_OS:'Linux', PATH:directory+path.delimiter+process.env.PATH, LOCK_CAPTURE:lock, INSTALL_CAPTURE:install}, stdio:'pipe'});
+    execFileSync('bash', ['scripts/install-ci-browser.sh', 'chromium'], {env:{...process.env, RUNNER_OS:'Linux', SOUNDTOOLS_APT_ROOT:directory, PATH:directory+path.delimiter+process.env.PATH, LOCK_CAPTURE:lock, INSTALL_CAPTURE:install}, stdio:'pipe'});
     assert.equal(fs.readFileSync(lock,'utf8'), 'DPkg::Lock::Timeout "120";\n');
     assert.equal(fs.readFileSync(install,'utf8'), 'playwright\ninstall\n--with-deps\nchromium\n');
   } finally { fs.rmSync(directory, {recursive:true,force:true}); }

@@ -279,7 +279,7 @@ try {
         assert.equal(metrics.stopped, 0, "pause releases organ oscillators");
         if (variant === "B-after") {
           assert.equal(metrics.profile, "reggae");
-          assert.equal(metrics.phrasing, "reggae-roots-bubble-v2");
+          assert.equal(metrics.phrasing, "approved-ensemble-v1");
         }
         if (pcm) {
           await mkdir(output, { recursive: true });

@@ -62,7 +62,13 @@ try {
   await selectScoreDisplay(page,'tab');
   await expect(page.locator('[data-name=tabNumber]').first()).toBeVisible();
   assert(await page.locator('.tab-rhythm-stem').count());
+  await expect(page.locator('.beginner-fingering').first()).toBeVisible();
+  await openHymnControls(page);
+  const tabFingerings=page.getByRole('checkbox',{name:'Show fingerings',exact:true});
+  await expect(tabFingerings).toBeEnabled();await tabFingerings.uncheck();
   await expect(page.locator('.beginner-fingering')).toHaveCount(0);
+  await tabFingerings.check();await dismissPracticeDrawer(page);
+  await expect(page.locator('.beginner-fingering').first()).toBeVisible();
   await expect(page.locator('.abcjs-bar.abcjs-v3')).toHaveCount(0);
   assert.equal(await page.locator('.fingerstyle-tab-clef').count(), await page.locator('.hymn-paper svg').count());
   await expect(page.locator('.abcjs-tempo')).toHaveCount(0);

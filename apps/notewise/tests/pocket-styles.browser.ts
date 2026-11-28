@@ -307,9 +307,7 @@ try {
           if (variant === "B-after")
             assert.equal(
               metrics.phrasing,
-              style === "funk"
-                ? "funk-pocket-sixteenths-v2"
-                : "soul-mellow-conversation-v2",
+              "approved-ensemble-v1",
             );
           for (const [instrument, stem] of Object.entries(metrics.stems)) {
             assert.ok(

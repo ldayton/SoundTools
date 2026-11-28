@@ -237,3 +237,21 @@ export async function selectOctaveCapableGuitarHymn(){
  for(const hymn of hymns)if(hymnAvailableArrangements(hymn).some(a=>a.id==='guitar-edition')&&recommendHymnGuitarCapos(hymn,{transpose:12}).length)return hymn;
  throw Error('Octave controls require a physically proved higher guitar register');
 }
+
+/** Three distinct verses sharing a real chorus, independently of song identity. */
+export const sharedChorusFixture = (() => {
+  for(const hymn of hymns){
+    if(hymn.stanzas.length<3)continue;
+    const verses=hymn.stanzas.slice(0,3);
+    for(const section of hymn.lyricSections){
+      const words=verses[0].syllables.slice(section.start,section.end);
+      if(words.length<8 || !verses.slice(1).every(v=>JSON.stringify(v.syllables.slice(section.start,section.end))===JSON.stringify(words)))continue;
+      const marker=words[0]?.match(/[\p{L}\p{N}]+/u)?.[0];if(!marker)continue;
+      const occurrences=verses[0].syllables.filter(w=>w.startsWith(marker)).length;
+      if(!occurrences || !verses.every(v=>v.syllables.filter(w=>w.startsWith(marker)).length===occurrences))continue;
+      if(new Set(verses.map(v=>JSON.stringify(v.syllables))).size!==3)continue;
+      return {hymn,marker,occurrences};
+    }
+  }
+  throw Error('The stanza contract requires three distinct verses with a shared chorus; do not change product music to create a fixture.');
+})();

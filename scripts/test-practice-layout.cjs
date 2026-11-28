@@ -1,5 +1,7 @@
 // One layout contract exercised against each app's real production build.
 const assert = require("node:assert/strict");
+require("tsx/cjs");
+const { openHymnControls, closePracticeOptions } = require("../packages/music-practice/browser-tests/helpers.ts");
 const { spawn } = require("node:child_process");
 const { mkdir, mkdtemp, rm } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
@@ -456,9 +458,7 @@ const server = spawn(
               geometry.header,
               "Score begins directly below the toolbar",
             );
-            await phone
-              .getByRole("button", { name: "Show controls", exact: true })
-              .tap();
+            await openHymnControls(phone);
             assert.equal(await phone.locator("#hymn-tempo").isEnabled(), true);
             const size = Number.parseInt(
               await phone.locator("#hymn-size").inputValue(),
@@ -482,9 +482,7 @@ const server = spawn(
               tempo,
             );
             await phone.locator("#hymn-tempo-down").tap();
-            await phone
-              .getByRole("button", { name: "Hide controls", exact: true })
-              .tap();
+            await closePracticeOptions(phone);
             await phone.waitForFunction(
               () =>
                 document.querySelector("#saved").textContent ===

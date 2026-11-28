@@ -175,15 +175,19 @@ try {
       throw Error(JSON.stringify(p.model.getSnapshot()));
     const beats = 256;
     const seekStart = sampleTimes.length;
-    p.reschedule(beats - 0.8, c.currentTime + 0.06);
+    const seekPosition=beats-0.8, seekAt=c.currentTime+0.06, seekTempo=p.model.getSnapshot().tempo;
+    const boundary=seekAt+(beats-seekPosition)*60/seekTempo;
+    p.reschedule(seekPosition, seekAt);
     await new Promise((r) => setTimeout(r, 900));
     // Count fresh scheduled notes, not held voices restored during catch-up.
     // Ignore notes from the earlier play call. A pre-seek beat-zero event
     // must not let a scheduler that stops at the seam pass this regression.
     const seamEvents = sampleTimes.slice(seekStart);
-    const tail = seamEvents.find((x) => x.beat > beats - 1);
-    const crossed =
-      !!tail && seamEvents.some((x) => x.beat < 1 && x.when > tail.when);
+    // A cadential tail may be held rather than freshly attacked after seeking.
+    // Require fresh next-cycle attacks at the independently predicted boundary;
+    // neither an earlier play call nor restored held voices can satisfy this.
+    const crossed = seamEvents.some(x=>x.beat<1 &&
+      Math.abs(x.when-(boundary+x.beat*60/seekTempo))<0.00001);
     const maxGap = seamEvents
       .slice(1)
       .reduce((n, x, i) => Math.max(n, x.when - seamEvents[i].when), 0);
@@ -293,6 +297,7 @@ try {
       integratedPaused,
       synced,
       crossed,
+      seamEvents,
       maxGap,
       retained,
       stopped,
@@ -320,7 +325,7 @@ try {
     result.synced.every((n: number) => n < 0.00001),
     "clicks share backing phase",
   );
-  assert.ok(result.crossed, "events scheduled through long loop boundary");
+  assert.ok(result.crossed, `events scheduled through long loop boundary: ${JSON.stringify(result.seamEvents)}`);
   assert.ok(result.maxGap < 0.6, "no ending/count-in gap");
   assert.ok(
     result.seams.every((rms: number) => rms > 0.00001),

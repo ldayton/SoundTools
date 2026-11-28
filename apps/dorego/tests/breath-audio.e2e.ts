@@ -39,6 +39,7 @@ try {
     localStorage.setItem('dorego.breathSquares', JSON.stringify({ rounds: 1, seconds: 1 }));
     const probe = ((window as any).breathAudio = {
       contexts: [] as AudioContext[],
+      tickContext: undefined as AudioContext | undefined,
       ticks: [] as number[],
       peak: 0,
       blocked: false,
@@ -55,7 +56,7 @@ try {
     };
     const start = OscillatorNode.prototype.start;
     OscillatorNode.prototype.start = function (at = 0) {
-      if (this.frequency.value === 1400) probe.ticks.push(at);
+      if (this.frequency.value === 1400) {probe.ticks.push(at);probe.tickContext=this.context as AudioContext;}
       return start.call(this, at);
     };
     const connect = AudioNode.prototype.connect;
@@ -115,7 +116,7 @@ try {
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
   await page.locator('#breath-play[data-mode="playing"]').waitFor();
   await page.evaluate(async () => {
-    await (window as any).breathAudio.contexts.at(-1).suspend();
+    await (window as any).breathAudio.tickContext.suspend();
   });
   await page.getByRole('alert').filter({ visible: true }).waitFor();
   await page.getByRole('button', { name: 'Resume', exact: true }).waitFor();
@@ -128,7 +129,7 @@ try {
     (window as any).breathAudio.blocked = false;
   });
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
-  await page.waitForFunction(() => (window as any).breathAudio.contexts.at(-1).state === 'running');
+  await page.waitForFunction(() => (window as any).breathAudio.tickContext.state === 'running');
   assert.equal(await page.getByRole('alert').filter({ visible: true }).count(), 0);
   await page.locator('#breath-restart').click();
   assert.deepEqual(errors, []);

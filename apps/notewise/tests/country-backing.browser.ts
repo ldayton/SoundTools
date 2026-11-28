@@ -281,7 +281,7 @@ try {
     result.brushNotChoked,
     "independent recorded brush strokes retain their tails",
   );
-  assert.equal(result.phrasing, "acoustic-two-step-v1");
+  assert.equal(result.phrasing, "approved-ensemble-v1");
   assert.equal(result.changedTempo, 120);
   assert.ok(result.bassCount > 128 && result.bassCount <= 136);
   assert.equal(result.final.style, "country");

@@ -852,3 +852,36 @@ DoReGo's equivalent Nightly desktop command retains the same priority. Existing
 scheduler policy tests cover propagation. Coverage, concurrency identities,
 ports/audio locks and the 60-second budget are unchanged; the next measurement
 uses `npm run ci -- --base origin/main --all --workers 16` on the clean commit.
+
+## Nightly contract repair — 28 November 2026
+
+The [27 November Nightly](https://github.com/ldayton/SoundTools/actions/runs/46000859884)
+is the retained first-failure owner. Its logs, screenshots and traces remain in
+that run's `timings-*` and `failure-*` artifacts. No check is disabled or retried.
+
+- Breathing audio fault injection selected the last-created AudioContext, which
+  can belong to another instrument. The probe now targets the context that
+  actually emitted the breathing tick. Chromium and WebKit observe interruption,
+  rejected resume and subsequent recovery against that real signal.
+- The approved backing arrangement can hold its cadence across a seek without
+  another late-bar attack. The loop witness requires fresh next-cycle attacks at
+  the independently calculated seam, retaining its real PCM continuity checks.
+  A diagnostic scheduler that stops at the seam is rejected with no fresh events.
+  Roots/country browser assertions now require the published approved-ensemble
+  version, while their articulation, sample, tempo and memory checks remain.
+- Generic chorus controls now select three distinct verses with shared chorus
+  data through the common capability fixtures, rather than assuming seven verses
+  in a named product song. Continuation systems follow the existing opening-only
+  signature contract. Chord visibility is tested independently of staff visibility:
+  hiding every staff retains the enabled chord chart; hiding Chords too empties it.
+- The mobile layout witness uses the shared controls/options helpers rather than
+  a removed Show controls button, preserving the numeric-edit/reload checks.
+- WebKit edition provisioning failed twice because the runner's optional Microsoft
+  apt feed returned HTTP 403. Browser provisioning now limits apt to the existing
+  signed Ubuntu source file for that step and restores normal source policy on
+  success or failure. A shell fixture verifies vendor files and signing settings
+  are unchanged; existing bounded provisioning retries remain unchanged.
+
+The earlier catalog/scale-layout failures no longer reproduce in the initial
+current-main diagnostic witnesses. They remain required in the complete Nightly
+validation; those diagnostic passes alone do not establish an all-platform fix.

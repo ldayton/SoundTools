@@ -78,3 +78,9 @@ step size and committed-value behavior remain shared with the default field.
 `PracticeOptionsProvider` accepts `purpose="contents"` for navigation panels.
 It keeps the shared drawer, sidebar and focus behavior, with Open/Close contents
 labels and a larger list-icon trigger. The default options presentation is unchanged.
+
+`SwipePager` uses native horizontal snap scrolling with vertically scrollable
+pages. Only touch, horizontal wheel, or arrow-key input may select a page.
+Prop alignment, resizing, and incidental browser scroll settlement preserve the
+selected value. `blocked` cancels pending paging and realigns the selected page.
+Inactive pages remain inert and hidden from accessibility navigation.

@@ -1278,3 +1278,87 @@ limit, independently of bounded live-page reads/screenshots. A failed driver exp
 removes its partial ZIP and records the export error. The unit regression advances
 virtual diagnostic time while export is pending, proving capture does not finish
 early, and checks failed partial-file cleanup without adding real CI delay.
+## 2026-11-28: DoReGo native-pager CI budget
+
+The complete applicable CI run at `93001a80`
+(`work/ci-results/1795873525684-c407f3b4`) exhausted the 60-second limit,
+reporting 62.22 seconds including cancellation cleanup. No assertion failed
+before cancellation. The new native-pager/options witness completed in the
+existing sequence owner (15.2 seconds); DoReGo desktop and SongAlong's mobile
+instrument toolbar were cancelled. Their retained logs show ordinary progress
+and browser shutdown from the coordinator, not a failed product assertion.
+
+The six-worker shared music pool took 28.2 seconds and 165.8 CPU seconds.
+The sequence and several independent browser tasks queued for 14.5 seconds;
+SongAlong's mobile toolbar queued for 9.9 seconds. The next measurement uses
+the documented `CI_UNIT_WORKERS=4` configuration with the same standard local
+coordinator, required commands, port/audio locks, committed revision and
+60-second deadline. No test is removed, retried, relaxed or assigned a longer
+timeout. This is an explicit scheduling comparison, not a passing rerun offered
+as proof that the cancelled run passed.
+
+The four-unit-worker comparison at `37893855`
+(`work/ci-results/1795873732185-c5006a32`) also exceeded the budget at
+62.17 seconds; shared music completed in 38.7 seconds and DoReGo desktop was
+cancelled after 38 seconds. The new DoReGo pager/sequence witness passed.
+This run also retained a real Tagalujah fixture assertion failure:
+`apps/tagaluya/work/browser-results/reader.browser.ts-chromium-fb908ee5`.
+Its next swipe left the heading at Bilingual instead of Next reading fixture.
+The reader's native-input helper sent all six touch moves without allowing a
+compositor frame, the same input-coalescing problem encountered while developing
+the DoReGo witness. Both the ordinary drag and reverse-drag fixture now deliver
+movement across animation frames. Every heading, cancellation, boundary,
+scroll-settlement and resize assertion remains required and unchanged.
+
+DoReGo's inactive previews now cache their musical shape independently of
+loudness and tempo, since those edits do not change pitches or beat counts.
+Their displayed duration still uses the live BPM. The next diagnostic runs the
+owned DoReGo lane through `scripts/ci/check-app.cjs` to distinguish its runtime
+from full-suite resource contention; it is not a substitute for full local CI.
+
+The isolated lane at `618d7f48` did not merely run slowly: its desktop witness
+ultimately timed out after 51.8 seconds waiting for Repeat round. First artifacts:
+`apps/dorego/work/browser-results/desktop.e2e.ts-chromium-b37b7e32` and
+`work/ci-results/1795873921147-1ad34681`. Resizing the completed Major Scale
+from desktop to phone had selected Breath Squares. The shared pager interpreted
+native resize/snap settlement as user navigation, so the expected controls
+were absent. The earlier full-suite budget cancellations masked this regression.
+
+The pager now requires touch, horizontal wheel, or arrow-key intent before
+reporting a selection. Resize, prop alignment, and blocked-dialog transitions
+clear that intent and realign the current value. The independent DoReGo pager
+witness explicitly checks a selected page far from the first across desktop and
+phone resizing. WebKit witnesses now use native horizontal wheel input rather
+than imperative scrollTo to represent user paging. Every original assertion
+remains required. The follow-up isolated DoReGo lane completed successfully in
+40.8 seconds, including its build; desktop finished in 29.4 seconds. This
+supports the fix but does not replace the next complete local CI measurement.
+
+The next complete run (`1795874309115-9a072449`) finished within budget at
+59.39 seconds, with the DoReGo desktop and native-pager cases passing, but
+Tagalujah's He Is Lord → You, You Are God assertion failed. The isolated reader
+run (`1795874478781-ebd31c1e`) reproduced it against the expected bundle.
+The pager and both witnesses now ignore descendant vertical scrollend events
+when settling the horizontal track; this also prevents false readiness signals.
+
+A bounded event-instrumented diagnostic (`1795874628561-c7605474`) then showed
+the physical input delivered over 330 ms: the horizontal track moved from 393
+to 558 pixels, only 165 pixels on a 393-pixel page, then correctly snapped back.
+The fixed 180-pixel test gesture relied on fling velocity to exceed halfway.
+Full navigation gestures now travel 250 pixels, unambiguously exceeding halfway
+at both tested phone widths. The shorter/reversed cancellation, vertical-reading,
+edge and resize assertions are unchanged. Diagnostic instrumentation was removed.
+The corrected isolated reader lane passed in 28.0 seconds including build
+(`1795874722759-1f29d699`). WebKit uses real horizontal wheel input and waits for
+track scrollend, matching the user-intent contract rather than forcing scrollTo.
+
+The WebKit native-wheel experiment (`1795874866950-5a890ccc`) advanced two
+pages for a wheel delta equal to one page width, failing the unchanged adjacent
+song assertion. WebKit automation has no native touch-drag injection. Its
+witnesses therefore retain the original deterministic scrollTo geometry/snap
+scope, with an explicit synthetic wheel-intent signal before scrolling one page
+and an observable track scrollend afterward. Chromium alone owns real touch
+arbitration; no claim of WebKit native-touch coverage is made. All selection,
+cancellation, edge, resize and persistence assertions remain. The complete
+isolated WebKit reader lane passed in 15.7 seconds including build
+(`1795875004742-30254d84`).

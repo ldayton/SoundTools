@@ -67,12 +67,12 @@ try {
     'Arpeggio & Scale (Rising first)'
   );
   assert.deepEqual(await page.locator('[data-pattern]').allTextContents(), [
-    'Arpeggio & Scale',
     'Octave Arpeggio',
     'Rossini Scale',
     'Pentatonic Threes',
-    'Major Scale',
     'Glides',
+    'Arpeggio & Scale',
+    'Major Scale',
     'Maqamat',
     'Yemenite ✡︎',
     'Breath Squares',

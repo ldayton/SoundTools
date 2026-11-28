@@ -83,9 +83,10 @@ export function exerciseFamily(pattern: Pattern): Pattern {
     : isGlidePattern(pattern) ? 'fifthGlide'
     : pattern === 'fiveNote' ? 'major' : pattern;
 }
-export const EXERCISE_PATTERNS = (Object.keys(PATTERNS) as Pattern[]).filter(
-  pattern => exerciseFamily(pattern) === pattern
-);
+export const EXERCISE_PATTERNS: readonly Pattern[] = [
+  'octaveArpeggio', 'rossini', 'pentatonic6', 'fifthGlide',
+  'arpeggio', 'major', 'maqamat', 'yemenite',
+];
 
 export function isGlidePattern(pattern: Pattern) {
   return pattern === 'fifthGlide' || pattern === 'octaveGlide';

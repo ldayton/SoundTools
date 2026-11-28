@@ -141,13 +141,15 @@ mountAppShell($('#app'), {
       model: builderModel,
       active,
       change: (patch: SpecPatch) => {
-        refresh(patch);
+        if (patch.pattern) selectExercise(patch.pattern);
+        else refresh(patch);
         selected();
       },
     }),
   title: 'Warm-up',
   getVolume: () => spec.volume,
   moveExercise,
+  selectExercise,
   volumeControl: createElement(PracticeVolume, { model: practiceModel, volume: changeVolume }),
   toolbar: createElement(PracticeToolbar, {
     model: practiceModel,
@@ -298,9 +300,14 @@ function systemWarmupActive() { return preferences.state.selected === 'warmup' &
 function moveExercise(step: -1 | 1) {
   if (location.hash === '#settings') return;
   const next = adjacentExercise(spec.pattern, preferences.state.selected, step);
+  selectExercise(next.pattern ?? 'breathSquares');
+}
+function selectExercise(page: ExerciseSpec['pattern'] | 'breathSquares') {
+  if (page === spec.pattern && preferences.state.selected === 'warmup') return;
+  reference.stopAll();
   stop(false);
-  if (next.pattern) refresh({ pattern: next.pattern });
-  preferences.update({ selected: next.selected });
+  if (page !== 'breathSquares') refresh({ pattern: page });
+  preferences.update({ selected: page === 'breathSquares' ? 'breathSquares' : 'warmup' });
 }
 function updateSystemMedia(force = false) {
   updateMediaSession(

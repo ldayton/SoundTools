@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import type { Browser } from 'playwright';
 import { newPage, waitForApp, captureFailure } from '../../../scripts/ci/browser-harness.cjs';
 import { DEFAULT_SPEC } from '../src/music';
+import { openPracticeOptions, closePracticeOptions } from './ui-helpers';
 
 /** One real scheduler witness; the pure sequence tests own the exercise/option matrix. */
 export async function verifySequence(browser: Browser, base: string) {
@@ -152,6 +153,7 @@ export async function verifySequence(browser: Browser, base: string) {
     );
     await page.locator('#play').click();
     assert.deepEqual(errors, []);
+    await verifyExerciseNavigation(browser, base);
     console.log(
       'PASS shared sequence: options retain sounding source; next round gets new chords/rest after deferred samples; count-in waits for restart; paused edits stay paused.'
     );
@@ -160,6 +162,143 @@ export async function verifySequence(browser: Browser, base: string) {
     throw error;
   } finally {
     releaseSamples();
+    await page.close();
+  }
+}
+
+/** The shared native pager must work from empty space and playable piano pads. */
+export async function verifyExerciseNavigation(browser: Browser, base: string) {
+  const page = await newPage(browser, { viewport: { width: 1440, height: 1000 }, hasTouch: true });
+  await page.addInitScript(spec => {
+    localStorage.setItem('dorego.current', JSON.stringify(spec));
+    localStorage.setItem('dorego.glideShapeVersion', '1');
+  }, { ...DEFAULT_SPEC, pattern: 'octaveArpeggio', low: 52, high: 77, countIn: 0 });
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  try {
+    await page.goto(base);
+    await waitForApp(page, '#play:enabled');
+    assert.deepEqual(await page.locator('[data-pattern]').evaluateAll(elements => elements.map(element => element.getAttribute('data-pattern'))), ['octaveArpeggio', 'rossini', 'pentatonic6', 'fifthGlide', 'arpeggio', 'major', 'maqamat', 'yemenite', 'breathSquares']);
+    const icons = await page.evaluate(() => {
+      const settings = document.querySelector('[data-settings] svg')!.getBoundingClientRect();
+      const account = document.querySelector('[data-account-entry] svg')!.getBoundingClientRect();
+      return { settingsX: settings.x + settings.width / 2, accountX: account.x + account.width / 2, settingsY: settings.y, accountY: account.y };
+    });
+    assert.ok(Math.abs(icons.settingsX - icons.accountX) < 1 && icons.accountY > icons.settingsY, 'Account and Settings icons share a column');
+    assert.ok(await page.locator('#pitch-options').isVisible(), 'Desktop keeps the range controls');
+    const order = await page.evaluate(() => ['startingChords', 'repeatTwice', 'repeatTurn', 'repeatHome', 'range-heading', 'voice-feedback'].map(id => document.getElementById(id)!.getBoundingClientRect().y));
+    assert.ok(order.every((y, index) => index === 0 || y > order[index - 1]), 'Frequent controls come first; voice feedback comes last');
+    assert.equal(await page.getByRole('img', { name: 'Experimental', exact: true }).count(), 1);
+    assert.ok(await page.getByLabel('Beta features', { exact: true }).locator('#voice-feedback').count() === 1);
+    for (const id of ['startingChords', 'repeatTwice', 'repeatTurn', 'repeatHome']) await page.locator('#' + id).check();
+    await page.setViewportSize({ width: 390, height: 844 });
+    const track = page.locator('.dorego-exercise-pager .swipe-pager');
+    await page.waitForFunction(() => {
+      const r = document.querySelector('.swipe-pager')!.getBoundingClientRect();
+      const header = document.querySelector('header')!.getBoundingClientRect();
+      return Math.abs(r.width - innerWidth) < 1 && Math.abs(r.y - header.bottom) < 1 && Math.abs(r.bottom - innerHeight) < 1;
+    });
+    const swipe = async (dx: number, y: number, startX = dx < 0 ? 320 : 70, vertical = 0, reverse = false) => {
+      if (!vertical) await track.evaluate(element => {
+        element.setAttribute('data-test-scroll-settled', 'false');
+        const controller = new AbortController();
+        element.addEventListener('scrollend', event => {
+          if (event.target !== element) return;
+          element.setAttribute('data-test-scroll-settled', 'true');
+          controller.abort();
+        }, { signal: controller.signal });
+      });
+      if (browser.browserType().name() === 'chromium') {
+        const session = await page.context().newCDPSession(page);
+        await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: startX, y }] });
+        // Deliver physical touch movement across compositor frames, not coalesced into one frame.
+        for (const fraction of [.3, .65, 1]) {
+          await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+          await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: startX + dx * fraction, y: y + vertical * fraction }] });
+        }
+        await session.send('Input.dispatchTouchEvent', { type: reverse ? 'touchCancel' : 'touchEnd', touchPoints: [] });
+        await session.detach();
+      } else if (!reverse) {
+        // WebKit cannot inject native touch. Signal intent, then settle one page;
+        // Chromium above owns real touch arbitration and piano cancellation.
+        await track.dispatchEvent('wheel', { deltaX: -Math.sign(dx) });
+        await track.evaluate((element, dx) => element.scrollTo({ left: element.scrollLeft - Math.sign(dx) * element.clientWidth, behavior: 'instant' }), dx);
+      }
+      if (vertical) await page.waitForFunction(() => (document.querySelector('.swipe-pager-page:not([inert])')?.scrollTop ?? 0) > 0);
+      else await page.waitForFunction(() => document.querySelector('.swipe-pager')?.getAttribute('data-test-scroll-settled') === 'true');
+    };
+    const selected = async (pattern: string) => {
+      await page.waitForFunction(pattern => JSON.parse(localStorage.getItem('dorego.current') || '{}').pattern === pattern, pattern);
+      await page.waitForFunction(pattern => document.querySelector('.swipe-pager-page:not([inert])')?.getAttribute('data-page') === pattern, pattern);
+      assert.equal(await page.locator('#play').count(), 1, 'Only the active page owns playback controls');
+    };
+    await page.locator('#play').click();
+    await page.getByRole('button', { name: 'Pause', exact: true }).waitFor();
+    await swipe(-250, 720);
+    await selected('rossini');
+    assert.equal(await page.locator('#play').getAttribute('data-mode'), 'ready', 'Swiping stops the previous exercise without auto-playing the next');
+    if (browser.browserType().name() === 'chromium') {
+      await page.setViewportSize({ width: 390, height: 500 });
+      await page.waitForFunction(() => document.querySelector('.swipe-pager')!.getBoundingClientRect().bottom === innerHeight);
+      await swipe(0, 450, 195, -220);
+      await selected('rossini');
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.waitForFunction(() => document.querySelector('.swipe-pager-page:not([inert])')?.scrollTop === 0);
+    }
+
+    await openPracticeOptions(page);
+    assert.ok(await page.locator('#pitch-options').isHidden(), 'Mobile omits the redundant Pitch section');
+    assert.ok(await page.locator('#low-spin').isVisible() && await page.locator('#high-spin').isVisible(), 'Mobile range choices stay in the toolbar');
+    assert.equal(await track.evaluate(element => getComputedStyle(element).overflowX), 'hidden', 'Options block horizontal exercise navigation');
+    await closePracticeOptions(page);
+    await page.waitForFunction(() => !document.querySelector('.swipe-pager')?.hasAttribute('data-blocked'));
+    const firstPad = (await page.locator('[data-piano]').first().boundingBox())!;
+    await swipe(250, firstPad.y + firstPad.height / 2, firstPad.x + firstPad.width / 2);
+    await selected('octaveArpeggio');
+    assert.equal(await page.locator('.note-pad.is-held').count(), 0, 'A piano swipe releases its audition');
+    await swipe(-250, 720);
+    await selected('rossini');
+    if (browser.browserType().name() === 'chromium') {
+      await swipe(150, 720, 70, 0, true);
+      await page.waitForFunction(() => {
+        const track = document.querySelector('.swipe-pager')!;
+        return Math.abs(track.scrollLeft - track.clientWidth) < 1;
+      });
+      await selected('rossini');
+    }
+    await swipe(-250, 720);
+    await selected('pentatonic6');
+    await swipe(-250, 720);
+    await selected('fifthGlide');
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.waitForFunction(() => {
+      const track = document.querySelector('.swipe-pager')!;
+      return Math.abs(track.scrollLeft - 3 * track.clientWidth) < 1;
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForFunction(() => {
+      const track = document.querySelector('.swipe-pager')!;
+      return Math.abs(track.scrollLeft - 3 * track.clientWidth) < 1;
+    });
+    await selected('fifthGlide');
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('dorego.current')!));
+    for (const option of ['startingChords', 'repeatTwice', 'repeatTurn', 'repeatHome']) assert.equal(saved[option], true, 'Paging preserves ' + option);
+    await page.reload();
+    await waitForApp(page, '#play:enabled');
+    await selected('fifthGlide');
+    assert.equal(await page.locator('#play').getAttribute('data-mode'), 'ready', 'Restoring an exercise never starts playback');
+    assert.deepEqual(errors, []);
+  } catch (error) {
+    console.error(await page.evaluate(() => ({
+      pattern: JSON.parse(localStorage.getItem('dorego.current') || '{}').pattern,
+      scroll: document.querySelector('.swipe-pager')?.scrollLeft,
+      active: document.querySelector('.swipe-pager-page:not([inert])')?.getAttribute('data-page'),
+      blocked: document.querySelector('.swipe-pager')?.getAttribute('data-blocked'),
+      hit: document.elementFromPoint(320, 720)?.outerHTML.slice(0, 150),
+    })));
+    await captureFailure(browser, error);
+    throw error;
+  } finally {
     await page.close();
   }
 }
